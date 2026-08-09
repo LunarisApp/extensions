@@ -1,0 +1,11 @@
+{
+  "id": "example.notes",
+  "name": "Example Notes",
+  "description": "Example externally loaded Lunaris plugin",
+  "developer": "Example Developer",
+  "version": "1.0.0",
+  "sdk": "^0.0.1",
+  "modifications": [
+    { "type": "workspace-panel", "id": "example.notes" }
+  ]
+}
