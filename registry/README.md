@@ -17,12 +17,25 @@ before changing its build output.
 
 ## GitHub Pages setup
 
-The repository administrator must select **GitHub Actions** as the Pages
-source, verify `lunaris.app` for the `LunarisApp` organization, configure
-`plugins.lunaris.app` as the custom domain, point its DNS CNAME to
-`lunarisapp.github.io`, and enable HTTPS. The workflow retains the complete
-published tree on the `gh-pages` branch and deploys that tree through the Pages
-artifact workflow.
+GitHub Pages publishes from the root of the `gh-pages` branch. The repository
+administrator must select **Deploy from a branch** as the Pages source, verify
+`lunaris.app` for the `LunarisApp` organization, configure
+`plugins.lunaris.app` as the custom domain, and point its DNS CNAME to
+`lunarisapp.github.io`.
+
+To deploy manually, build and stage the plugin artifacts, run `publish.ts`
+against a checkout of `gh-pages`, commit and push that generated tree, then
+request the branch build:
+
+```sh
+PLUGIN_ARTIFACTS_DIR=plugin-artifacts \
+  REGISTRY_SITE_DIR=registry-site \
+  bun registry/publish.ts
+git -C registry-site add -A
+git -C registry-site commit -m "Publish plugin registry"
+git -C registry-site push origin gh-pages
+gh api --method POST repos/LunarisApp/plugins/pages/builds
+```
 
 Run the registry checks locally with:
 
