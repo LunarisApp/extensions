@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  create-plugin:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,3 +25,20 @@ jobs:
       - run: bun run check
       - run: bun run build
       - run: npm pack --dry-run
+
+  curated-plugins:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        plugin: [demo]
+    defaults:
+      run:
+        working-directory: plugins/${{ matrix.plugin }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run build

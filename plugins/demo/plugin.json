@@ -1,0 +1,14 @@
+{
+  "id": "lunaris.demo",
+  "name": "Demo",
+  "description": "A minimal workspace panel for testing Lunaris plugin loading.",
+  "developer": "Lunaris",
+  "version": "1.0.0",
+  "sdk": "^0.0.1",
+  "modifications": [
+    {
+      "id": "lunaris.demo",
+      "type": "workspace-panel"
+    }
+  ]
+}
