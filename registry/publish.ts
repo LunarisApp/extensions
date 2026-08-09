@@ -9,7 +9,6 @@ import {
   type PluginCatalogVersion,
   type PluginReleaseDescriptor,
   parsePluginCatalog,
-  parsePluginReleaseDescriptor,
 } from "@lunarisapp/plugin-sdk/catalog";
 import { rcompare } from "semver";
 import { readRegistryPolicy } from "./config.ts";
@@ -18,6 +17,7 @@ import {
   SITE_MAXIMUM_BYTES,
   SITE_WARNING_BYTES,
 } from "./constants.ts";
+import { parseStoredReleaseDescriptor } from "./release.ts";
 
 interface BuildMetadata {
   id: string;
@@ -191,7 +191,7 @@ async function readDescriptors(
       if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
       const version = entry.name.slice(0, -".json".length);
       descriptors.push(
-        parsePluginReleaseDescriptor(
+        parseStoredReleaseDescriptor(
           JSON.parse(
             await readFile(path.join(releaseRoot, id.name, entry.name), "utf8"),
           ),

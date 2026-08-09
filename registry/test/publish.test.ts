@@ -130,6 +130,52 @@ describe("registry publication", () => {
     expect(published.plugins[0]?.latestVersion).toBe("1.10.0");
   });
 
+  test("retains SDK 0.0.1 workspace-panel descriptors", async () => {
+    const value = await fixture();
+    const legacyDirectory = path.join(value.site, "releases/example.calendar");
+    const legacyFile = path.join(legacyDirectory, "0.9.0.json");
+    const legacyDescriptor = `${JSON.stringify(
+      {
+        manifest: {
+          ...manifest,
+          version: "0.9.0",
+          sdk: "^0.0.1",
+          modifications: [{ id: "example.calendar", type: "workspace-panel" }],
+        },
+        repository: "example/calendar",
+        script: {
+          bytes: 1,
+          contentType: "application/javascript; charset=utf-8",
+          sha256: "0".repeat(64),
+          url: "https://plugins.lunaris.app/legacy.js",
+        },
+        sdk: "^0.0.1",
+        status: "active",
+      },
+      null,
+      2,
+    )}\n`;
+    await mkdir(legacyDirectory, { recursive: true });
+    await writeFile(legacyFile, legacyDescriptor);
+
+    await publishRegistry({
+      artifacts: value.artifacts,
+      repositoryRoot: value.root,
+      site: value.site,
+    });
+
+    expect(
+      (await catalog(value.site)).plugins[0]?.versions.map((version) => ({
+        sdk: version.sdk,
+        version: version.version,
+      })),
+    ).toEqual([
+      { sdk: "^0.0.2", version: "1.0.0" },
+      { sdk: "^0.0.1", version: "0.9.0" },
+    ]);
+    expect(await readFile(legacyFile, "utf8")).toBe(legacyDescriptor);
+  });
+
   test("rejects changed bytes without a version bump", async () => {
     const value = await fixture();
     await publishRegistry({
