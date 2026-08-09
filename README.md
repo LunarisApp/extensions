@@ -12,7 +12,7 @@ The curated plugin registry and tools for building community plugins for
 
 Each curated plugin lives in its own directory under `plugins/` and follows the
 same structure as the canonical template. The initial registry fixture is
-[`demo`](./plugins/demo), a minimal workspace panel used to verify the plugin
+[`demo`](./plugins/demo), a minimal view used to verify the plugin
 build and loading pipeline.
 
 ## Published registry

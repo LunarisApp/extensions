@@ -4,8 +4,8 @@
   "description": "Example externally loaded Lunaris plugin",
   "developer": "Example Developer",
   "version": "1.0.0",
-  "sdk": "^0.0.1",
+  "sdk": "^0.0.2",
   "modifications": [
-    { "type": "workspace-panel", "id": "example.notes" }
+    { "type": "view", "id": "example.notes" }
   ]
 }

@@ -16,8 +16,8 @@ const manifest = {
   description: "A calendar plugin",
   developer: "Example",
   version: "1.0.0",
-  sdk: "^0.0.1",
-  modifications: [{ id: "example.calendar", type: "workspace-panel" as const }],
+  sdk: "^0.0.2",
+  modifications: [{ id: "example.calendar", type: "view" as const }],
 };
 
 async function fixture() {

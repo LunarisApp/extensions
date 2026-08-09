@@ -1,7 +1,7 @@
 # Demo
 
 Minimal curated plugin used to verify the Lunaris plugin build and loading
-pipeline. It contributes a workspace panel with a static greeting.
+pipeline. It contributes a view with a static greeting.
 
 ```sh
 bun install

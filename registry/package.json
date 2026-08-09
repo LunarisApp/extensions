@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lunarisapp/plugin-sdk": "^0.0.1",
+    "@lunarisapp/plugin-sdk": "^0.0.2",
     "semver": "^7.7.4"
   },
   "devDependencies": {
