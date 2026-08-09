@@ -6,7 +6,8 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LunarisApp/plugins.git"
+    "url": "git+https://github.com/LunarisApp/plugins.git",
+    "directory": "create-plugin"
   },
   "bin": {
     "create-plugin": "dist/index.js"
@@ -18,7 +19,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "bun build scripts/create-plugin.ts --target=node --outfile=dist/index.js && chmod +x dist/index.js",
+    "build": "bun build src/index.ts --target=node --outfile=dist/index.js && chmod +x dist/index.js",
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "prepack": "bun run build",

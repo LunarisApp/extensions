@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseArgs, resolvePluginOptions, scaffoldPlugin } from "./create-plugin.js";
+import { parseArgs, resolvePluginOptions, scaffoldPlugin } from "../src/index.js";
 
 const temporaryDirectories: string[] = [];
 
