@@ -75,6 +75,9 @@ describe("registry publication", () => {
     expect(descriptor.script.url).toMatch(
       /^https:\/\/plugins\.lunaris\.app\/artifacts\/example\.calendar\/1\.0\.0\/[a-f0-9]{64}\/main\.js$/,
     );
+    expect(descriptor.script.contentType).toBe(
+      "application/javascript; charset=utf-8",
+    );
   });
 
   test("is idempotent for an identical build", async () => {

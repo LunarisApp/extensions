@@ -134,7 +134,7 @@ async function publishBuild(
 
   const script = await publishAsset({
     baseUrl,
-    contentType: "text/javascript; charset=utf-8",
+    contentType: "application/javascript; charset=utf-8",
     directory,
     filename: "main.js",
     id: manifest.id,
