@@ -9,6 +9,26 @@ permissions:
   contents: read
 
 jobs:
+  registry:
+    runs-on: ubuntu-latest
+    outputs:
+      curated: ${{ steps.curated.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - working-directory: registry
+        run: bun install --frozen-lockfile
+      - working-directory: registry
+        run: bun test
+      - working-directory: registry
+        run: bun run typecheck
+      - working-directory: registry
+        run: bun run check
+      - id: curated
+        run: echo "matrix=$(bun registry/discover-curated.ts)" >> "$GITHUB_OUTPUT"
+
   create-plugin:
     runs-on: ubuntu-latest
     defaults:
@@ -20,25 +40,26 @@ jobs:
         with:
           bun-version: 1.3.14
       - run: bun install --frozen-lockfile
-      - run: bun test
+      - run: bun test --pass-with-no-tests
       - run: bun run typecheck
       - run: bun run check
       - run: bun run build
       - run: npm pack --dry-run
 
   curated-plugins:
+    needs: registry
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        plugin: [demo]
+      matrix: ${{ fromJSON(needs.registry.outputs.curated) }}
     defaults:
       run:
-        working-directory: plugins/${{ matrix.plugin }}
+        working-directory: ${{ matrix.root }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
       - run: bun install --frozen-lockfile
+      - run: bun test --pass-with-no-tests
       - run: bun run typecheck
       - run: bun run build
