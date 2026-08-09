@@ -4,7 +4,7 @@
   "description": "Example externally loaded Lunaris plugin",
   "developer": "Example Developer",
   "version": "1.0.0",
-  "sdk": "^0.1.0",
+  "sdk": "^0.0.2",
   "modifications": [
     { "type": "view", "id": "example.notes" }
   ]
