@@ -34,5 +34,5 @@ bun run build
 npm pack --dry-run
 ```
 
-The publishable package includes the compiled Node.js executable and
-`templates/plugin`.
+The build copies the repository's root [`template`](../template) into `dist/template`,
+so the published executable remains self-contained.

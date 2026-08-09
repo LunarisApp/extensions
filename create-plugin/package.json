@@ -14,12 +14,11 @@
   },
   "files": [
     "dist",
-    "templates/plugin",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --target=node --outfile=dist/index.js && chmod +x dist/index.js",
+    "build": "bun build src/index.ts --target=node --outfile=dist/index.js && rm -rf dist/template && cp -R ../template dist/template && chmod +x dist/index.js",
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "prepack": "bun run build",

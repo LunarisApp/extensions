@@ -173,16 +173,30 @@ async function writeJson(path: string, value: JsonObject): Promise<void> {
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+async function findTemplateDirectory(): Promise<string> {
+  const candidates = [
+    fileURLToPath(new URL("./template", import.meta.url)),
+    fileURLToPath(new URL("../../template", import.meta.url)),
+  ];
+
+  for (const candidate of candidates) {
+    if (await pathExists(candidate)) return candidate;
+  }
+
+  throw new Error("Bundled plugin template not found");
+}
+
 export async function scaffoldPlugin(
   options: PluginOptions,
-  templateDirectory = fileURLToPath(new URL("../templates/plugin", import.meta.url))
+  templateDirectory?: string
 ): Promise<void> {
-  if (!(await pathExists(templateDirectory))) {
-    throw new Error(`Bundled plugin template not found: ${templateDirectory}`);
+  const resolvedTemplateDirectory = templateDirectory ?? (await findTemplateDirectory());
+  if (!(await pathExists(resolvedTemplateDirectory))) {
+    throw new Error(`Bundled plugin template not found: ${resolvedTemplateDirectory}`);
   }
 
   await mkdir(dirname(options.directory), { recursive: true });
-  await copyTemplate(templateDirectory, options.directory);
+  await copyTemplate(resolvedTemplateDirectory, options.directory);
 
   const manifestPath = join(options.directory, "plugin.json");
   const manifest = await readJson(manifestPath);
