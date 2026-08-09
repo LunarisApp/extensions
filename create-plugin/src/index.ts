@@ -5,7 +5,7 @@ import { cp, lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 const PLUGIN_ID_PATTERN = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
 const MAX_PLUGIN_ID_LENGTH = 50;
 
@@ -204,7 +204,7 @@ export async function scaffoldPlugin(
   manifest.name = options.name;
   manifest.description = options.description;
   manifest.developer = options.developer;
-  manifest.modifications = [{ id: options.id, type: "workspace-panel" }];
+  manifest.modifications = [{ id: options.id, type: "view" }];
   await writeJson(manifestPath, manifest);
 
   const packagePath = join(options.directory, "package.json");

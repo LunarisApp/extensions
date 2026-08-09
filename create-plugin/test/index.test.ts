@@ -69,7 +69,7 @@ describe("scaffoldPlugin", () => {
       developer: "Acme",
       id: "acme.notes",
       name: "Acme Notes",
-      modifications: [{ id: "acme.notes", type: "workspace-panel" }],
+      modifications: [{ id: "acme.notes", type: "view" }],
     });
     expect(await readFile(join(target, "src/index.tsx"), "utf8")).toContain('id: "acme.notes"');
     const packageJson = JSON.parse(await readFile(join(target, "package.json"), "utf8"));

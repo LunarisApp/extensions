@@ -1,11 +1,11 @@
-import { definePlugin, defineWorkspacePanel } from "@lunarisapp/plugin-sdk";
+import { definePlugin, defineView } from "@lunarisapp/plugin-sdk";
 import { Note01Icon } from "@lunarisapp/ui/icons";
 import manifest from "../plugin.json";
 
 export default definePlugin({
   manifest,
   modifications: [
-    defineWorkspacePanel({
+    defineView({
       icon: Note01Icon,
       id: "lunaris.demo",
       name: "Demo",
