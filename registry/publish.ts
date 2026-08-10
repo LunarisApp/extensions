@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { validateManifest } from "@lunarisapp/plugin-sdk";
+import {
+  PLUGIN_SANDBOX_RUNTIME,
+  validateManifest,
+} from "@lunarisapp/plugin-sdk";
 import {
   type PluginAsset,
   type PluginCatalog,
@@ -25,6 +28,11 @@ interface BuildMetadata {
   version: string;
 }
 
+interface StoredRelease {
+  descriptor: PluginReleaseDescriptor;
+  sandboxRuntimeDeclared: boolean;
+}
+
 interface PublishOptions {
   allowFlagged?: boolean;
   artifacts: string;
@@ -41,6 +49,10 @@ async function exists(filename: string): Promise<boolean> {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
     throw error;
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 async function filesNamed(
@@ -165,6 +177,7 @@ async function publishBuild(
     ...(icon ? { icon } : {}),
     manifest,
     repository: metadata.repository,
+    runtime: PLUGIN_SANDBOX_RUNTIME,
     script,
     sdk: manifest.sdk,
     status: "active",
@@ -177,12 +190,10 @@ async function publishBuild(
   );
 }
 
-async function readDescriptors(
-  site: string,
-): Promise<PluginReleaseDescriptor[]> {
+async function readDescriptors(site: string): Promise<StoredRelease[]> {
   const releaseRoot = path.join(site, "releases");
   if (!(await exists(releaseRoot))) return [];
-  const descriptors: PluginReleaseDescriptor[] = [];
+  const descriptors: StoredRelease[] = [];
   for (const id of await readdir(releaseRoot, { withFileTypes: true })) {
     if (!id.isDirectory()) continue;
     for (const entry of await readdir(path.join(releaseRoot, id.name), {
@@ -190,29 +201,38 @@ async function readDescriptors(
     })) {
       if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
       const version = entry.name.slice(0, -".json".length);
-      descriptors.push(
-        parseStoredReleaseDescriptor(
-          JSON.parse(
-            await readFile(path.join(releaseRoot, id.name, entry.name), "utf8"),
-          ),
-          { id: id.name, version },
-        ),
+      const stored: unknown = JSON.parse(
+        await readFile(path.join(releaseRoot, id.name, entry.name), "utf8"),
       );
+      const runtime =
+        isRecord(stored) && isRecord(stored.runtime)
+          ? stored.runtime
+          : undefined;
+      descriptors.push({
+        descriptor: parseStoredReleaseDescriptor(stored, {
+          id: id.name,
+          version,
+        }),
+        sandboxRuntimeDeclared:
+          runtime?.kind === PLUGIN_SANDBOX_RUNTIME.kind &&
+          runtime.protocol === PLUGIN_SANDBOX_RUNTIME.protocol,
+      });
     }
   }
   return descriptors;
 }
 
 function buildCatalog(
-  descriptors: PluginReleaseDescriptor[],
+  descriptors: StoredRelease[],
   enabled: boolean,
   blockedVersions: Set<string>,
   baseUrl: string,
 ): PluginCatalog {
-  const grouped = new Map<string, PluginReleaseDescriptor[]>();
-  for (const descriptor of descriptors) {
+  const grouped = new Map<string, StoredRelease[]>();
+  for (const release of descriptors) {
+    const { descriptor } = release;
     const releases = grouped.get(descriptor.manifest.id) ?? [];
-    releases.push(descriptor);
+    releases.push(release);
     grouped.set(descriptor.manifest.id, releases);
   }
 
@@ -220,20 +240,31 @@ function buildCatalog(
   const observedBlockedVersions = new Set<string>();
   for (const [id, releases] of grouped) {
     releases.sort((left, right) =>
-      rcompare(left.manifest.version, right.manifest.version),
+      rcompare(
+        left.descriptor.manifest.version,
+        right.descriptor.manifest.version,
+      ),
     );
     const versions: PluginCatalogVersion[] = releases.map((release) => {
-      const key = `${id}@${release.manifest.version}`;
-      const blocked = blockedVersions.has(key);
-      if (blocked) observedBlockedVersions.add(key);
+      const { descriptor } = release;
+      const key = `${id}@${descriptor.manifest.version}`;
+      const policyBlocked = blockedVersions.has(key);
+      if (policyBlocked) observedBlockedVersions.add(key);
       return {
-        descriptorUrl: `${baseUrl}/releases/${id}/${release.manifest.version}.json`,
-        sdk: release.sdk,
-        status: blocked ? "blocked" : "active",
-        version: release.manifest.version,
+        descriptorUrl: `${baseUrl}/releases/${id}/${descriptor.manifest.version}.json`,
+        runtime: descriptor.runtime,
+        sdk: descriptor.sdk,
+        status:
+          policyBlocked || !release.sandboxRuntimeDeclared
+            ? "blocked"
+            : "active",
+        version: descriptor.manifest.version,
       };
     });
-    const current = releases[0];
+    const activeIndex = versions.findIndex(
+      (version) => version.status === "active",
+    );
+    const current = releases[activeIndex < 0 ? 0 : activeIndex]?.descriptor;
     if (!current) continue;
     plugins.push({
       description: current.manifest.description,

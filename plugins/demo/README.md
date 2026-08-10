@@ -9,5 +9,6 @@ bun run typecheck
 bun run build
 ```
 
-Community plugins run inside Lunaris without a sandbox. Keep source public and
-never request or transmit user data beyond the plugin's documented purpose.
+External plugins run in opaque-origin sandboxed iframes and reach Lunaris only
+through validated SDK capabilities. Keep source public and document every use
+of workspace data or host-proxied networking.

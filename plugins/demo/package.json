@@ -1,6 +1,6 @@
 {
   "name": "lunaris-plugin-demo",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lunarisapp/plugin-sdk": "^0.0.2",
+    "@lunarisapp/plugin-sdk": "^0.0.3",
     "@lunarisapp/ui": "^0.0.1",
     "react": "^19.2.8"
   },

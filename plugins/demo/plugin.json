@@ -3,8 +3,8 @@
   "name": "Demo",
   "description": "A minimal view for testing Lunaris plugin loading.",
   "developer": "Lunaris",
-  "version": "1.1.0",
-  "sdk": "^0.0.2",
+  "version": "1.1.1",
+  "sdk": "^0.0.3",
   "modifications": [
     {
       "id": "lunaris.demo",

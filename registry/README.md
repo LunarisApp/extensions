@@ -15,6 +15,11 @@ Community releases are discovered hourly from exact, non-draft GitHub release
 tags. A published ID and version is immutable; change the manifest version
 before changing its build output.
 
+Catalog v1 requires SDK `0.0.3` sandbox builds and publishes
+`{ "kind": "iframe", "protocol": 1 }` on every new descriptor and catalog
+version. Older stored releases remain listed as blocked so old and new clients
+fail closed until their owner selects a compatible patch release.
+
 ## GitHub Pages setup
 
 GitHub Pages publishes from the root of the `gh-pages` branch. The repository

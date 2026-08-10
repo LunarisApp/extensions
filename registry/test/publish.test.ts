@@ -16,7 +16,7 @@ const manifest = {
   description: "A calendar plugin",
   developer: "Example",
   version: "1.0.0",
-  sdk: "^0.0.2",
+  sdk: "^0.0.3",
   modifications: [{ id: "example.calendar", type: "view" as const }],
 };
 
@@ -78,6 +78,11 @@ describe("registry publication", () => {
     expect(descriptor.script.contentType).toBe(
       "application/javascript; charset=utf-8",
     );
+    expect(descriptor.runtime).toEqual({ kind: "iframe", protocol: 1 });
+    expect(published.plugins[0]?.versions[0]?.runtime).toEqual({
+      kind: "iframe",
+      protocol: 1,
+    });
   });
 
   test("is idempotent for an identical build", async () => {
@@ -130,7 +135,7 @@ describe("registry publication", () => {
     expect(published.plugins[0]?.latestVersion).toBe("1.10.0");
   });
 
-  test("retains SDK 0.0.1 workspace-panel descriptors", async () => {
+  test("blocks stored pre-sandbox descriptors", async () => {
     const value = await fixture();
     const legacyDirectory = path.join(value.site, "releases/example.calendar");
     const legacyFile = path.join(legacyDirectory, "0.9.0.json");
@@ -157,6 +162,28 @@ describe("registry publication", () => {
     )}\n`;
     await mkdir(legacyDirectory, { recursive: true });
     await writeFile(legacyFile, legacyDescriptor);
+    const preSandboxFile = path.join(legacyDirectory, "0.9.5.json");
+    const preSandboxDescriptor = `${JSON.stringify(
+      {
+        manifest: {
+          ...manifest,
+          version: "0.9.5",
+          sdk: "^0.0.2",
+        },
+        repository: "example/calendar",
+        script: {
+          bytes: 1,
+          contentType: "application/javascript; charset=utf-8",
+          sha256: "0".repeat(64),
+          url: "https://plugins.lunaris.app/pre-sandbox.js",
+        },
+        sdk: "^0.0.2",
+        status: "active",
+      },
+      null,
+      2,
+    )}\n`;
+    await writeFile(preSandboxFile, preSandboxDescriptor);
 
     await publishRegistry({
       artifacts: value.artifacts,
@@ -166,14 +193,33 @@ describe("registry publication", () => {
 
     expect(
       (await catalog(value.site)).plugins[0]?.versions.map((version) => ({
+        runtime: version.runtime,
         sdk: version.sdk,
+        status: version.status,
         version: version.version,
       })),
     ).toEqual([
-      { sdk: "^0.0.2", version: "1.0.0" },
-      { sdk: "^0.0.1", version: "0.9.0" },
+      {
+        runtime: { kind: "iframe", protocol: 1 },
+        sdk: "^0.0.3",
+        status: "active",
+        version: "1.0.0",
+      },
+      {
+        runtime: { kind: "iframe", protocol: 1 },
+        sdk: "^0.0.2",
+        status: "blocked",
+        version: "0.9.5",
+      },
+      {
+        runtime: { kind: "iframe", protocol: 1 },
+        sdk: "^0.0.1",
+        status: "blocked",
+        version: "0.9.0",
+      },
     ]);
     expect(await readFile(legacyFile, "utf8")).toBe(legacyDescriptor);
+    expect(await readFile(preSandboxFile, "utf8")).toBe(preSandboxDescriptor);
   });
 
   test("rejects changed bytes without a version bump", async () => {
