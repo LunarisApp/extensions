@@ -184,6 +184,30 @@ describe("registry publication", () => {
       2,
     )}\n`;
     await writeFile(preSandboxFile, preSandboxDescriptor);
+    await writeFile(
+      path.join(value.site, "catalog-v1.json"),
+      `${JSON.stringify({
+        enabled: true,
+        generatedAt: "2026-08-01T00:00:00.000Z",
+        plugins: [
+          {
+            ...manifest,
+            latestVersion: "0.9.5",
+            repository: "example/calendar",
+            versions: [
+              {
+                descriptorUrl:
+                  "https://plugins.lunaris.app/releases/example.calendar/0.9.5.json",
+                sdk: "^0.0.2",
+                status: "active",
+                version: "0.9.5",
+              },
+            ],
+          },
+        ],
+        schemaVersion: 1,
+      })}\n`,
+    );
 
     await publishRegistry({
       artifacts: value.artifacts,

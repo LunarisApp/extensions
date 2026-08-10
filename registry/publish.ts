@@ -303,17 +303,22 @@ async function writeCatalog(
 ): Promise<void> {
   const filename = path.join(site, "catalog-v1.json");
   if (await exists(filename)) {
-    const current = parsePluginCatalog(
-      JSON.parse(await readFile(filename, "utf8")),
-    );
+    const stored: unknown = JSON.parse(await readFile(filename, "utf8"));
+    let current: PluginCatalog | undefined;
+    try {
+      current = parsePluginCatalog(stored);
+    } catch {
+      current = undefined;
+    }
     const comparable = (value: PluginCatalog) => ({
       enabled: value.enabled,
       plugins: value.plugins,
       schemaVersion: value.schemaVersion,
     });
     if (
+      current &&
       JSON.stringify(comparable(current)) ===
-      JSON.stringify(comparable(catalog))
+        JSON.stringify(comparable(catalog))
     ) {
       return;
     }
