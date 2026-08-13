@@ -1,0 +1,15 @@
+{
+  "approved": true,
+  "direction": "Account ledger",
+  "seedKey": "cb5fe784",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "promptSummary": "A table-led SaaS operations console with a continuous metric register, compact revenue trend, dense customer ledger, and subordinate operations rail.",
+  "translationNotes": [
+    "Use the composition and density, not the generated customer count or claims.",
+    "Keep every company, metric, person, and event explicitly synthetic.",
+    "Implement the table, controls, chart, and feedback as semantic interactive code."
+  ]
+}
