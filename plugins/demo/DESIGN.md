@@ -2,19 +2,21 @@
 name: Demo
 description: A precise account ledger for synthetic SaaS operations.
 colors:
-  host-background: "var(--background, #f6f7f9)"
-  host-surface: "var(--card, #ffffff)"
-  graphite: "var(--foreground, #151923)"
-  muted-graphite: "var(--muted-foreground, #5c6472)"
-  rule: "var(--border, #dfe3e9)"
-  cobalt: "#0b63e5"
-  healthy: "#087b49"
-  watch: "#9b5c00"
-  risk: "#bc2435"
+  host-background: "var(--background, #ffffff)"
+  host-surface: "var(--background, #ffffff)"
+  graphite: "var(--foreground, #1c1917)"
+  muted-graphite: "var(--muted-foreground, #78716c)"
+  rule: "var(--border, #e7e5e4)"
+  action: "var(--primary, #292524)"
+  action-foreground: "var(--primary-foreground, #fafaf9)"
+  healthy: "#079455"
+  watch: "#b86400"
+  risk: "#d92d20"
+  shadow: "#000000"
 typography:
   title:
     fontFamily: "ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: "clamp(1.18rem, 2vw, 1.48rem)"
+    fontSize: "clamp(1.1rem, 2vw, 1.35rem)"
     fontWeight: 670
     lineHeight: 1.15
     letterSpacing: "-0.025em"
@@ -23,32 +25,48 @@ typography:
     fontSize: "0.8rem"
     fontWeight: 400
     lineHeight: 1.5
+  heading:
+    fontFamily: "ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 650
+    lineHeight: 1.35
   label:
     fontFamily: "ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: "0.68rem"
+    fontSize: "0.75rem"
     fontWeight: 650
     lineHeight: 1.25
+  micro:
+    fontFamily: "ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+    fontSize: "0.6875rem"
+    fontWeight: 500
+    lineHeight: 1.35
+  metric:
+    fontFamily: "ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 650
+    lineHeight: 1.2
 rounded:
   control: "9px"
   compact: "7px"
   surface: "11px"
+  pill: "999px"
 spacing:
   tight: "8px"
   control: "12px"
   section: "22px"
 components:
   button-primary:
-    backgroundColor: "{colors.cobalt}"
-    textColor: "#ffffff"
+    backgroundColor: "{colors.action}"
+    textColor: "{colors.action-foreground}"
     rounded: "{rounded.control}"
-    padding: "8px 13px"
-    height: "38px"
+    padding: "5px 10px"
+    height: "32px"
   input:
     backgroundColor: "{colors.host-surface}"
     textColor: "{colors.graphite}"
     rounded: "{rounded.control}"
-    padding: "0 11px"
-    height: "38px"
+    padding: "0 9px"
+    height: "32px"
 ---
 
 # Design System: Demo
@@ -64,19 +82,19 @@ make that ledger faster to interpret rather than to compete with it.
 **Key Characteristics:**
 
 - Continuous ruled surfaces instead of a grid of dashboard cards.
-- Graphite hierarchy with cobalt reserved for focus and primary action.
+- Lunaris host neutrals and primary action colors without a plugin accent layer.
 - Tabular numerals, compact labels, and restrained semantic status colors.
 - Synthetic-data language that stays visible without dominating the work.
 
 ## Colors
 
-Host background, surface, text, muted text, input, and border variables are the
-source of truth so the plugin follows Lunaris themes. Cobalt is the sole action
-accent; green, amber, and red communicate health only. Their foreground values
+Only variables forwarded by the Lunaris sandbox are used: background,
+foreground, muted, muted foreground, primary, primary foreground, border, and
+radius. Green, amber, and red communicate health only. Their foreground values
 mix toward the host foreground to remain legible in light and dark themes.
 
-**The Signal Color Rule.** Cobalt means interaction. Green, amber, and red mean
-state. Do not use them as decoration.
+**The Signal Color Rule.** Host primary means interaction. Green, amber, and red
+mean state. Do not use them as decoration.
 
 ## Typography
 
@@ -87,11 +105,11 @@ numerals.
 
 ## Layout
 
-The dashboard flows command bar → continuous metric register → filter strip →
-ledger with a 300px operations rail. At 1120px the rail moves below the table;
-at 820px metrics become a two-column register; at 560px controls stack and the
-table scrolls horizontally. The dossier uses a main narrative column and a
-narrow detail rail, collapsing to one column below 820px.
+The dashboard flows command bar → compact metric register → filter strip →
+disclosed session activity → full-width ledger. Below 920px metrics become a
+two-column register; below 680px controls wrap and the table scrolls
+horizontally. The dossier uses a main narrative column and a narrow detail rail,
+collapsing to one column below 920px.
 
 ## Elevation & Depth
 
@@ -107,13 +125,14 @@ stays square and continuous; never turn it into a floating rounded card.
 
 ## Components
 
-- **Metric register:** one ruled band with four definition-list values and a
-  compact, labeled revenue line chart.
+- **Metric register:** one compact ruled band with four definition-list values.
 - **Ledger table:** semantic table, uppercase compact headers, tabular values,
   monogram marks, and horizontally scrollable narrow-panel behavior.
 - **Status marks:** a dot-and-label health indicator plus small status pills.
 - **Action popover:** viewport-level temporary surface with ordinary buttons,
   Escape/outside dismissal, and focus restoration.
+- **Session activity:** a native disclosure keeps synthetic history available
+  without competing with the ledger.
 - **Dossier sections:** open ruled sections with no nested card stack; the
   account register and timeline carry the hierarchy.
 

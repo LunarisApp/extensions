@@ -3,7 +3,7 @@
   "name": "Demo",
   "description": "A synthetic SaaS operations console demonstrating Lunaris views and content types.",
   "developer": "Lunaris",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "sdk": "^0.0.3",
   "modifications": [
     {
