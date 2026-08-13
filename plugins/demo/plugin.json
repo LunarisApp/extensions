@@ -1,14 +1,18 @@
 {
   "id": "lunaris.demo",
   "name": "Demo",
-  "description": "A minimal view for testing Lunaris plugin loading.",
+  "description": "A synthetic SaaS operations console demonstrating Lunaris views and content types.",
   "developer": "Lunaris",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "sdk": "^0.0.3",
   "modifications": [
     {
       "id": "lunaris.demo",
       "type": "view"
+    },
+    {
+      "id": "lunaris.demo.customer-dossier",
+      "type": "content-type"
     }
   ]
 }

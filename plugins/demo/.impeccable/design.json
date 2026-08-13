@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-13T00:00:00.000Z",
+  "title": "Design System: Demo",
+  "extensions": {
+    "colorMeta": {
+      "host-background": { "role": "neutral", "displayName": "Host Canvas", "canonical": "var(--background, #f6f7f9)", "tonalRamp": ["#151923", "#303642", "#59616f", "#858c98", "#b3b8c1", "#d8dbe1", "#eef0f3", "#f6f7f9"] },
+      "host-surface": { "role": "neutral", "displayName": "Ledger Paper", "canonical": "var(--card, #ffffff)", "tonalRamp": ["#171a20", "#353941", "#5c616a", "#888d95", "#b9bdc3", "#dde0e4", "#f2f3f5", "#ffffff"] },
+      "cobalt": { "role": "primary", "displayName": "Operator Cobalt", "canonical": "#0b63e5", "tonalRamp": ["#071a36", "#082c61", "#09418f", "#0a55bd", "#2b75e9", "#70a3f0", "#b4cef7", "#edf4ff"] },
+      "healthy": { "role": "semantic", "displayName": "Healthy Green", "canonical": "#087b49", "tonalRamp": ["#08281c", "#08452c", "#08623b", "#087b49", "#3a996c", "#78b99a", "#b7dac8", "#edf8f2"] },
+      "watch": { "role": "semantic", "displayName": "Watch Amber", "canonical": "#9b5c00", "tonalRamp": ["#2d1c05", "#4c2d03", "#704200", "#9b5c00", "#bd7e27", "#d7a666", "#ecd2a8", "#fbf3e4"] },
+      "risk": { "role": "semantic", "displayName": "Risk Red", "canonical": "#bc2435", "tonalRamp": ["#380c13", "#5c111d", "#8d1929", "#bc2435", "#d75665", "#e58f99", "#f1c4c9", "#fcedef"] }
+    },
+    "typographyMeta": {
+      "title": { "displayName": "Operator Title", "purpose": "View and dossier titles." },
+      "body": { "displayName": "Workhorse Body", "purpose": "Controls, rows, and explanatory copy." },
+      "label": { "displayName": "Ledger Label", "purpose": "Table headers, metrics, and statuses." }
+    },
+    "shadows": [
+      { "name": "temporary-surface", "value": "0 16px 38px -18px color-mix(in srgb, var(--demo-ink) 55%, transparent)", "purpose": "Action popovers only." },
+      { "name": "protected-focus", "value": "0 30px 80px -34px rgba(13, 18, 30, 0.62)", "purpose": "Confirmation dialogs only." }
+    ],
+    "motion": [
+      { "name": "state-ease", "value": "160ms ease-out", "purpose": "Hover, notice, and focus-state transitions." }
+    ],
+    "breakpoints": [
+      { "name": "rail-stack", "value": "1120px" },
+      { "name": "compact", "value": "820px" },
+      { "name": "narrow", "value": "560px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single high-priority operator action.",
+      "html": "<button class=\"ds-primary\">Create sample dossier</button>",
+      "css": ".ds-primary{min-height:38px;padding:8px 13px;border:1px solid transparent;border-radius:9px;background:#0b63e5;color:#fff;font:650 .8rem ui-sans-serif,sans-serif}.ds-primary:hover{background:#0757ca}.ds-primary:focus-visible{outline:2px solid #0b63e5;outline-offset:2px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Compact ledger search control.",
+      "html": "<input class=\"ds-search\" placeholder=\"Search name, domain, or ID\">",
+      "css": ".ds-search{height:38px;width:280px;padding:0 11px;border:1px solid #d7dce4;border-radius:9px;background:#fff;color:#151923;font:.8rem ui-sans-serif,sans-serif}.ds-search:focus-visible{outline:2px solid #0b63e5;outline-offset:2px}"
+    },
+    {
+      "name": "Health Mark",
+      "kind": "chip",
+      "description": "State is communicated by a small dot and text, not a decorative fill.",
+      "html": "<span class=\"ds-health\"><i></i>At risk</span>",
+      "css": ".ds-health{display:inline-flex;align-items:center;gap:6px;color:#bc2435;font:640 .66rem ui-sans-serif,sans-serif}.ds-health i{width:7px;height:7px;border-radius:50%;background:currentColor}"
+    },
+    {
+      "name": "Account Row",
+      "kind": "custom",
+      "description": "The defining dense ledger unit.",
+      "html": "<div class=\"ds-row\"><b>AF</b><span><strong>Alder &amp; Finch Labs</strong><small>alder-finch.example.test</small></span><em>$24,500 / mo</em></div>",
+      "css": ".ds-row{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #dfe3e9;color:#151923;font:.74rem ui-sans-serif,sans-serif}.ds-row>b{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#eaf2ff;color:#0751bd}.ds-row span{display:flex;flex-direction:column;gap:4px}.ds-row small{color:#5c6472}.ds-row em{font-style:normal;font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Synthetic Badge",
+      "kind": "chip",
+      "description": "A persistent truth label for fixture content.",
+      "html": "<span class=\"ds-synthetic\">Synthetic demo data</span>",
+      "css": ".ds-synthetic{display:inline-flex;align-items:center;min-height:26px;padding:3px 9px;border:1px solid #82adea;border-radius:999px;background:#edf4ff;color:#0751bd;font:650 .72rem ui-sans-serif,sans-serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Account Ledger",
+    "overview": "Demo behaves like a live operating record: compact, ruled, and exact. The customer table is the visual anchor; metrics, filters, and activity exist to make that ledger faster to interpret rather than to compete with it.",
+    "keyCharacteristics": ["Continuous ruled surfaces", "Graphite hierarchy with cobalt focus", "Compact tabular data", "Explicit synthetic-data language"],
+    "rules": [
+      { "name": "The Signal Color Rule", "body": "Cobalt means interaction. Green, amber, and red mean state.", "section": "colors" }
+    ],
+    "dos": ["Do inherit host theme variables and provide explicit fallbacks.", "Do keep synthetic-data and session-local behavior plainly labeled.", "Do use semantic tables, controls, progress, dialogs, and live regions."],
+    "donts": ["Don't replace the ledger with equal-sized KPI cards or bento panels.", "Don't add gradients, glass, decorative charts, or image-native filler.", "Don't use status colors for generic emphasis or imply simulated data is live."]
+  }
+}
