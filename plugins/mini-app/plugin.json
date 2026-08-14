@@ -3,7 +3,7 @@
 	"name": "Mini Apps",
 	"description": "Run interactive, self-contained HTML apps in your project",
 	"developer": "Lunaris",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"sdk": "^0.0.4",
 	"modifications": [
 		{
