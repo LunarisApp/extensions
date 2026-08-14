@@ -24,7 +24,8 @@ Lunaris Mini App item.
 ## Supported capabilities
 
 - Standard HTML and inline CSS.
-- Inline JavaScript and DOM events.
+- JavaScript in inline `<script>` blocks and DOM events registered with
+  `addEventListener`.
 - Interactive controls, navigation, filtering, sorting, and disclosure patterns.
 - Canvas and inline SVG for visualizations, illustrations, games, or diagrams.
 - CSS transitions and animation that respect reduced-motion preferences.
@@ -44,7 +45,7 @@ The host renders the file with `iframe srcdoc`, an opaque origin, and sandbox
 permission `allow-scripts` only. It injects this CSP before uploaded content:
 
 ```text
-default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'
+default-src 'none'; script-src blob: 'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'
 ```
 
 Build around these limits:
@@ -55,6 +56,8 @@ Build around these limits:
 - No `fetch`, XHR, WebSocket, EventSource, `sendBeacon`, or network imports.
 - No iframes, embedded objects, workers, service workers, or WebAssembly.
 - No `eval` or `new Function`.
+- No inline event-handler attributes such as `onclick`. Register events with
+  `addEventListener` from a `<script>` block.
 - No form submission. Handle form-like interactions with JavaScript and call
   `preventDefault`; use `type="button"` for non-submit buttons.
 - No popups, downloads, external navigation, modal dialogs, or host bridge.

@@ -1,5 +1,7 @@
 import {
 	ContentRendererReady,
+	PLUGIN_SANDBOX_BOOTSTRAP_CSP,
+	PLUGIN_SANDBOX_BOOTSTRAP_SOURCE,
 	useFileAttachment,
 	useProjectItemName,
 	useUploadFileAttachment,
@@ -12,7 +14,8 @@ export const MINI_APP_ACCEPT = ".html,.htm,text/html";
 export const MINI_APP_MAX_BYTES = 5 * 1024 * 1024;
 export const MINI_APP_CSP = [
 	"default-src 'none'",
-	"script-src 'unsafe-inline'",
+	`script-src blob: ${PLUGIN_SANDBOX_BOOTSTRAP_CSP}`,
+	"script-src-attr 'none'",
 	"style-src 'unsafe-inline'",
 	"img-src data: blob:",
 	"font-src data:",
@@ -23,6 +26,64 @@ export const MINI_APP_CSP = [
 	"base-uri 'none'",
 	"form-action 'none'",
 ].join("; ");
+
+const MINI_APP_SCRIPT_ATTRIBUTE = "data-lunaris-mini-app-script";
+const JAVASCRIPT_MIME_TYPE = /^(?:application|text)\/(?:java|ecma)script$/;
+const MINI_APP_SCRIPT_RUNNER_SOURCE = `
+void (async () => {
+	const decode = (value) => Uint8Array.from(
+		atob(value),
+		(character) => character.charCodeAt(0),
+	);
+	const placeholders = Array.from(document.querySelectorAll(
+		"script[${MINI_APP_SCRIPT_ATTRIBUTE}]",
+	));
+	let heldDomContentLoaded = false;
+	const holdDomContentLoaded = (event) => {
+		heldDomContentLoaded = true;
+		event.stopImmediatePropagation();
+	};
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", holdDomContentLoaded, true);
+	}
+
+	for (const placeholder of placeholders) {
+		const script = document.createElement("script");
+		for (const { name, value } of Array.from(placeholder.attributes)) {
+			if (
+				name !== "type" &&
+				name !== "integrity" &&
+				name !== "nonce" &&
+				name !== "${MINI_APP_SCRIPT_ATTRIBUTE}"
+			) {
+				script.setAttribute(name, value);
+			}
+		}
+		const originalType = placeholder.getAttribute(
+			"${MINI_APP_SCRIPT_ATTRIBUTE}",
+		);
+		if (originalType) script.type = originalType;
+		script.async = false;
+		const scriptUrl = URL.createObjectURL(new Blob(
+			[decode(placeholder.textContent || "")],
+			{ type: "text/javascript" },
+		));
+		await new Promise((resolve) => {
+			script.onload = script.onerror = () => {
+				URL.revokeObjectURL(scriptUrl);
+				resolve();
+			};
+			script.src = scriptUrl;
+			placeholder.replaceWith(script);
+		});
+	}
+
+	document.removeEventListener("DOMContentLoaded", holdDomContentLoaded, true);
+	if (heldDomContentLoaded || document.readyState !== "loading") {
+		document.dispatchEvent(new Event("DOMContentLoaded", { bubbles: true }));
+	}
+})();`;
 
 const MINI_APP_PERMISSIONS_POLICY = [
 	"accelerometer 'none'",
@@ -57,6 +118,20 @@ type SourceState =
 	| { source: null; status: "error" | "loading" }
 	| { source: string; status: "ready" };
 
+function bytesToBase64(bytes: Uint8Array): string {
+	let binary = "";
+	for (let offset = 0; offset < bytes.byteLength; offset += 32_768) {
+		binary += String.fromCharCode(...bytes.subarray(offset, offset + 32_768));
+	}
+	return btoa(binary);
+}
+
+function isExecutableInlineScript(script: HTMLScriptElement): boolean {
+	if (script.hasAttribute("src")) return false;
+	const type = script.type.trim().toLowerCase();
+	return !type || type === "module" || JAVASCRIPT_MIME_TYPE.test(type);
+}
+
 function MiniAppArtwork() {
 	return (
 		<div aria-hidden="true" className="mini-app-artwork">
@@ -89,10 +164,49 @@ function UploadIcon() {
 
 export function buildMiniAppDocument(source: string) {
 	const document = new DOMParser().parseFromString(source, "text/html");
+	document
+		.querySelectorAll<HTMLMetaElement>("meta[http-equiv]")
+		.forEach((meta) => {
+			if (meta.httpEquiv.toLowerCase() === "content-security-policy") {
+				meta.remove();
+			}
+		});
+
 	const policy = document.createElement("meta");
 	policy.content = MINI_APP_CSP;
 	policy.httpEquiv = "Content-Security-Policy";
-	document.head.prepend(policy);
+
+	const inlineScripts = Array.from(document.scripts).filter(
+		isExecutableInlineScript,
+	);
+	for (const script of inlineScripts) {
+		const originalType = script.getAttribute("type") ?? "";
+		script.setAttribute(MINI_APP_SCRIPT_ATTRIBUTE, originalType);
+		script.type = "application/octet-stream";
+		script.textContent = bytesToBase64(
+			new TextEncoder().encode(script.textContent ?? ""),
+		);
+	}
+
+	if (inlineScripts.length > 0) {
+		const runnerPayload = document.createElement("script");
+		runnerPayload.id = "lunaris-plugin-script";
+		runnerPayload.type = "application/octet-stream";
+		runnerPayload.textContent = bytesToBase64(
+			new TextEncoder().encode(MINI_APP_SCRIPT_RUNNER_SOURCE),
+		);
+
+		const stylePayload = document.createElement("script");
+		stylePayload.id = "lunaris-plugin-style";
+		stylePayload.type = "application/octet-stream";
+
+		const bootstrap = document.createElement("script");
+		bootstrap.textContent = PLUGIN_SANDBOX_BOOTSTRAP_SOURCE;
+		document.head.prepend(policy, runnerPayload, stylePayload);
+		document.body.append(bootstrap);
+	} else {
+		document.head.prepend(policy);
+	}
 	return `<!doctype html>\n${document.documentElement.outerHTML}`;
 }
 

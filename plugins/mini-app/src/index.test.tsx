@@ -1,4 +1,8 @@
 import {
+	PLUGIN_SANDBOX_BOOTSTRAP_CSP,
+	PLUGIN_SANDBOX_BOOTSTRAP_SOURCE,
+} from "@lunarisapp/plugin-sdk";
+import {
 	cleanup,
 	fireEvent,
 	render,
@@ -27,6 +31,10 @@ let attachmentState: {
 
 vi.mock("@lunarisapp/plugin-sdk", () => ({
 	ContentRendererReady: ({ children }: { children?: ReactNode }) => children,
+	PLUGIN_SANDBOX_BOOTSTRAP_CSP:
+		"'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg='",
+	PLUGIN_SANDBOX_BOOTSTRAP_SOURCE:
+		'if(origin!=="null")throw new Error("Sandbox bootstrap requires an opaque origin");const decode=id=>Uint8Array.from(atob(document.getElementById(id)?.textContent||""),value=>value.charCodeAt(0));const style=document.createElement("style");style.textContent=new TextDecoder().decode(decode("lunaris-plugin-style"));document.head.append(style);const scriptUrl=URL.createObjectURL(new Blob([decode("lunaris-plugin-script")],{type:"text/javascript"}));const script=document.createElement("script");script.src=scriptUrl;script.onload=script.onerror=()=>URL.revokeObjectURL(scriptUrl);document.head.append(script);',
 	defineExternalContentType: (input: object) => ({
 		...input,
 		type: "content-type",
@@ -235,7 +243,7 @@ describe("Mini Apps plugin", () => {
 		expect(frame.getAttribute("allow")).toContain("camera 'none'");
 		expect(frame.getAttribute("allow")).toContain("fullscreen 'none'");
 		expect(frame.srcdoc).toContain(MINI_APP_CSP);
-		expect(frame.srcdoc).toContain("document.body.textContent='ok'");
+		expect(frame.srcdoc).toContain("data-lunaris-mini-app-script");
 	});
 
 	it("injects CSP before uploaded head content", () => {
@@ -251,6 +259,57 @@ describe("Mini Apps plugin", () => {
 			MINI_APP_CSP,
 		);
 		expect(MINI_APP_CSP).toContain("connect-src 'none'");
+		expect(MINI_APP_CSP).toContain(
+			`script-src blob: ${PLUGIN_SANDBOX_BOOTSTRAP_CSP}`,
+		);
+		expect(MINI_APP_CSP).not.toContain("script-src 'unsafe-inline'");
+	});
+
+	it("loads uploaded inline scripts through CSP-approved blob URLs", () => {
+		const result = buildMiniAppDocument(
+			'<script id="app" type="text/javascript">window.loaded = "✓"</script>',
+		);
+		const document = new DOMParser().parseFromString(result, "text/html");
+		const placeholder = document.querySelector(
+			"script[data-lunaris-mini-app-script]",
+		);
+		const bootstrap = Array.from(document.scripts).find(
+			(script) => script.textContent === PLUGIN_SANDBOX_BOOTSTRAP_SOURCE,
+		);
+
+		expect(placeholder?.getAttribute("type")).toBe("application/octet-stream");
+		expect(placeholder?.getAttribute("data-lunaris-mini-app-script")).toBe(
+			"text/javascript",
+		);
+		expect(
+			new TextDecoder().decode(
+				Uint8Array.from(atob(placeholder?.textContent ?? ""), (character) =>
+					character.charCodeAt(0),
+				),
+			),
+		).toBe('window.loaded = "✓"');
+		expect(document.querySelector("#lunaris-plugin-script")).not.toBeNull();
+		expect(bootstrap).not.toBeUndefined();
+	});
+
+	it("preserves data scripts and replaces uploaded CSP", () => {
+		const result = buildMiniAppDocument(
+			'<meta http-equiv="Content-Security-Policy" content="script-src *"><script type="application/json">{"ok":true}</script>',
+		);
+		const document = new DOMParser().parseFromString(result, "text/html");
+		const policies = document.querySelectorAll(
+			'meta[http-equiv="Content-Security-Policy"]',
+		);
+		const dataScript = document.querySelector(
+			'script[type="application/json"]',
+		);
+
+		expect(policies).toHaveLength(1);
+		expect(policies[0]?.getAttribute("content")).toBe(MINI_APP_CSP);
+		expect(dataScript?.textContent).toBe('{"ok":true}');
+		expect(dataScript?.hasAttribute("data-lunaris-mini-app-script")).toBe(
+			false,
+		);
 	});
 
 	it.each(["", "<main><p>Unclosed"])(
