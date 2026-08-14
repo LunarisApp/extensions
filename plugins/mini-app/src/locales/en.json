@@ -1,0 +1,28 @@
+{
+	"extensions": {
+		"plugins": {
+			"lunaris": {
+				"mini-app": {
+					"name": "Mini Apps",
+					"description": "Run interactive, self-contained HTML apps in your project"
+				}
+			}
+		}
+	},
+	"plugins": {
+		"miniApp": {
+			"chooseApp": "Choose app",
+			"downloadPending": "Downloading Mini App",
+			"downloadSource": "Download source",
+			"fileTooLarge": "Mini Apps must be 5 MB or smaller",
+			"frameTitle": "{{name}} Mini App",
+			"invalidFile": "Choose an HTML file",
+			"missingItem": "Mini App item not provided",
+			"onboardingDescription": "Upload a self-contained HTML file with everything it needs—HTML, CSS, and JavaScript.",
+			"onboardingTitle": "Bring your Mini App to life",
+			"sourceUnavailable": "Mini App source is unavailable",
+			"uploadFailed": "Mini App upload failed",
+			"uploading": "Uploading…"
+		}
+	}
+}

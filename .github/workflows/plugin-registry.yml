@@ -64,7 +64,11 @@ jobs:
       - working-directory: ${{ matrix.root }}
         run: bun install --frozen-lockfile
       - working-directory: ${{ matrix.root }}
-        run: bun test --pass-with-no-tests && bun run typecheck && bun audit --production && bun run build
+        run: |
+          if bun -e 'process.exit(require("./package.json").scripts?.test ? 0 : 1)'; then bun run test; fi
+          bun run typecheck
+          bun audit --production
+          bun run build
       - env:
           PLUGIN_DIST: ${{ matrix.root }}/dist
           PLUGIN_EXPECTED_ID: ${{ matrix.id }}
