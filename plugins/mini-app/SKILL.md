@@ -72,6 +72,35 @@ the HTML externally, but the user uploads it manually. To publish a revision,
 create a new Mini App item. The existing item retains its original downloadable
 source, and uploading never changes its hierarchy title.
 
+## Default visual direction
+
+Unless the user or subject calls for another style, start from Lunaris's Quiet
+Workbench direction:
+
+- Use warm paper, charcoal ink, and quiet stone surfaces. Reserve saturated
+  color for status, data, or one bounded illustration region; keep routine
+  chrome neutral.
+- Define semantic CSS custom properties for canvas, surface, muted surface,
+  text, muted text, border, focus, and danger. Supply coordinated light and dark
+  values with `prefers-color-scheme`.
+- Use a friendly system sans stack, `0.875rem` body text, and roughly `1.45`
+  line height. Build hierarchy with weight and spacing before scale; keep page
+  headings near `1.5rem` and section headings near `1.125rem`.
+- Follow a `0.25rem` spacing rhythm. Keep desktop controls compact at about
+  `2rem` high, then create calm with `1rem` to `1.5rem` gaps between groups.
+- Use a radius ladder: `0.5rem` to `0.625rem` for controls and about `0.875rem`
+  for containers. Reserve pills for badges, toggles, and circular controls.
+- Prefer hairline borders and tonal shifts over shadows. Add shadow only to
+  overlays, floating menus, or interactive lift.
+- Keep hover and pressed states restrained. Give keyboard focus a clear halo of
+  roughly `3px`, keep motion short, and disable nonessential motion under
+  `prefers-reduced-motion`.
+- Simplify into a direct stacked layout on narrow panels. Do not squeeze dense
+  desktop grids or sidebars into mobile widths.
+
+Treat these as defaults, not brand lock-in. User-provided visual direction and
+domain conventions take priority.
+
 ## Implementation guidance
 
 - Use semantic elements and explicit `<label>` associations.
