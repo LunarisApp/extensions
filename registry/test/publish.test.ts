@@ -13,10 +13,10 @@ afterEach(removeTemporaryDirectories);
 const manifest = {
   id: "example.calendar",
   name: "Calendar",
-  description: "A calendar plugin",
+  description: "A calendar extension",
   developer: "Example",
   version: "1.0.0",
-  sdk: "^0.0.3",
+  sdk: "^0.0.4",
   modifications: [{ id: "example.calendar", type: "view" as const }],
 };
 
@@ -31,10 +31,10 @@ async function fixture() {
     `${JSON.stringify({ enabled: true, blockedVersions: [] })}\n`,
   );
   await writeFile(
-    path.join(artifacts, "plugin.json"),
+    path.join(artifacts, "manifest.json"),
     JSON.stringify(manifest),
   );
-  await writeFile(path.join(artifacts, "main.js"), "plugin source\n");
+  await writeFile(path.join(artifacts, "main.js"), "extension source\n");
   await writeFile(
     path.join(artifacts, "registry-release.json"),
     JSON.stringify({
@@ -106,15 +106,45 @@ describe("registry publication", () => {
     ).toBe(before);
   });
 
+  test("updates the registry landing page deterministically", async () => {
+    const value = await fixture();
+    await mkdir(value.site, { recursive: true });
+    await writeFile(
+      path.join(value.site, "index.html"),
+      "<h1>Lunaris plugin registry</h1>\n",
+    );
+    await publishRegistry({
+      artifacts: value.artifacts,
+      repositoryRoot: value.root,
+      site: value.site,
+    });
+    expect(await readFile(path.join(value.site, "index.html"), "utf8")).toBe(
+      '<!doctype html><meta charset="utf-8"><title>Lunaris extension registry</title><h1>Lunaris extension registry</h1><p><a href="/catalog-v1.json">Open the catalog</a></p>\n',
+    );
+  });
+
+  test("rejects legacy manifests", async () => {
+    const value = await fixture();
+    const staged = path.join(value.artifacts, "calendar");
+    await writeFile(path.join(staged, "plugin.json"), JSON.stringify(manifest));
+    await expect(
+      publishRegistry({
+        artifacts: value.artifacts,
+        repositoryRoot: value.root,
+        site: value.site,
+      }),
+    ).rejects.toThrow("Legacy plugin.json is not supported");
+  });
+
   test("orders published versions by semantic version", async () => {
     const value = await fixture();
     const newer = path.join(value.artifacts, "calendar-newer");
     await mkdir(newer, { recursive: true });
     await writeFile(
-      path.join(newer, "plugin.json"),
+      path.join(newer, "manifest.json"),
       JSON.stringify({ ...manifest, version: "1.10.0" }),
     );
-    await writeFile(path.join(newer, "main.js"), "newer plugin source\n");
+    await writeFile(path.join(newer, "main.js"), "newer extension source\n");
     await writeFile(
       path.join(newer, "registry-release.json"),
       JSON.stringify({
@@ -225,7 +255,7 @@ describe("registry publication", () => {
     ).toEqual([
       {
         runtime: { kind: "iframe", protocol: 1 },
-        sdk: "^0.0.3",
+        sdk: "^0.0.4",
         status: "active",
         version: "1.0.0",
       },
@@ -255,7 +285,7 @@ describe("registry publication", () => {
     });
     await writeFile(
       path.join(value.artifacts, "calendar/main.js"),
-      "different plugin source\n",
+      "different extension source\n",
     );
     await expect(
       publishRegistry({

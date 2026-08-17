@@ -1,4 +1,4 @@
-import { readCommunityPlugins } from "./config.ts";
+import { readCommunityExtensions } from "./config.ts";
 import { DEFAULT_REGISTRY_BASE_URL } from "./constants.ts";
 
 interface GithubRelease {
@@ -13,9 +13,9 @@ const baseUrl = (
 ).replace(/\/$/, "");
 const releases: Array<{ id: string; repository: string; tag: string }> = [];
 
-for (const plugin of await readCommunityPlugins()) {
+for (const extension of await readCommunityExtensions()) {
   const response = await fetch(
-    `https://api.github.com/repos/${plugin.repository}/releases?per_page=100`,
+    `https://api.github.com/repos/${extension.repository}/releases?per_page=100`,
     {
       headers: {
         Accept: "application/vnd.github+json",
@@ -26,20 +26,20 @@ for (const plugin of await readCommunityPlugins()) {
   );
   if (!response.ok) {
     throw new Error(
-      `Could not inspect ${plugin.repository} (${response.status})`,
+      `Could not inspect ${extension.repository} (${response.status})`,
     );
   }
   for (const release of (await response.json()) as GithubRelease[]) {
     if (release.draft || release.prerelease) continue;
     const descriptor = await fetch(
-      `${baseUrl}/releases/${encodeURIComponent(plugin.id)}/${encodeURIComponent(release.tag_name)}.json`,
+      `${baseUrl}/releases/${encodeURIComponent(extension.id)}/${encodeURIComponent(release.tag_name)}.json`,
       { method: "HEAD", redirect: "follow" },
     );
     if (descriptor.status === 404) {
-      releases.push({ ...plugin, tag: release.tag_name });
+      releases.push({ ...extension, tag: release.tag_name });
     } else if (!descriptor.ok) {
       throw new Error(
-        `Could not inspect published release ${plugin.id}@${release.tag_name} (${descriptor.status})`,
+        `Could not inspect published release ${extension.id}@${release.tag_name} (${descriptor.status})`,
       );
     }
   }

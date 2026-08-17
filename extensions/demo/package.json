@@ -1,10 +1,11 @@
 {
-  "name": "lunaris-extension-example",
-  "version": "1.0.0",
+  "name": "lunaris-extension-demo",
+  "version": "1.2.2",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "bunx --bun vite build",
+    "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -29,11 +29,11 @@ jobs:
       - id: curated
         run: echo "matrix=$(bun registry/discover-curated.ts)" >> "$GITHUB_OUTPUT"
 
-  create-plugin:
+  create-extension:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: create-plugin
+        working-directory: create-extension
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -47,7 +47,7 @@ jobs:
       - run: bun run build
       - run: npm pack --dry-run
 
-  curated-plugins:
+  curated-extensions:
     needs: registry
     runs-on: ubuntu-latest
     strategy:

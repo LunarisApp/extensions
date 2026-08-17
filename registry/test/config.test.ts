@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { readCommunityPlugins, readRegistryPolicy } from "../config.ts";
+import { readCommunityExtensions, readRegistryPolicy } from "../config.ts";
 import {
   makeTemporaryDirectory,
   removeTemporaryDirectories,
@@ -20,26 +20,26 @@ async function writeJson(root: string, filename: string, value: unknown) {
 describe("registry configuration", () => {
   test("reads reviewed community repositories", async () => {
     const root = await makeTemporaryDirectory();
-    await writeJson(root, "community-plugins.json", {
-      plugins: [{ id: "example.calendar", repository: "example/calendar" }],
+    await writeJson(root, "community-extensions.json", {
+      extensions: [{ id: "example.calendar", repository: "example/calendar" }],
     });
-    expect(await readCommunityPlugins(root)).toEqual([
+    expect(await readCommunityExtensions(root)).toEqual([
       { id: "example.calendar", repository: "example/calendar" },
     ]);
   });
 
   test("rejects duplicate community IDs", async () => {
     const root = await makeTemporaryDirectory();
-    await writeJson(root, "community-plugins.json", {
-      plugins: [
+    await writeJson(root, "community-extensions.json", {
+      extensions: [
         { id: "example.calendar", repository: "example/one" },
         { id: "example.calendar", repository: "example/two" },
       ],
     });
-    await expect(readCommunityPlugins(root)).rejects.toThrow("Duplicate");
+    await expect(readCommunityExtensions(root)).rejects.toThrow("Duplicate");
   });
 
-  test("validates blocked plugin versions", async () => {
+  test("validates blocked extension versions", async () => {
     const root = await makeTemporaryDirectory();
     await writeJson(root, "policy.json", {
       enabled: false,

@@ -1,5 +1,5 @@
 {
-  "name": "@lunarisapp/plugin-registry-tools",
+  "name": "@lunarisapp/extension-registry-tools",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lunarisapp/plugin-sdk": "^0.0.3",
+    "@lunarisapp/plugin-sdk": "^0.1.0",
     "semver": "^7.7.4"
   },
   "devDependencies": {

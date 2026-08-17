@@ -1,0 +1,28 @@
+{
+	"extensions": {
+		"catalog": {
+			"lunaris": {
+				"mini-app": {
+					"name": "Mini-apps",
+					"description": "Exécutez des applications HTML interactives et autonomes dans votre projet"
+				}
+			}
+		}
+	},
+	"miniAppExtension": {
+		"miniApp": {
+			"chooseApp": "Choisir une app",
+			"downloadPending": "Téléchargement de la mini-app",
+			"downloadSource": "Télécharger la source",
+			"fileTooLarge": "Les mini-apps doivent faire 5 Mo maximum",
+			"frameTitle": "Mini-app {{name}}",
+			"invalidFile": "Choisissez un fichier HTML",
+			"missingItem": "Élément de mini-app manquant",
+			"onboardingDescription": "Importez un fichier HTML autonome contenant tout ce dont il a besoin : HTML, CSS et JavaScript.",
+			"onboardingTitle": "Donnez vie à votre mini-app",
+			"sourceUnavailable": "La source de la mini-app est indisponible",
+			"uploadFailed": "Échec de l’importation de la mini-app",
+			"uploading": "Importation…"
+		}
+	}
+}
