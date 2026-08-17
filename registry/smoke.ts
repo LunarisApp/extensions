@@ -50,11 +50,11 @@ async function verifyAsset(asset: PluginAsset): Promise<void> {
 
 const catalogResponse = await checkedFetch(`${baseUrl}/catalog-v1.json`);
 const catalog = parsePluginCatalog(await catalogResponse.json());
-for (const plugin of catalog.plugins) {
-  for (const version of plugin.versions) {
+for (const extension of catalog.plugins) {
+  for (const version of extension.versions) {
     const response = await checkedFetch(version.descriptorUrl);
     const descriptor = parseStoredReleaseDescriptor(await response.json(), {
-      id: plugin.id,
+      id: extension.id,
       version: version.version,
     });
     await verifyAsset(descriptor.script);
@@ -63,5 +63,5 @@ for (const plugin of catalog.plugins) {
   }
 }
 process.stdout.write(
-  `Verified ${catalog.plugins.length} plugins from ${baseUrl}\n`,
+  `Verified ${catalog.plugins.length} extensions from ${baseUrl}\n`,
 );

@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { valid } from "semver";
-import { PLUGIN_ID_PATTERN, REPOSITORY_PATTERN } from "./constants.ts";
+import { EXTENSION_ID_PATTERN, REPOSITORY_PATTERN } from "./constants.ts";
 
-export interface CommunityPlugin {
+export interface CommunityExtension {
   id: string;
   repository: string;
 }
@@ -13,24 +13,29 @@ export interface RegistryPolicy {
   enabled: boolean;
 }
 
-export async function readCommunityPlugins(
+export async function readCommunityExtensions(
   root = process.cwd(),
-): Promise<CommunityPlugin[]> {
+): Promise<CommunityExtension[]> {
   const value = JSON.parse(
-    await readFile(path.join(root, "registry/community-plugins.json"), "utf8"),
-  ) as { plugins?: unknown };
-  if (!Array.isArray(value.plugins)) {
-    throw new Error("community-plugins.json must contain a plugins array");
+    await readFile(
+      path.join(root, "registry/community-extensions.json"),
+      "utf8",
+    ),
+  ) as { extensions?: unknown };
+  if (!Array.isArray(value.extensions)) {
+    throw new Error(
+      "community-extensions.json must contain an extensions array",
+    );
   }
 
   const ids = new Set<string>();
-  return value.plugins.map((candidate) => {
+  return value.extensions.map((candidate) => {
     if (!candidate || typeof candidate !== "object") {
-      throw new Error("Community plugin entries must be objects");
+      throw new Error("Community extension entries must be objects");
     }
     const { id, repository } = candidate as Record<string, unknown>;
-    if (typeof id !== "string" || !PLUGIN_ID_PATTERN.test(id)) {
-      throw new Error(`Invalid community plugin ID: ${String(id)}`);
+    if (typeof id !== "string" || !EXTENSION_ID_PATTERN.test(id)) {
+      throw new Error(`Invalid community extension ID: ${String(id)}`);
     }
     if (
       typeof repository !== "string" ||
@@ -38,7 +43,7 @@ export async function readCommunityPlugins(
     ) {
       throw new Error(`Invalid GitHub repository: ${String(repository)}`);
     }
-    if (ids.has(id)) throw new Error(`Duplicate community plugin ID: ${id}`);
+    if (ids.has(id)) throw new Error(`Duplicate community extension ID: ${id}`);
     ids.add(id);
     return { id, repository };
   });
@@ -63,8 +68,8 @@ export async function readRegistryPolicy(
     const separator = candidate.lastIndexOf("@");
     const id = candidate.slice(0, separator);
     const version = candidate.slice(separator + 1);
-    if (!PLUGIN_ID_PATTERN.test(id) || valid(version) === null) {
-      throw new Error(`Invalid blocked plugin version: ${candidate}`);
+    if (!EXTENSION_ID_PATTERN.test(id) || valid(version) === null) {
+      throw new Error(`Invalid blocked extension version: ${candidate}`);
     }
     return candidate;
   });

@@ -1,0 +1,14 @@
+{
+  "id": "lunaris.mini-app",
+  "name": "Mini Apps",
+  "developer": "Lunaris",
+  "version": "1.0.3",
+  "sdk": "^0.0.4",
+  "description": "Run interactive, self-contained HTML apps in your project",
+  "modifications": [
+    {
+      "id": "lunaris.mini-app",
+      "type": "content-type"
+    }
+  ]
+}

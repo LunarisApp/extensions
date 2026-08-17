@@ -3,7 +3,7 @@ import {
   defineExternalView,
 } from "@lunarisapp/plugin-sdk";
 import { Note01Icon } from "@lunarisapp/ui/icons";
-import manifest from "../plugin.json";
+import manifest from "../manifest.json";
 
 export default defineExternalPlugin({
   manifest,
@@ -12,7 +12,7 @@ export default defineExternalPlugin({
       icon: Note01Icon,
       id: "example.notes",
       name: "Example Notes",
-      renderer: () => <div className="p-4">Hello from an external plugin.</div>,
+      renderer: () => <div className="p-4">Hello from an external extension.</div>,
     }),
   ],
 });

@@ -8,23 +8,37 @@ import {
   REPOSITORY_PATTERN,
 } from "./constants.ts";
 
-const directory = path.resolve(process.env.PLUGIN_DIST ?? "dist");
-const repository = process.env.PLUGIN_REPOSITORY;
-const expectedId = process.env.PLUGIN_EXPECTED_ID;
-const expectedVersion = process.env.PLUGIN_EXPECTED_VERSION;
+const directory = path.resolve(process.env.EXTENSION_DIST ?? "dist");
+const repository = process.env.EXTENSION_REPOSITORY;
+const expectedId = process.env.EXTENSION_EXPECTED_ID;
+const expectedVersion = process.env.EXTENSION_EXPECTED_VERSION;
 if (!repository || !REPOSITORY_PATTERN.test(repository)) {
-  throw new Error("PLUGIN_REPOSITORY must be an owner/repository pair");
+  throw new Error("EXTENSION_REPOSITORY must be an owner/repository pair");
+}
+
+async function exists(filename: string): Promise<boolean> {
+  try {
+    await stat(filename);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
+}
+
+if (await exists(path.join(directory, "plugin.json"))) {
+  throw new Error("Legacy plugin.json is not supported; use manifest.json");
 }
 
 const manifest = validateManifest(
-  JSON.parse(await readFile(path.join(directory, "plugin.json"), "utf8")),
+  JSON.parse(await readFile(path.join(directory, "manifest.json"), "utf8")),
 );
 if (expectedId && manifest.id !== expectedId) {
-  throw new Error(`Plugin ID "${manifest.id}" must match "${expectedId}"`);
+  throw new Error(`Extension ID "${manifest.id}" must match "${expectedId}"`);
 }
 if (expectedVersion && manifest.version !== expectedVersion) {
   throw new Error(
-    `Plugin version "${manifest.version}" must match "${expectedVersion}"`,
+    `Extension version "${manifest.version}" must match "${expectedVersion}"`,
   );
 }
 

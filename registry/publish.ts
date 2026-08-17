@@ -128,8 +128,11 @@ async function publishBuild(
   const metadata = JSON.parse(
     await readFile(metadataFile, "utf8"),
   ) as BuildMetadata;
+  if (await exists(path.join(directory, "plugin.json"))) {
+    throw new Error("Legacy plugin.json is not supported; use manifest.json");
+  }
   const manifest = validateManifest(
-    JSON.parse(await readFile(path.join(directory, "plugin.json"), "utf8")),
+    JSON.parse(await readFile(path.join(directory, "manifest.json"), "utf8")),
   );
   if (manifest.id !== metadata.id || manifest.version !== metadata.version) {
     throw new Error(`Staged release identity mismatch for ${metadata.id}`);
@@ -236,7 +239,7 @@ function buildCatalog(
     grouped.set(descriptor.manifest.id, releases);
   }
 
-  const plugins: PluginCatalogEntry[] = [];
+  const extensions: PluginCatalogEntry[] = [];
   const observedBlockedVersions = new Set<string>();
   for (const [id, releases] of grouped) {
     releases.sort((left, right) =>
@@ -266,7 +269,7 @@ function buildCatalog(
     );
     const current = releases[activeIndex < 0 ? 0 : activeIndex]?.descriptor;
     if (!current) continue;
-    plugins.push({
+    extensions.push({
       description: current.manifest.description,
       developer: current.manifest.developer,
       id,
@@ -288,11 +291,11 @@ function buildCatalog(
       `Policy blocks unpublished versions: ${unknownBlockedVersions.join(", ")}`,
     );
   }
-  plugins.sort((left, right) => left.name.localeCompare(right.name));
+  extensions.sort((left, right) => left.name.localeCompare(right.name));
   return parsePluginCatalog({
     enabled,
     generatedAt: new Date().toISOString(),
-    plugins,
+    plugins: extensions,
     schemaVersion: 1,
   });
 }
@@ -364,13 +367,10 @@ export async function publishRegistry({
     normalizedBaseUrl,
   );
   await writeCatalog(site, catalog);
-  const index = path.join(site, "index.html");
-  if (!(await exists(index))) {
-    await writeFile(
-      index,
-      '<!doctype html><meta charset="utf-8"><title>Lunaris plugin registry</title><h1>Lunaris plugin registry</h1><p><a href="/catalog-v1.json">Open the catalog</a></p>\n',
-    );
-  }
+  await writeFile(
+    path.join(site, "index.html"),
+    '<!doctype html><meta charset="utf-8"><title>Lunaris extension registry</title><h1>Lunaris extension registry</h1><p><a href="/catalog-v1.json">Open the catalog</a></p>\n',
+  );
 
   const bytes = await siteBytes(site);
   if (bytes >= SITE_MAXIMUM_BYTES) {
@@ -389,7 +389,7 @@ if (import.meta.main) {
   await publishRegistry({
     allowFlagged: process.env.ALLOW_FLAGGED === "true",
     artifacts: path.resolve(
-      process.env.PLUGIN_ARTIFACTS_DIR ?? "plugin-artifacts",
+      process.env.EXTENSION_ARTIFACTS_DIR ?? "extension-artifacts",
     ),
     baseUrl: process.env.REGISTRY_BASE_URL,
     repositoryRoot: path.resolve(process.env.REGISTRY_REPOSITORY_ROOT ?? "."),
