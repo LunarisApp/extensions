@@ -1,0 +1,18 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "links": {
+          "name": "Links",
+          "description": "Save browser links in your project and open them in a panel"
+        }
+      }
+    }
+  },
+  "linksExtension": {
+    "link": {
+      "browserTitle": "Link",
+      "openInPanel": "Open in panel"
+    }
+  }
+}
