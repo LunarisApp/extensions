@@ -22,6 +22,7 @@ let locale = "en";
 let attachmentState: {
 	attachment: null | {
 		hasSynced: boolean;
+		id: string;
 		localUri: string | null;
 		status: "queued-download" | "queued-upload" | "synced";
 	};
@@ -78,7 +79,7 @@ describe("Mini Apps extension", () => {
 		expect(extension.manifest).toMatchObject({
 			id: "lunaris.mini-app",
 			sdk: "^0.0.4",
-			version: "1.0.3",
+			version: "1.0.4",
 		});
 		expect(miniAppContentType).toMatchObject({
 			createLabel: "Mini App",
@@ -208,7 +209,12 @@ describe("Mini Apps extension", () => {
 		expect(screen.getByRole("button", { name: "Choose app" })).not.toBeNull();
 
 		attachmentState = {
-			attachment: { hasSynced: true, localUri: "local", status: "synced" },
+			attachment: {
+				hasSynced: true,
+				id: "att_1",
+				localUri: "local",
+				status: "synced",
+			},
 			metadata: { filename: "app.html" },
 			objectUrl: "blob:app",
 		};
@@ -220,7 +226,12 @@ describe("Mini Apps extension", () => {
 
 	it("renders source with the inner sandbox policy and attributes", async () => {
 		attachmentState = {
-			attachment: { hasSynced: true, localUri: "local", status: "synced" },
+			attachment: {
+				hasSynced: true,
+				id: "att_1",
+				localUri: "local",
+				status: "synced",
+			},
 			metadata: { filename: "app.html" },
 			objectUrl: "blob:app",
 		};
@@ -244,6 +255,32 @@ describe("Mini Apps extension", () => {
 		expect(frame.getAttribute("allow")).toContain("fullscreen 'none'");
 		expect(frame.srcdoc).toContain(MINI_APP_CSP);
 		expect(frame.srcdoc).toContain("data-lunaris-mini-app-script");
+	});
+
+	it("keeps the app mounted when the sandbox rotates its object URL", async () => {
+		attachmentState = {
+			attachment: {
+				hasSynced: true,
+				id: "att_1",
+				localUri: "local",
+				status: "synced",
+			},
+			metadata: { filename: "app.html" },
+			objectUrl: "blob:first",
+		};
+		const fetchMock = vi.fn(() =>
+			Promise.resolve(new Response("<main>Stable</main>")),
+		);
+		vi.stubGlobal("fetch", fetchMock);
+
+		const view = render(<MiniAppViewer itemId="item_1" />);
+		const frame = await screen.findByTitle("Budget Mini App");
+
+		attachmentState = { ...attachmentState, objectUrl: "blob:second" };
+		view.rerender(<MiniAppViewer itemId="item_1" />);
+
+		expect(await screen.findByTitle("Budget Mini App")).toBe(frame);
+		expect(fetchMock).toHaveBeenCalledTimes(1);
 	});
 
 	it("injects CSP before uploaded head content", () => {
@@ -332,7 +369,7 @@ describe("Mini Apps extension", () => {
 		"shows the source state for %s attachments",
 		(status, localUri, title) => {
 			attachmentState = {
-				attachment: { hasSynced: true, localUri, status },
+				attachment: { hasSynced: true, id: "att_1", localUri, status },
 				metadata: { filename: "app.html" },
 				objectUrl: null,
 			};

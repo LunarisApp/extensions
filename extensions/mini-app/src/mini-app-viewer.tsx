@@ -210,23 +210,33 @@ export function buildMiniAppDocument(source: string) {
 	return `<!doctype html>\n${document.documentElement.outerHTML}`;
 }
 
-function useMiniAppSource(objectUrl: string | null): SourceState {
+function useMiniAppSource(
+	attachmentId: string | null,
+	objectUrl: string | null,
+): SourceState {
 	const [state, setState] = useState<SourceState>({
 		source: null,
 		status: "loading",
 	});
+	const requestedAttachmentRef = useRef<string | null>(null);
 
 	useEffect(() => {
-		let cancelled = false;
+		if (!attachmentId || !objectUrl) {
+			requestedAttachmentRef.current = null;
+			setState({ source: null, status: "loading" });
+			return;
+		}
+		if (requestedAttachmentRef.current === attachmentId) return;
+
+		requestedAttachmentRef.current = attachmentId;
 		setState({ source: null, status: "loading" });
-		if (!objectUrl) return;
 
 		void fetch(objectUrl)
 			.then((response) => {
 				return response.ok ? response.text() : null;
 			})
 			.then((source) => {
-				if (cancelled) return;
+				if (requestedAttachmentRef.current !== attachmentId) return;
 				setState(
 					source === null
 						? { source: null, status: "error" }
@@ -234,13 +244,12 @@ function useMiniAppSource(objectUrl: string | null): SourceState {
 				);
 			})
 			.catch(() => {
-				if (!cancelled) setState({ source: null, status: "error" });
+				if (requestedAttachmentRef.current === attachmentId) {
+					requestedAttachmentRef.current = null;
+					setState({ source: null, status: "error" });
+				}
 			});
-
-		return () => {
-			cancelled = true;
-		};
-	}, [objectUrl]);
+	}, [attachmentId, objectUrl]);
 
 	return state;
 }
@@ -277,7 +286,7 @@ export function MiniAppViewer({
 	const uploadFileAttachment = useUploadFileAttachment();
 	const { attachment, metadata, objectUrl } = useFileAttachment(itemId ?? "");
 	const itemName = useProjectItemName({ itemId });
-	const source = useMiniAppSource(objectUrl);
+	const source = useMiniAppSource(attachment?.id ?? null, objectUrl);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
