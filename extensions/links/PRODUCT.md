@@ -27,8 +27,9 @@ same panel system as other Lunaris content.
 ## Operating Context
 
 Users create a Link while organizing project material, paste an address, and
-usually open it immediately. Later they reopen it from the hierarchy or the
-item action menu. Panels may be narrow and inherit either host theme.
+usually open it immediately. Later, clicking it in the hierarchy opens the
+website panel directly; the item action menu provides access to editing. Panels
+may be narrow and inherit either host theme.
 
 ## Capabilities and Constraints
 
@@ -55,7 +56,7 @@ for bypassing a site's embedding policy or opening a privileged webview.
 
 ## Product Principles
 
-- Make the saved destination obvious before opening it.
+- Make the saved destination recognizable from its hierarchy label.
 - Keep creation and editing in the durable Link item.
 - Preserve the link even when its page cannot render in a panel.
 - State browser and embedding limits without interrupting the primary flow.

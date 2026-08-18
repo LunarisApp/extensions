@@ -2,7 +2,7 @@
   "id": "lunaris.links",
   "name": "Links",
   "developer": "Lunaris",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "sdk": "^0.0.4",
   "description": "Save browser links in your project and open them in a panel.",
   "modifications": [

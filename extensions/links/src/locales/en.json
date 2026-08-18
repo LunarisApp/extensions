@@ -11,8 +11,8 @@
   },
   "linksExtension": {
     "link": {
-      "browserTitle": "Link",
-      "openInPanel": "Open in panel"
+      "edit": "Edit link",
+      "editTitle": "Edit link"
     }
   }
 }
