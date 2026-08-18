@@ -1,8 +1,5 @@
 import { exportToBlob } from "@excalidraw/excalidraw";
-import type {
-	CompileContent,
-	PluginCompileContext,
-} from "@lunarisapp/plugin-sdk";
+import type { CompileContent, PluginCompileContext } from "@lunarisapp/plugin-sdk";
 import {
 	ContentRendererReady,
 	defineExternalContentType,
@@ -126,7 +123,8 @@ export function ExcalidrawView({
 	documentId: string;
 	reportReady?: () => void;
 }) {
-	const { error, isLoading, yDoc } = useCurrentProjectYjsDocument(documentId);
+	const { error, isLoading, yDoc, yProvider } =
+		useCurrentProjectYjsDocument(documentId);
 	const { canWriteContent } = useWorkspaceAccess();
 	const { locale } = useLocale();
 	const theme = useColorScheme();
@@ -134,7 +132,7 @@ export function ExcalidrawView({
 	if (error) {
 		return <ExcalidrawState description={error.message} title="Error loading Excalidraw" />;
 	}
-	if (isLoading && !yDoc) return <ExcalidrawSkeleton />;
+	if (isLoading) return <ExcalidrawSkeleton />;
 	if (!yDoc) {
 		return (
 			<ExcalidrawState
@@ -149,6 +147,7 @@ export function ExcalidrawView({
 			<div className="excalidraw-shell">
 				<YjsExcalidraw
 					locale={locale}
+					persistence={yProvider}
 					readOnly={!canWriteContent}
 					theme={theme}
 					yDoc={yDoc}

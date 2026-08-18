@@ -10,6 +10,7 @@ const state = vi.hoisted(() => ({
 	exportToBlob: vi.fn(),
 	isLoading: false,
 	locale: "en",
+	yProvider: null as { waitForPersistence: () => Promise<void> } | null,
 	yDoc: null as {
 		getArray: () => object;
 		getMap: () => Map<string, unknown>;
@@ -48,6 +49,7 @@ vi.mock("@lunarisapp/plugin-sdk/data", () => ({
 		error: state.error,
 		isLoading: state.isLoading,
 		yDoc: state.yDoc,
+		yProvider: state.yProvider,
 	}),
 	useYArray: vi.fn(),
 }));
@@ -90,6 +92,7 @@ afterEach(() => {
 	state.isLoading = false;
 	state.locale = "en";
 	state.yDoc = null;
+	state.yProvider = null;
 	vi.clearAllMocks();
 	vi.unstubAllGlobals();
 });
@@ -107,6 +110,7 @@ describe("Excalidraw external extension", () => {
 
 	it("shows a local skeleton while the Yjs document loads", () => {
 		state.isLoading = true;
+		state.yDoc = testYDoc();
 		renderContent();
 		expect(screen.getByTestId("excalidraw-skeleton")).toBeTruthy();
 	});
