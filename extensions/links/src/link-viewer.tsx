@@ -18,8 +18,9 @@ import {
   Link01Icon,
   PencilEdit01Icon,
 } from "@lunarisapp/ui/icons";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import type { Doc as YDoc } from "yjs";
+import { BrowserPanel } from "./browser-panel";
 import {
   createLinkRecord,
   DEFAULT_LINK_RECORD,
@@ -32,6 +33,7 @@ import {
 
 export const LINKS_EXTENSION_ID = "lunaris.links";
 export const LINKS_BROWSER_RENDERER = "browser";
+export const LINKS_MANAGER_RENDERER = "manager";
 
 const PANEL_UNAVAILABLE_ERROR =
   "This version of Lunaris cannot open extension panels. The link is still saved.";
@@ -43,6 +45,7 @@ function linkViewId(itemId: string | undefined): string {
 }
 
 interface LinkEditorProps {
+  alwaysOpensAfterSave?: boolean;
   canCancel: boolean;
   canWrite: boolean;
   initialRecord: LinkRecord;
@@ -51,6 +54,7 @@ interface LinkEditorProps {
 }
 
 function LinkEditor({
+  alwaysOpensAfterSave = false,
   canCancel,
   canWrite,
   initialRecord,
@@ -158,14 +162,16 @@ function LinkEditor({
                 Cancel
               </button>
             ) : null}
-            <button
-              className="links-button links-button-secondary"
-              disabled={!canWrite || isSaving}
-              onClick={() => void save(false)}
-              type="button"
-            >
-              Save
-            </button>
+            {!alwaysOpensAfterSave ? (
+              <button
+                className="links-button links-button-secondary"
+                disabled={!canWrite || isSaving}
+                onClick={() => void save(false)}
+                type="button"
+              >
+                Save
+              </button>
+            ) : null}
             <button
               className="links-button links-button-primary"
               disabled={!canWrite || isSaving}
@@ -335,10 +341,12 @@ function SavedLink({
 function LinkDocument({
   document,
   itemId,
+  opensInlineAfterSave = false,
   reportReady,
 }: {
   document: YDoc;
   itemId?: string;
+  opensInlineAfterSave?: boolean;
   reportReady?: () => void;
 }) {
   const linkMap = document.getMap<string>(LINKS_MAP_NAME);
@@ -360,6 +368,7 @@ function LinkDocument({
     return (
       <ContentRendererReady reportReady={reportReady}>
         <LinkEditor
+          alwaysOpensAfterSave={opensInlineAfterSave}
           canCancel={false}
           canWrite={canWriteContent}
           initialRecord={record}
@@ -375,7 +384,7 @@ function LinkDocument({
                 operationError = RENAME_FAILED_ERROR;
               }
             }
-            if (openAfterSave) {
+            if (openAfterSave && !opensInlineAfterSave) {
               const opened = navigation.openPanel({
                 params: { title: nextRecord.label, url: nextRecord.url },
                 pluginId: LINKS_EXTENSION_ID,
@@ -431,11 +440,13 @@ function LinkState({
   );
 }
 
-export function LinkRenderer({
+function LinkDocumentLoader({
+  children,
   documentId,
-  itemId,
-  reportReady,
-}: ContentTypeRendererProps) {
+}: {
+  children: (document: YDoc) => ReactNode;
+  documentId?: string;
+}) {
   const documentState = useCurrentProjectYjsDocument(documentId);
 
   if (!documentId) {
@@ -467,11 +478,76 @@ export function LinkRenderer({
     );
   }
 
+  return children(documentState.yDoc);
+}
+
+function LinkWebsiteDocument({
+  document,
+  itemId,
+  reportReady,
+}: {
+  document: YDoc;
+  itemId?: string;
+  reportReady?: () => void;
+}) {
+  const linkMap = document.getMap<string>(LINKS_MAP_NAME);
+  const [storedRecord] = useYMapJson<LinkRecord>(
+    linkMap,
+    LINK_RECORD_KEY,
+    DEFAULT_LINK_RECORD,
+  );
+  const record = parseLinkRecord(storedRecord);
+
+  if (!record.url) {
+    return (
+      <LinkDocument
+        document={document}
+        itemId={itemId}
+        opensInlineAfterSave
+        reportReady={reportReady}
+      />
+    );
+  }
+
   return (
-    <LinkDocument
-      document={documentState.yDoc}
-      itemId={itemId}
-      reportReady={reportReady}
-    />
+    <ContentRendererReady reportReady={reportReady}>
+      <BrowserPanel params={{ title: record.label, url: record.url }} />
+    </ContentRendererReady>
+  );
+}
+
+export function LinkWebsiteRenderer({
+  documentId,
+  itemId,
+  reportReady,
+}: ContentTypeRendererProps) {
+  return (
+    <LinkDocumentLoader documentId={documentId}>
+      {(document) => (
+        <LinkWebsiteDocument
+          document={document}
+          itemId={itemId}
+          reportReady={reportReady}
+        />
+      )}
+    </LinkDocumentLoader>
+  );
+}
+
+export function LinkRenderer({
+  documentId,
+  itemId,
+  reportReady,
+}: ContentTypeRendererProps) {
+  return (
+    <LinkDocumentLoader documentId={documentId}>
+      {(document) => (
+        <LinkDocument
+          document={document}
+          itemId={itemId}
+          reportReady={reportReady}
+        />
+      )}
+    </LinkDocumentLoader>
   );
 }
