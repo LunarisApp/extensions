@@ -1,0 +1,13 @@
+{
+  "extensions": {
+    "catalog": {
+      "lunaris": {
+        "excalidraw": {
+          "name": "Excalidraw",
+          "description": "Desenho colaborativo com Excalidraw"
+        }
+      }
+    }
+  }
+}
+
