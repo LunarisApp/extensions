@@ -2,8 +2,8 @@
 
 Links adds a persistent Link content type to Lunaris. Create a Link in the
 project hierarchy, paste an HTTP or HTTPS address, and choose **Save & open** to
-load it in a separate panel. Saved items can be edited or reopened later, and
-the item options menu can open it in the right dock.
+load it in a website panel. Clicking a saved item opens its website directly;
+the item options menu opens the link editor in the right dock.
 
 ## Development
 

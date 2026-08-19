@@ -1,13 +1,12 @@
 import { describe, expect, mock, test } from "bun:test";
-import { Doc, encodeStateAsUpdateV2 } from "yjs";
 import extension, { linksContentType } from "../src/index";
-import { LINK_RECORD_KEY, LINKS_MAP_NAME } from "../src/domain";
+import { LinkWebsiteRenderer } from "../src/link-viewer";
 
 describe("Links extension definition", () => {
   test("registers one persistent, compilable Link content type", () => {
     expect(extension.manifest).toMatchObject({
       id: "lunaris.links",
-      version: "1.0.0",
+      version: "1.0.1",
     });
     expect(linksContentType).toMatchObject({
       compilable: true,
@@ -15,45 +14,29 @@ describe("Links extension definition", () => {
       documentStorage: "yjs",
       id: "lunaris.links",
       name: "Link",
+      renderer: LinkWebsiteRenderer,
       type: "content-type",
     });
-    expect(linksContentType.actions?.[0]?.id).toBe("open-in-panel");
+    expect(linksContentType.actions?.[0]?.id).toBe("edit-link");
   });
 
-  test("registers the named browser renderer", () => {
+  test("registers the named browser and manager renderers", () => {
     expect(extension.renderers?.browser).toBeTypeOf("function");
+    expect(extension.renderers?.manager).toBeTypeOf("function");
   });
 
-  test("keeps the action alive until the saved document opens", async () => {
-    const document = new Doc();
-    document
-      .getMap<string>(LINKS_MAP_NAME)
-      .set(
-        LINK_RECORD_KEY,
-        JSON.stringify({
-          label: "Lunaris docs",
-          url: "https://lunaris.app/docs",
-          version: 1,
-        }),
-      );
-    const updateBase64 = Buffer.from(encodeStateAsUpdateV2(document)).toString(
-      "base64",
-    );
-    document.destroy();
-
-    const waitForDocumentPersistence = mock(async () => undefined);
-    const getYjsDocumentUpdates = mock(async () => [{ updateBase64 }]);
+  test("opens the management renderer from the edit action", () => {
     const openRightDockPanel = mock(() => undefined);
     const action = linksContentType.actions?.[0];
     if (!action || !("onClick" in action) || !action.onClick) {
-      throw new Error("Open-in-panel action is missing");
+      throw new Error("Edit-link action is missing");
     }
 
-    const result = action.onClick({
+    action.onClick({
       compileContext: {
         getProjectItemByDocumentId: async () => null,
         getProjectItemChildren: async () => [],
-        getYjsDocumentUpdates,
+        getYjsDocumentUpdates: async () => [],
       },
       contentTypeId: "lunaris.links",
       documentId: "document-1",
@@ -61,21 +44,16 @@ describe("Links extension definition", () => {
       itemId: "item-1",
       itemName: "Lunaris docs",
       openRightDockPanel,
-      waitForDocumentPersistence,
     });
 
-    expect(result).toBeInstanceOf(Promise);
-    await result;
-    expect(waitForDocumentPersistence).toHaveBeenCalledTimes(1);
-    expect(getYjsDocumentUpdates).toHaveBeenCalledWith("document-1");
     expect(openRightDockPanel).toHaveBeenCalledWith({
       params: {
-        title: "Lunaris docs",
-        url: "https://lunaris.app/docs",
+        documentId: "document-1",
+        itemId: "item-1",
       },
       pluginId: "lunaris.links",
-      renderer: "browser",
-      titleKey: "linksExtension.link.browserTitle",
+      renderer: "manager",
+      titleKey: "linksExtension.link.editTitle",
     });
   });
 });
