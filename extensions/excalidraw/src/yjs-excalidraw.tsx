@@ -58,7 +58,11 @@ export function YjsExcalidraw({
 	return (
 		<ExcalidrawEditor
 			binding={readOnly ? undefined : binding}
-			initialData={{ elements: initialElements, files: initialFiles }}
+			initialData={{
+				appState: { theme },
+				elements: initialElements,
+				files: initialFiles,
+			}}
 			lang={excalidrawLanguage(locale)}
 			onApiReady={setApi}
 			readOnly={readOnly}
