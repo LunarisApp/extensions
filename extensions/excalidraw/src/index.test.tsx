@@ -135,6 +135,9 @@ describe("Excalidraw external extension", () => {
 		await waitFor(() => {
 			expect(screen.getByText("editor:dark:fr:read")).toBeTruthy();
 		});
+		expect(document.querySelector(".excalidraw-shell")?.getAttribute("data-color-scheme")).toBe(
+			"dark",
+		);
 	});
 
 	it("reports readiness after the document loads", () => {
@@ -165,6 +168,7 @@ describe("Excalidraw external extension", () => {
 			</>,
 		);
 		expect(screen.getByText("2 elements")).toBeTruthy();
+		expect(screen.getByText("2 elements").classList.contains("excalidraw-statusbar")).toBe(true);
 	});
 
 	it("returns empty compile content for an empty drawing", async () => {

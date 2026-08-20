@@ -7,8 +7,13 @@ vi.mock("./excalidraw", () => ({
 	ExcalidrawEditor: ({
 		initialData,
 	}: {
-		initialData: { files?: Record<string, unknown> };
-	}) => <div>{Object.keys(initialData.files ?? {}).join(",")}</div>,
+		initialData: {
+			appState?: { theme?: string };
+			files?: Record<string, unknown>;
+		};
+	}) => (
+		<div>{`${initialData.appState?.theme}:${Object.keys(initialData.files ?? {}).join(",")}`}</div>
+	),
 }));
 
 afterEach(cleanup);
@@ -24,7 +29,7 @@ describe("YjsExcalidraw", () => {
 			<YjsExcalidraw locale="en" readOnly theme="light" yDoc={doc} />,
 		);
 
-		expect(screen.getByText("file-1")).toBeTruthy();
+		expect(screen.getByText("light:file-1")).toBeTruthy();
 		doc.destroy();
 	});
 });

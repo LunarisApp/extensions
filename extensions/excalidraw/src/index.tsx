@@ -33,14 +33,26 @@ const DEFAULT_EXPORT_WIDTH = 800;
 function subscribeToColorScheme(onChange: () => void): () => void {
 	const observer = new MutationObserver(onChange);
 	observer.observe(document.documentElement, {
-		attributeFilter: ["style"],
+		attributeFilter: ["class", "style"],
 		attributes: true,
 	});
-	return () => observer.disconnect();
+	const media = window.matchMedia?.("(prefers-color-scheme: dark)");
+	media?.addEventListener("change", onChange);
+	return () => {
+		observer.disconnect();
+		media?.removeEventListener("change", onChange);
+	};
 }
 
 function currentColorScheme(): "dark" | "light" {
-	return document.documentElement.style.colorScheme === "dark" ? "dark" : "light";
+	const explicitScheme = document.documentElement.style.colorScheme;
+	if (explicitScheme === "dark" || explicitScheme === "light") {
+		return explicitScheme;
+	}
+	if (document.documentElement.classList.contains("dark")) return "dark";
+	return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+		? "dark"
+		: "light";
 }
 
 function useColorScheme(): "dark" | "light" {
@@ -143,7 +155,7 @@ export function ExcalidrawView({
 
 	return (
 		<ContentRendererReady reportReady={reportReady}>
-			<div className="excalidraw-shell">
+			<div className="excalidraw-shell" data-color-scheme={theme}>
 				<YjsExcalidraw
 					key={documentId}
 					locale={locale}
@@ -161,7 +173,11 @@ function ExcalidrawElementsCount({ yDoc }: { yDoc: Doc }) {
 	const count = yjsToExcalidraw(yDoc.getArray<YMap<unknown>>("elements")).filter(
 		(element) => !element.isDeleted,
 	).length;
-	return <span>{`${count} ${count === 1 ? "element" : "elements"}`}</span>;
+	return (
+		<span className="excalidraw-statusbar">
+			{`${count} ${count === 1 ? "element" : "elements"}`}
+		</span>
+	);
 }
 
 function ExcalidrawStatusBar({ documentId }: { documentId: string }) {
