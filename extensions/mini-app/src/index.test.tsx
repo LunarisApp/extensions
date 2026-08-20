@@ -79,7 +79,7 @@ describe("Mini Apps extension", () => {
 		expect(extension.manifest).toMatchObject({
 			id: "lunaris.mini-app",
 			sdk: "^0.0.4",
-			version: "1.0.4",
+			version: "1.0.5",
 		});
 		expect(miniAppContentType).toMatchObject({
 			createLabel: "Mini App",
