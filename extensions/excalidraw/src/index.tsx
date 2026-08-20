@@ -123,8 +123,7 @@ export function ExcalidrawView({
 	documentId: string;
 	reportReady?: () => void;
 }) {
-	const { error, isLoading, yDoc, yProvider } =
-		useCurrentProjectYjsDocument(documentId);
+	const { error, isLoading, yDoc } = useCurrentProjectYjsDocument(documentId);
 	const { canWriteContent } = useWorkspaceAccess();
 	const { locale } = useLocale();
 	const theme = useColorScheme();
@@ -146,8 +145,8 @@ export function ExcalidrawView({
 		<ContentRendererReady reportReady={reportReady}>
 			<div className="excalidraw-shell">
 				<YjsExcalidraw
+					key={documentId}
 					locale={locale}
-					persistence={yProvider}
 					readOnly={!canWriteContent}
 					theme={theme}
 					yDoc={yDoc}

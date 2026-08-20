@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Doc } from "yjs";
 import { YjsExcalidraw } from "./yjs-excalidraw";
@@ -25,32 +25,6 @@ describe("YjsExcalidraw", () => {
 		);
 
 		expect(screen.getByText("file-1")).toBeTruthy();
-		doc.destroy();
-	});
-
-	it("waits for writable document updates to persist", async () => {
-		const doc = new Doc();
-		const waitForPersistence = vi.fn().mockResolvedValue(undefined);
-
-		render(
-			<YjsExcalidraw
-				locale="en"
-				persistence={{
-					getPersistenceState: () => "idle",
-					subscribePersistenceState: () => () => undefined,
-					waitForPersistence,
-				}}
-				theme="light"
-				yDoc={doc}
-			/>,
-		);
-
-		doc.transact(() => doc.getMap("metadata").set("loaded", true), "host");
-		await Promise.resolve();
-		expect(waitForPersistence).not.toHaveBeenCalled();
-
-		doc.getMap("metadata").set("updated", true);
-		await waitFor(() => expect(waitForPersistence).toHaveBeenCalledOnce());
 		doc.destroy();
 	});
 });
