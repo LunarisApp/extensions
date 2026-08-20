@@ -6,7 +6,7 @@
       "name": "lunaris-extension-excalidraw",
       "dependencies": {
         "@excalidraw/excalidraw": "^0.18.1",
-        "@lunarisapp/plugin-sdk": "^0.1.0",
+        "@lunarisapp/plugin-sdk": "^0.1.1",
         "react": "^19.2.8",
         "y-excalidraw": "^2.0.12",
         "y-protocols": "^1.0.7",
@@ -72,7 +72,7 @@
 
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.5.5", "", {}, "sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og=="],
 
-    "@lunarisapp/plugin-sdk": ["@lunarisapp/plugin-sdk@0.1.0", "", { "dependencies": { "semver": "^7.8.5", "zod": "^4.4.3" }, "peerDependencies": { "react": "^19.2.8", "vite": "^8.2.0", "yjs": "^13.6.32" }, "optionalPeers": ["vite"] }, "sha512-w8/qgEVzbKljRTiQiFQ0/pxHJUbCd9NEPIlQ2cx5/EgnPwTHkDo9X3YQG4UpVBL3vaALRVOoRLnmQ1GAaNpTXQ=="],
+    "@lunarisapp/plugin-sdk": ["@lunarisapp/plugin-sdk@0.1.1", "", { "dependencies": { "semver": "^7.8.5", "zod": "^4.4.3" }, "peerDependencies": { "react": "^19.2.8", "vite": "^8.2.0", "yjs": "^13.6.32" }, "optionalPeers": ["vite"] }, "sha512-FFTSnBeGi3SBz1oebJRvGMnYZrnRhIyQ9a3Y1M084cHGnxcK3IQAt82/4nZdl3pwBzSIx6hMx0Ak2LUL3TjO2w=="],
 
     "@mermaid-js/parser": ["@mermaid-js/parser@0.6.3", "", { "dependencies": { "langium": "3.3.1" } }, "sha512-lnjOhe7zyHjc+If7yT4zoedx2vo4sHaTmtkl1+or8BRTnCtDmcTpAjpzDSfCZrshM5bCoz0GyidzadJAH1xobA=="],
 
