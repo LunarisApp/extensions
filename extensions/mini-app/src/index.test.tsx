@@ -19,8 +19,8 @@ const { downloadMock, uploadMock } = vi.hoisted(() => ({
 
 let canWriteContent = true;
 let locale = "en";
-let attachmentState: {
-	attachment: null | {
+let storedFileState: {
+	file: null | {
 		hasSynced: boolean;
 		id: string;
 		localUri: string | null;
@@ -41,10 +41,10 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 		type: "content-type",
 	}),
 	defineExternalPlugin: (input: unknown) => input,
-	useFileAttachment: () => attachmentState,
+	useFileStorage: () => ({ download: downloadMock, upload: uploadMock }),
 	useLocale: () => ({ locale }),
 	useProjectItemName: () => "Budget",
-	useUploadFileAttachment: () => uploadMock,
+	useStoredFile: () => storedFileState,
 	useWorkspaceAccess: () => ({ canWriteContent }),
 }));
 
@@ -71,8 +71,8 @@ describe("Mini Apps extension", () => {
 		vi.clearAllMocks();
 		canWriteContent = true;
 		locale = "en";
-		attachmentState = { attachment: null, metadata: null, objectUrl: null };
-		uploadMock.mockResolvedValue({ attachmentId: "att_1" });
+		storedFileState = { file: null, metadata: null, objectUrl: null };
+		uploadMock.mockResolvedValue({ fileId: "att_1" });
 	});
 
 	it("registers an external document-less content type", () => {
@@ -175,7 +175,7 @@ describe("Mini Apps extension", () => {
 		let resolveUpload: (() => void) | undefined;
 		uploadMock.mockReturnValueOnce(
 			new Promise((resolve) => {
-				resolveUpload = () => resolve({ attachmentId: "att_1" });
+				resolveUpload = () => resolve({ fileId: "att_1" });
 			}),
 		);
 		render(<MiniAppViewer itemId="item_1" />);
@@ -208,8 +208,8 @@ describe("Mini Apps extension", () => {
 		const view = render(<MiniAppViewer itemId="item_1" />);
 		expect(screen.getByRole("button", { name: "Choose app" })).not.toBeNull();
 
-		attachmentState = {
-			attachment: {
+		storedFileState = {
+			file: {
 				hasSynced: true,
 				id: "att_1",
 				localUri: "local",
@@ -225,8 +225,8 @@ describe("Mini Apps extension", () => {
 	});
 
 	it("renders source with the inner sandbox policy and attributes", async () => {
-		attachmentState = {
-			attachment: {
+		storedFileState = {
+			file: {
 				hasSynced: true,
 				id: "att_1",
 				localUri: "local",
@@ -258,8 +258,8 @@ describe("Mini Apps extension", () => {
 	});
 
 	it("keeps the app mounted when the sandbox rotates its object URL", async () => {
-		attachmentState = {
-			attachment: {
+		storedFileState = {
+			file: {
 				hasSynced: true,
 				id: "att_1",
 				localUri: "local",
@@ -276,7 +276,7 @@ describe("Mini Apps extension", () => {
 		const view = render(<MiniAppViewer itemId="item_1" />);
 		const frame = await screen.findByTitle("Budget Mini App");
 
-		attachmentState = { ...attachmentState, objectUrl: "blob:second" };
+		storedFileState = { ...storedFileState, objectUrl: "blob:second" };
 		view.rerender(<MiniAppViewer itemId="item_1" />);
 
 		expect(await screen.findByTitle("Budget Mini App")).toBe(frame);
@@ -366,10 +366,10 @@ describe("Mini Apps extension", () => {
 		["queued-download", null, "Downloading Mini App"],
 		["synced", "local", "Mini App source is unavailable"],
 	] as const)(
-		"shows the source state for %s attachments",
+		"shows the source state for %s files",
 		(status, localUri, title) => {
-			attachmentState = {
-				attachment: { hasSynced: true, id: "att_1", localUri, status },
+			storedFileState = {
+				file: { hasSynced: true, id: "att_1", localUri, status },
 				metadata: { filename: "app.html" },
 				objectUrl: null,
 			};
@@ -394,6 +394,7 @@ describe("Mini Apps extension", () => {
 			compileContext: {} as never,
 			contentTypeId: "lunaris.mini-app",
 			downloadFileAttachment: downloadMock,
+			fileStorage: { download: downloadMock },
 			itemId: "item_1",
 			openRightDockPanel: vi.fn(),
 		});

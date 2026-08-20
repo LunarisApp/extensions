@@ -22,7 +22,7 @@ export const miniAppContentType = defineExternalContentType({
 			labelKey: "miniAppExtension.miniApp.downloadSource",
 			onClick: (context) => {
 				if (!context.itemId) return;
-				void context.downloadFileAttachment(context.itemId).catch(() => false);
+				void context.fileStorage.download(context.itemId).catch(() => false);
 			},
 		},
 	],

@@ -2,9 +2,9 @@ import {
 	ContentRendererReady,
 	PLUGIN_SANDBOX_BOOTSTRAP_CSP,
 	PLUGIN_SANDBOX_BOOTSTRAP_SOURCE,
-	useFileAttachment,
+	useFileStorage,
 	useProjectItemName,
-	useUploadFileAttachment,
+	useStoredFile,
 	useWorkspaceAccess,
 } from "@lunarisapp/plugin-sdk";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -211,24 +211,24 @@ export function buildMiniAppDocument(source: string) {
 }
 
 function useMiniAppSource(
-	attachmentId: string | null,
+	fileId: string | null,
 	objectUrl: string | null,
 ): SourceState {
 	const [state, setState] = useState<SourceState>({
 		source: null,
 		status: "loading",
 	});
-	const requestedAttachmentRef = useRef<string | null>(null);
+	const requestedFileRef = useRef<string | null>(null);
 
 	useEffect(() => {
-		if (!attachmentId || !objectUrl) {
-			requestedAttachmentRef.current = null;
+		if (!fileId || !objectUrl) {
+			requestedFileRef.current = null;
 			setState({ source: null, status: "loading" });
 			return;
 		}
-		if (requestedAttachmentRef.current === attachmentId) return;
+		if (requestedFileRef.current === fileId) return;
 
-		requestedAttachmentRef.current = attachmentId;
+		requestedFileRef.current = fileId;
 		setState({ source: null, status: "loading" });
 
 		void fetch(objectUrl)
@@ -236,7 +236,7 @@ function useMiniAppSource(
 				return response.ok ? response.text() : null;
 			})
 			.then((source) => {
-				if (requestedAttachmentRef.current !== attachmentId) return;
+				if (requestedFileRef.current !== fileId) return;
 				setState(
 					source === null
 						? { source: null, status: "error" }
@@ -244,12 +244,12 @@ function useMiniAppSource(
 				);
 			})
 			.catch(() => {
-				if (requestedAttachmentRef.current === attachmentId) {
-					requestedAttachmentRef.current = null;
+				if (requestedFileRef.current === fileId) {
+					requestedFileRef.current = null;
 					setState({ source: null, status: "error" });
 				}
 			});
-	}, [attachmentId, objectUrl]);
+	}, [fileId, objectUrl]);
 
 	return state;
 }
@@ -283,10 +283,10 @@ export function MiniAppViewer({
 }) {
 	const t = useMiniAppTranslation();
 	const { canWriteContent } = useWorkspaceAccess();
-	const uploadFileAttachment = useUploadFileAttachment();
-	const { attachment, metadata, objectUrl } = useFileAttachment(itemId ?? "");
+	const fileStorage = useFileStorage();
+	const { file, metadata, objectUrl } = useStoredFile(itemId ?? "");
 	const itemName = useProjectItemName({ itemId });
-	const source = useMiniAppSource(attachment?.id ?? null, objectUrl);
+	const source = useMiniAppSource(file?.id ?? null, objectUrl);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
@@ -322,7 +322,7 @@ export function MiniAppViewer({
 							lastModified: file.lastModified,
 							type: "text/html",
 						});
-				await uploadFileAttachment({ file: normalized, itemId });
+				await fileStorage.upload({ file: normalized, itemId });
 			} catch {
 				setError(t("uploadFailed"));
 			} finally {
@@ -377,11 +377,9 @@ export function MiniAppViewer({
 	}
 
 	const downloadPending =
-		!attachment ||
-		attachment.status === "queued-download" ||
-		(attachment.status === "synced" &&
-			attachment.hasSynced &&
-			!attachment.localUri);
+		!file ||
+		file.status === "queued-download" ||
+		(file.status === "synced" && file.hasSynced && !file.localUri);
 
 	if (!objectUrl || source.status === "error") {
 		return (
