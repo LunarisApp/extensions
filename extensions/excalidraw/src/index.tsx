@@ -181,8 +181,10 @@ function ExcalidrawElementsCount({ yDoc }: { yDoc: Doc }) {
 }
 
 function ExcalidrawStatusBar({ documentId }: { documentId: string }) {
-	const { isLoading, yDoc } = useCurrentProjectYjsDocument(documentId);
-	if ((isLoading && !yDoc) || !yDoc) return null;
+	const { yDoc } = useCurrentProjectYjsDocument(documentId);
+	if (!yDoc) {
+		return <span className="excalidraw-statusbar">Excalidraw</span>;
+	}
 	return <ExcalidrawElementsCount yDoc={yDoc} />;
 }
 

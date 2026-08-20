@@ -171,6 +171,33 @@ describe("Excalidraw external extension", () => {
 		expect(screen.getByText("2 elements").classList.contains("excalidraw-statusbar")).toBe(true);
 	});
 
+	it("keeps the status bar mounted while its document is reacquired", () => {
+		state.yDoc = testYDoc();
+		state.elements = [{}];
+		const statusBar = () => (
+			<>
+				{excalidrawContentType.statusBar?.({
+					contentTypeId: "lunaris.excalidraw",
+					documentId: "document-1",
+				})}
+			</>
+		);
+		const view = render(statusBar());
+		expect(screen.getByText("1 element")).toBeTruthy();
+		view.unmount();
+
+		state.isLoading = true;
+		state.yDoc = null;
+		const reacquiredView = render(statusBar());
+		expect(screen.getByText("Excalidraw").classList.contains("excalidraw-statusbar")).toBe(true);
+
+		state.isLoading = false;
+		state.yDoc = testYDoc();
+		state.elements = [{}, {}];
+		reacquiredView.rerender(statusBar());
+		expect(screen.getByText("2 elements")).toBeTruthy();
+	});
+
 	it("returns empty compile content for an empty drawing", async () => {
 		state.yDoc = testYDoc();
 		await expect(
