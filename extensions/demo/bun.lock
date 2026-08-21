@@ -5,7 +5,7 @@
     "": {
       "name": "lunaris-extension-demo",
       "dependencies": {
-        "@lunarisapp/plugin-sdk": "^0.1.0",
+        "@lunarisapp/plugin-sdk": "^0.2.0",
         "@lunarisapp/ui": "^0.0.1",
         "react": "^19.2.8",
       },
@@ -52,7 +52,7 @@
 
     "@hugeicons/react": ["@hugeicons/react@1.1.9", "", { "peerDependencies": { "react": ">=16.0.0" } }, "sha512-O+lWSWjbijoAvMCxn4K2bQWCGN5+mP1y5j+X99j23mXMj+s0X25fs71T6t9YJLaBodwmZdaewD27dzS/PiboQw=="],
 
-    "@lunarisapp/plugin-sdk": ["@lunarisapp/plugin-sdk@0.1.0", "", { "dependencies": { "semver": "^7.8.5", "zod": "^4.4.3" }, "peerDependencies": { "react": "^19.2.8", "vite": "^8.2.0", "yjs": "^13.6.32" }, "optionalPeers": ["vite"] }, "sha512-w8/qgEVzbKljRTiQiFQ0/pxHJUbCd9NEPIlQ2cx5/EgnPwTHkDo9X3YQG4UpVBL3vaALRVOoRLnmQ1GAaNpTXQ=="],
+    "@lunarisapp/plugin-sdk": ["@lunarisapp/plugin-sdk@0.2.0", "", { "dependencies": { "semver": "^7.8.5", "zod": "^4.4.3" }, "peerDependencies": { "react": "^19.2.8", "vite": "^8.2.0", "yjs": "^13.6.32" }, "optionalPeers": ["vite"] }, "sha512-zqrsCsQLvw+SZQoGc3tbW+mWKSxDQBuLv4VIfnPzkn2EYtusETxWTxYb+jRmMX1y7lnbtgxlCDDhNOLZ/1UCdw=="],
 
     "@lunarisapp/ui": ["@lunarisapp/ui@0.0.1", "", { "dependencies": { "@base-ui/react": "^1.7.0", "@dnd-kit/core": "^6.3.1", "@dnd-kit/sortable": "^10.0.0", "@dnd-kit/utilities": "^3.2.2", "@headless-tree/core": "^1.7.0", "@headless-tree/react": "^1.7.0", "@hookform/resolvers": "^5.7.1", "@hugeicons/core-free-icons": "^4.2.3", "@hugeicons/react": "^1.1.9", "@thesvg/react": "^3.2.17", "class-variance-authority": "^0.7.1", "clsx": "^2.1.1", "cmdk": "^1.1.1", "embla-carousel-react": "^8.6.0", "input-otp": "^1.4.2", "next-themes": "^0.4.6", "react-day-picker": "^10.0.1", "react-hook-form": "^7.84.0", "react-resizable-panels": "^4.12.2", "recharts": "^3.10.1", "sonner": "^2.0.7", "tailwind-merge": "^3.6.0", "tw-animate-css": "^1.4.0", "vaul": "^1.1.2", "zod": "^4.4.3" }, "peerDependencies": { "react": "^19.2.5", "react-dom": "^19.2.5", "tailwindcss": "^4.1.18" } }, "sha512-or7B07XFwXA1E3a+ooM2vitpz12MnkxcGjhv38jeE9zMwbi+8BP6UbNv1uSYF3paGZBbIHdncH6VuvlTtQlYnQ=="],
 

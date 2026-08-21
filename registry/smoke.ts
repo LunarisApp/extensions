@@ -2,9 +2,9 @@ import { createHash } from "node:crypto";
 import {
   type PluginAsset,
   parsePluginCatalog,
+  parsePluginReleaseDescriptor,
 } from "@lunarisapp/plugin-sdk/catalog";
 import { DEFAULT_REGISTRY_BASE_URL } from "./constants.ts";
-import { parseStoredReleaseDescriptor } from "./release.ts";
 
 const baseUrl = (
   process.env.REGISTRY_SMOKE_URL ?? DEFAULT_REGISTRY_BASE_URL
@@ -53,7 +53,7 @@ const catalog = parsePluginCatalog(await catalogResponse.json());
 for (const extension of catalog.plugins) {
   for (const version of extension.versions) {
     const response = await checkedFetch(version.descriptorUrl);
-    const descriptor = parseStoredReleaseDescriptor(await response.json(), {
+    const descriptor = parsePluginReleaseDescriptor(await response.json(), {
       id: extension.id,
       version: version.version,
     });

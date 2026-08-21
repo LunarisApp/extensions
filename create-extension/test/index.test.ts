@@ -70,7 +70,14 @@ describe("scaffoldExtension", () => {
       developer: "Acme",
       id: "acme.notes",
       name: "Acme Notes",
-      modifications: [{ id: "acme.notes", type: "view" }],
+      modifications: [
+        {
+          defaultPlacement: "primary",
+          id: "acme.notes",
+          name: "Acme Notes",
+          type: "view",
+        },
+      ],
     });
     expect(manifestText).toBe(`${JSON.stringify(manifest, null, 2)}\n`);
     expect(await readFile(join(target, "src/index.tsx"), "utf8")).toContain('id: "acme.notes"');

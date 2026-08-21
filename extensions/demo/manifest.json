@@ -2,16 +2,26 @@
   "id": "lunaris.demo",
   "name": "Demo",
   "developer": "Lunaris",
-  "version": "1.2.2",
-  "sdk": "^0.0.4",
+  "version": "1.2.3",
+  "sdk": "^0.0.5",
   "description": "A synthetic SaaS operations console demonstrating Lunaris views and content types.",
   "modifications": [
     {
+      "defaultPlacement": "primary",
       "id": "lunaris.demo",
+      "name": "Demo",
       "type": "view"
     },
     {
+      "compilable": true,
+      "createLabel": "Customer dossier",
+      "createMode": "default",
+      "documentStorage": "yjs",
+      "hierarchyVisibility": "visible",
       "id": "lunaris.demo.customer-dossier",
+      "name": "Customer dossier",
+      "singleton": true,
+      "userCreatable": true,
       "type": "content-type"
     }
   ]
