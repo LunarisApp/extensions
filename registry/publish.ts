@@ -12,6 +12,7 @@ import {
   type PluginCatalogVersion,
   type PluginReleaseDescriptor,
   parsePluginCatalog,
+  parsePluginReleaseDescriptor,
 } from "@lunarisapp/plugin-sdk/catalog";
 import { rcompare } from "semver";
 import { readRegistryPolicy } from "./config.ts";
@@ -20,17 +21,11 @@ import {
   SITE_MAXIMUM_BYTES,
   SITE_WARNING_BYTES,
 } from "./constants.ts";
-import { parseStoredReleaseDescriptor } from "./release.ts";
 
 interface BuildMetadata {
   id: string;
   repository: string;
   version: string;
-}
-
-interface StoredRelease {
-  descriptor: PluginReleaseDescriptor;
-  sandboxRuntimeDeclared: boolean;
 }
 
 interface PublishOptions {
@@ -49,10 +44,6 @@ async function exists(filename: string): Promise<boolean> {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
     throw error;
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 async function filesNamed(
@@ -193,10 +184,12 @@ async function publishBuild(
   );
 }
 
-async function readDescriptors(site: string): Promise<StoredRelease[]> {
+async function readDescriptors(
+  site: string,
+): Promise<PluginReleaseDescriptor[]> {
   const releaseRoot = path.join(site, "releases");
   if (!(await exists(releaseRoot))) return [];
-  const descriptors: StoredRelease[] = [];
+  const descriptors: PluginReleaseDescriptor[] = [];
   for (const id of await readdir(releaseRoot, { withFileTypes: true })) {
     if (!id.isDirectory()) continue;
     for (const entry of await readdir(path.join(releaseRoot, id.name), {
@@ -207,35 +200,24 @@ async function readDescriptors(site: string): Promise<StoredRelease[]> {
       const stored: unknown = JSON.parse(
         await readFile(path.join(releaseRoot, id.name, entry.name), "utf8"),
       );
-      const runtime =
-        isRecord(stored) && isRecord(stored.runtime)
-          ? stored.runtime
-          : undefined;
-      descriptors.push({
-        descriptor: parseStoredReleaseDescriptor(stored, {
-          id: id.name,
-          version,
-        }),
-        sandboxRuntimeDeclared:
-          runtime?.kind === PLUGIN_SANDBOX_RUNTIME.kind &&
-          runtime.protocol === PLUGIN_SANDBOX_RUNTIME.protocol,
-      });
+      descriptors.push(
+        parsePluginReleaseDescriptor(stored, { id: id.name, version }),
+      );
     }
   }
   return descriptors;
 }
 
 function buildCatalog(
-  descriptors: StoredRelease[],
+  descriptors: PluginReleaseDescriptor[],
   enabled: boolean,
   blockedVersions: Set<string>,
   baseUrl: string,
 ): PluginCatalog {
-  const grouped = new Map<string, StoredRelease[]>();
-  for (const release of descriptors) {
-    const { descriptor } = release;
+  const grouped = new Map<string, PluginReleaseDescriptor[]>();
+  for (const descriptor of descriptors) {
     const releases = grouped.get(descriptor.manifest.id) ?? [];
-    releases.push(release);
+    releases.push(descriptor);
     grouped.set(descriptor.manifest.id, releases);
   }
 
@@ -243,13 +225,9 @@ function buildCatalog(
   const observedBlockedVersions = new Set<string>();
   for (const [id, releases] of grouped) {
     releases.sort((left, right) =>
-      rcompare(
-        left.descriptor.manifest.version,
-        right.descriptor.manifest.version,
-      ),
+      rcompare(left.manifest.version, right.manifest.version),
     );
-    const versions: PluginCatalogVersion[] = releases.map((release) => {
-      const { descriptor } = release;
+    const versions: PluginCatalogVersion[] = releases.map((descriptor) => {
       const key = `${id}@${descriptor.manifest.version}`;
       const policyBlocked = blockedVersions.has(key);
       if (policyBlocked) observedBlockedVersions.add(key);
@@ -257,17 +235,14 @@ function buildCatalog(
         descriptorUrl: `${baseUrl}/releases/${id}/${descriptor.manifest.version}.json`,
         runtime: descriptor.runtime,
         sdk: descriptor.sdk,
-        status:
-          policyBlocked || !release.sandboxRuntimeDeclared
-            ? "blocked"
-            : "active",
+        status: policyBlocked ? "blocked" : "active",
         version: descriptor.manifest.version,
       };
     });
     const activeIndex = versions.findIndex(
       (version) => version.status === "active",
     );
-    const current = releases[activeIndex < 0 ? 0 : activeIndex]?.descriptor;
+    const current = releases[activeIndex < 0 ? 0 : activeIndex];
     if (!current) continue;
     extensions.push({
       description: current.manifest.description,

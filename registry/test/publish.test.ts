@@ -16,8 +16,15 @@ const manifest = {
   description: "A calendar extension",
   developer: "Example",
   version: "1.0.0",
-  sdk: "^0.0.4",
-  modifications: [{ id: "example.calendar", type: "view" as const }],
+  sdk: "^0.0.5",
+  modifications: [
+    {
+      defaultPlacement: "primary",
+      id: "example.calendar",
+      name: "Calendar",
+      type: "view" as const,
+    },
+  ],
 };
 
 async function fixture() {
@@ -165,115 +172,37 @@ describe("registry publication", () => {
     expect(published.plugins[0]?.latestVersion).toBe("1.10.0");
   });
 
-  test("blocks stored pre-sandbox descriptors", async () => {
+  test("rejects invalid stored descriptors", async () => {
     const value = await fixture();
-    const legacyDirectory = path.join(value.site, "releases/example.calendar");
-    const legacyFile = path.join(legacyDirectory, "0.9.0.json");
-    const legacyDescriptor = `${JSON.stringify(
-      {
-        manifest: {
-          ...manifest,
-          version: "0.9.0",
-          sdk: "^0.0.1",
-          modifications: [{ id: "example.calendar", type: "workspace-panel" }],
-        },
-        repository: "example/calendar",
-        script: {
-          bytes: 1,
-          contentType: "application/javascript; charset=utf-8",
-          sha256: "0".repeat(64),
-          url: "https://plugins.lunaris.app/legacy.js",
-        },
-        sdk: "^0.0.1",
-        status: "active",
-      },
-      null,
-      2,
-    )}\n`;
-    await mkdir(legacyDirectory, { recursive: true });
-    await writeFile(legacyFile, legacyDescriptor);
-    const preSandboxFile = path.join(legacyDirectory, "0.9.5.json");
-    const preSandboxDescriptor = `${JSON.stringify(
-      {
-        manifest: {
-          ...manifest,
-          version: "0.9.5",
-          sdk: "^0.0.2",
-        },
-        repository: "example/calendar",
-        script: {
-          bytes: 1,
-          contentType: "application/javascript; charset=utf-8",
-          sha256: "0".repeat(64),
-          url: "https://plugins.lunaris.app/pre-sandbox.js",
-        },
-        sdk: "^0.0.2",
-        status: "active",
-      },
-      null,
-      2,
-    )}\n`;
-    await writeFile(preSandboxFile, preSandboxDescriptor);
+    const releaseDirectory = path.join(value.site, "releases/example.calendar");
+    await mkdir(releaseDirectory, { recursive: true });
     await writeFile(
-      path.join(value.site, "catalog-v1.json"),
-      `${JSON.stringify({
-        enabled: true,
-        generatedAt: "2026-08-01T00:00:00.000Z",
-        plugins: [
-          {
-            ...manifest,
-            latestVersion: "0.9.5",
-            repository: "example/calendar",
-            versions: [
-              {
-                descriptorUrl:
-                  "https://plugins.lunaris.app/releases/example.calendar/0.9.5.json",
-                sdk: "^0.0.2",
-                status: "active",
-                version: "0.9.5",
-              },
-            ],
+      path.join(releaseDirectory, "0.9.0.json"),
+      `${JSON.stringify(
+        {
+          manifest: { ...manifest, version: "0.9.0" },
+          repository: "example/calendar",
+          script: {
+            bytes: 1,
+            contentType: "application/javascript; charset=utf-8",
+            sha256: "0".repeat(64),
+            url: "https://plugins.lunaris.app/invalid.js",
           },
-        ],
-        schemaVersion: 1,
-      })}\n`,
+          sdk: manifest.sdk,
+          status: "active",
+        },
+        null,
+        2,
+      )}\n`,
     );
 
-    await publishRegistry({
-      artifacts: value.artifacts,
-      repositoryRoot: value.root,
-      site: value.site,
-    });
-
-    expect(
-      (await catalog(value.site)).plugins[0]?.versions.map((version) => ({
-        runtime: version.runtime,
-        sdk: version.sdk,
-        status: version.status,
-        version: version.version,
-      })),
-    ).toEqual([
-      {
-        runtime: { kind: "iframe", protocol: 1 },
-        sdk: "^0.0.4",
-        status: "active",
-        version: "1.0.0",
-      },
-      {
-        runtime: { kind: "iframe", protocol: 1 },
-        sdk: "^0.0.2",
-        status: "blocked",
-        version: "0.9.5",
-      },
-      {
-        runtime: { kind: "iframe", protocol: 1 },
-        sdk: "^0.0.1",
-        status: "blocked",
-        version: "0.9.0",
-      },
-    ]);
-    expect(await readFile(legacyFile, "utf8")).toBe(legacyDescriptor);
-    expect(await readFile(preSandboxFile, "utf8")).toBe(preSandboxDescriptor);
+    await expect(
+      publishRegistry({
+        artifacts: value.artifacts,
+        repositoryRoot: value.root,
+        site: value.site,
+      }),
+    ).rejects.toThrow("runtime");
   });
 
   test("rejects changed bytes without a version bump", async () => {

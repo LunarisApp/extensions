@@ -1,6 +1,6 @@
 {
 	"name": "lunaris-extension-mini-app",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -9,7 +9,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@lunarisapp/plugin-sdk": "^0.1.2",
+		"@lunarisapp/plugin-sdk": "^0.2.0",
 		"@lunarisapp/ui": "^0.0.1",
 		"react": "^19.2.8"
 	},

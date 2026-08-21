@@ -15,11 +15,10 @@ Community releases are discovered hourly from exact, non-draft GitHub release
 tags. A published ID and version is immutable; change the manifest version
 before changing its build output.
 
-New manifests declare the compatible protocol range `^0.0.4`; the repository
-tooling installs `@lunarisapp/plugin-sdk` at `^0.1.0`. Catalog v1 publishes
-`{ "kind": "iframe", "protocol": 1 }` on every new descriptor and catalog
-version. Older stored releases remain listed as blocked so old and new clients
-fail closed until their owner selects a compatible patch release.
+Manifests declare the compatible protocol range `^0.0.5` and complete
+declarative modifications; the repository tooling installs
+`@lunarisapp/plugin-sdk` at `^0.2.0`. Catalog v1 publishes
+`{ "kind": "iframe", "protocol": 1 }` on every descriptor and catalog version.
 
 ## GitHub Pages setup
 
