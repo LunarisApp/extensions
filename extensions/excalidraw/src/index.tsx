@@ -1,16 +1,10 @@
-import { exportToBlob } from "@excalidraw/excalidraw";
-import type {
-	CompileContent,
-	ContentTypeDefinition,
-	PluginCompileContext,
-} from "@lunarisapp/plugin-sdk";
+import type { ContentTypeDefinition } from "@lunarisapp/plugin-sdk";
 import {
 	ContentRendererReady,
 	definePlugin,
 	useLocale,
 	useWorkspaceAccess,
 } from "@lunarisapp/plugin-sdk";
-import { withYjsDoc } from "@lunarisapp/plugin-sdk/compile";
 import {
 	useCurrentProjectYjsDocument,
 	useYArray,
@@ -19,6 +13,7 @@ import { useSyncExternalStore } from "react";
 import { yjsToExcalidraw } from "y-excalidraw";
 import type { Doc, Map as YMap } from "yjs";
 import manifest from "../manifest.json";
+import { getExcalidrawCompileContent } from "./compile";
 import { EXCALIDRAW_EXTENSION_ID } from "./constants";
 import { ExcalidrawSkeleton } from "./excalidraw-skeleton";
 import { excalidrawExtensionIcon } from "./icon";
@@ -28,10 +23,7 @@ import es from "./locales/es.json";
 import fr from "./locales/fr.json";
 import ptBR from "./locales/pt-BR.json";
 import "./styles.css";
-import { yjsAssetsToFiles } from "./yjs-assets";
 import { YjsExcalidraw } from "./yjs-excalidraw";
-
-const DEFAULT_EXPORT_WIDTH = 800;
 
 function subscribeToColorScheme(onChange: () => void): () => void {
 	const observer = new MutationObserver(onChange);
@@ -64,52 +56,6 @@ function useColorScheme(): "dark" | "light" {
 		currentColorScheme,
 		() => "light",
 	);
-}
-
-async function getExcalidrawCompileContent(
-	documentId: string,
-	context: PluginCompileContext,
-): Promise<CompileContent> {
-	const scene = await withYjsDoc(
-		context,
-		documentId,
-		(doc) => ({
-			elements: yjsToExcalidraw(doc.getArray<YMap<unknown>>("elements")),
-			files: yjsAssetsToFiles(doc.getMap("assets")),
-		}),
-		{ elements: [] as ReturnType<typeof yjsToExcalidraw>, files: {} },
-	);
-	const visibleElements = scene.elements.filter((element) => !element.isDeleted);
-	if (visibleElements.length === 0) return { sections: [], title: "" };
-
-	const blob = await exportToBlob({
-		appState: {
-			exportBackground: true,
-			exportWithDarkMode: false,
-			viewBackgroundColor: "#ffffff",
-		},
-		elements: visibleElements,
-		files: scene.files,
-		maxWidthOrHeight: DEFAULT_EXPORT_WIDTH,
-	});
-	const dataUrl = await new Promise<string>((resolve, reject) => {
-		const reader = new FileReader();
-		reader.onerror = () => reject(reader.error ?? new Error("Could not read drawing export"));
-		reader.onloadend = () => resolve(String(reader.result));
-		reader.readAsDataURL(blob);
-	});
-	const dimensions = await new Promise<{ height: number; width: number }>(
-		(resolve, reject) => {
-			const image = new Image();
-			image.onerror = () => reject(new Error("Could not measure drawing export"));
-			image.onload = () => resolve({ height: image.height, width: image.width });
-			image.src = dataUrl;
-		},
-	);
-	return {
-		sections: [{ dataUrl, type: "image", ...dimensions }],
-		title: "",
-	};
 }
 
 function ExcalidrawState({
