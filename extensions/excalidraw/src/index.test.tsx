@@ -30,11 +30,7 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 		reportReady?.();
 		return children;
 	},
-	defineExternalContentType: (input: object) => ({
-		...input,
-		type: "content-type",
-	}),
-	defineExternalPlugin: (input: unknown) => input,
+	definePlugin: (input: unknown) => input,
 	useLocale: () => ({ locale: state.locale }),
 	useWorkspaceAccess: () => ({ canWriteContent: state.canWriteContent }),
 }));
@@ -101,8 +97,18 @@ describe("Excalidraw external extension", () => {
 			compilable: true,
 			documentStorage: "yjs",
 			id: "lunaris.excalidraw",
-			type: "content-type",
 		});
+	});
+
+	it("registers contributions during activation", () => {
+		const contentType = vi.fn();
+		const locales = vi.fn();
+		excalidrawExtension.activate({
+			contributions: { contentType, locales },
+		} as never);
+
+		expect(contentType).toHaveBeenCalledWith(excalidrawContentType);
+		expect(locales).toHaveBeenCalledOnce();
 	});
 
 	it("shows a local skeleton while the Yjs document loads", () => {

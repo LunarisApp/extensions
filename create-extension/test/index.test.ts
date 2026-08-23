@@ -70,7 +70,7 @@ describe("scaffoldExtension", () => {
       developer: "Acme",
       id: "acme.notes",
       name: "Acme Notes",
-      modifications: [
+      contributions: [
         {
           defaultPlacement: "primary",
           id: "acme.notes",

@@ -2,19 +2,17 @@
   "id": "lunaris.mini-app",
   "name": "Mini Apps",
   "developer": "Lunaris",
-  "version": "1.0.6",
-  "sdk": "^0.0.5",
+  "version": "1.0.7",
+  "api": "^0.3.0",
   "description": "Run interactive, self-contained HTML apps in your project",
-  "modifications": [
+  "permissions": ["content.read", "files.read", "files.write"],
+  "contributions": [
     {
       "compilable": false,
-      "createLabel": "Mini App",
-      "createMode": "default",
       "documentStorage": "none",
       "hierarchyVisibility": "visible",
       "id": "lunaris.mini-app",
       "name": "Mini App",
-      "singleton": false,
       "userCreatable": true,
       "type": "content-type"
     }

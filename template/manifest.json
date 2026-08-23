@@ -3,9 +3,10 @@
   "name": "Example Notes",
   "developer": "Example Developer",
   "version": "1.0.0",
-  "sdk": "^0.0.5",
+  "api": "^0.3.0",
   "description": "Example externally loaded Lunaris extension",
-  "modifications": [
+  "permissions": [],
+  "contributions": [
     {
       "defaultPlacement": "primary",
       "id": "example.notes",

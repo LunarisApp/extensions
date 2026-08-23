@@ -1,6 +1,6 @@
 {
 	"name": "lunaris-extension-excalidraw",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -10,7 +10,7 @@
 	},
 	"dependencies": {
 		"@excalidraw/excalidraw": "^0.18.1",
-		"@lunarisapp/plugin-sdk": "^0.2.0",
+		"@lunarisapp/plugin-sdk": "^0.3.0",
 		"react": "^19.2.8",
 		"y-excalidraw": "^2.0.12",
 		"y-protocols": "^1.0.7",
