@@ -2,6 +2,9 @@ import type {
   CompileContent,
   PluginProjectItem,
 } from "@lunarisapp/plugin-sdk";
+import { DEFAULT_DOSSIER, INITIAL_CUSTOMERS, INITIAL_OPERATIONS } from "./sample-data";
+
+export { DEFAULT_DOSSIER, INITIAL_CUSTOMERS, INITIAL_OPERATIONS };
 
 export const CONTENT_TYPE_ID = "lunaris.demo.customer-dossier";
 export const DOSSIER_MAP_NAME = "customer-dossier";
@@ -32,7 +35,6 @@ export interface CustomerAccount {
   status: AccountStatus;
   trialDaysLeft?: number;
 }
-
 export interface AccountFilters {
   health: "all" | AccountHealth;
   search: string;
@@ -54,6 +56,24 @@ export interface OperationEntry {
   tone: "danger" | "neutral" | "positive" | "warning";
 }
 
+export interface DossierRisk {
+  detail: string;
+  label: string;
+  severity: "medium" | "high";
+}
+
+export interface DossierStakeholder {
+  email: string;
+  name: string;
+  role: string;
+}
+
+export interface DossierTimelineEvent {
+  date: string;
+  detail: string;
+  title: string;
+}
+
 export interface CustomerDossier {
   company: string;
   domain: string;
@@ -64,301 +84,12 @@ export interface CustomerDossier {
   owner: string;
   plan: CustomerPlan;
   renewalDate: string;
-  risks: Array<{ detail: string; label: string; severity: "medium" | "high" }>;
+  risks: DossierRisk[];
   seatsLimit: number;
   seatsUsed: number;
-  stakeholders: Array<{ email: string; name: string; role: string }>;
-  timeline: Array<{ date: string; detail: string; title: string }>;
+  stakeholders: DossierStakeholder[];
+  timeline: DossierTimelineEvent[];
 }
-
-export const INITIAL_CUSTOMERS: CustomerAccount[] = [
-  {
-    domain: "alder-finch.example.test",
-    health: "watch",
-    id: "org_demo_01AF",
-    initials: "AF",
-    lastActive: "18 min ago",
-    mrr: 24_500,
-    name: "Alder & Finch Labs",
-    openCases: 1,
-    owner: "Elena Park",
-    plan: "Enterprise",
-    previousMrr: 23_100,
-    renewalDate: "Sep 18, 2026",
-    renewalDays: 36,
-    seatsLimit: 120,
-    seatsUsed: 82,
-    status: "active",
-  },
-  {
-    domain: "brightloop.example.test",
-    health: "healthy",
-    id: "org_demo_02BR",
-    initials: "BR",
-    lastActive: "1 hr ago",
-    mrr: 8_750,
-    name: "Brightloop Research",
-    openCases: 0,
-    owner: "Mika Rowan",
-    plan: "Scale",
-    previousMrr: 8_200,
-    renewalDate: "Oct 12, 2026",
-    renewalDays: 60,
-    seatsLimit: 50,
-    seatsUsed: 34,
-    status: "active",
-  },
-  {
-    domain: "cinderlane.example.test",
-    health: "watch",
-    id: "org_demo_03CS",
-    initials: "CS",
-    lastActive: "7 days ago",
-    mrr: 2_400,
-    name: "Cinderlane Systems",
-    openCases: 2,
-    owner: "Aisha Bell",
-    plan: "Starter",
-    previousMrr: 2_400,
-    renewalDate: "Aug 25, 2026",
-    renewalDays: 12,
-    seatsLimit: 10,
-    seatsUsed: 8,
-    status: "active",
-  },
-  {
-    domain: "dockside-metric.example.test",
-    health: "healthy",
-    id: "org_demo_04DM",
-    initials: "DM",
-    lastActive: "32 min ago",
-    mrr: 31_000,
-    name: "Dockside Metric",
-    openCases: 1,
-    owner: "Theo Moss",
-    plan: "Enterprise",
-    previousMrr: 28_500,
-    renewalDate: "Nov 03, 2026",
-    renewalDays: 82,
-    seatsLimit: 150,
-    seatsUsed: 121,
-    status: "active",
-  },
-  {
-    domain: "evervale.example.test",
-    health: "risk",
-    id: "org_demo_05ER",
-    initials: "ER",
-    lastActive: "14 days ago",
-    mrr: 6_000,
-    name: "Evervale Robotics",
-    openCases: 3,
-    owner: "Elena Park",
-    plan: "Scale",
-    previousMrr: 7_500,
-    renewalDate: "Aug 19, 2026",
-    renewalDays: 6,
-    seatsLimit: 40,
-    seatsUsed: 25,
-    status: "active",
-  },
-  {
-    domain: "fieldnote-cloud.example.test",
-    health: "watch",
-    id: "org_demo_06FC",
-    initials: "FC",
-    lastActive: "3 days ago",
-    mrr: 1_800,
-    name: "Fieldnote Cloud",
-    openCases: 2,
-    owner: "Mika Rowan",
-    plan: "Starter",
-    previousMrr: 1_800,
-    renewalDate: "Trial",
-    renewalDays: 9,
-    seatsLimit: 10,
-    seatsUsed: 6,
-    status: "trial",
-    trialDaysLeft: 9,
-  },
-  {
-    domain: "glasswing.example.test",
-    health: "healthy",
-    id: "org_demo_07GD",
-    initials: "GD",
-    lastActive: "2 hr ago",
-    mrr: 18_900,
-    name: "Glasswing Data",
-    openCases: 0,
-    owner: "Theo Moss",
-    plan: "Enterprise",
-    previousMrr: 17_400,
-    renewalDate: "Sep 01, 2026",
-    renewalDays: 19,
-    seatsLimit: 75,
-    seatsUsed: 60,
-    status: "active",
-  },
-  {
-    domain: "harborlight.example.test",
-    health: "healthy",
-    id: "org_demo_08HO",
-    initials: "HO",
-    lastActive: "44 min ago",
-    mrr: 7_250,
-    name: "Harborlight Ops",
-    openCases: 1,
-    owner: "Aisha Bell",
-    plan: "Scale",
-    previousMrr: 6_800,
-    renewalDate: "Oct 25, 2026",
-    renewalDays: 73,
-    seatsLimit: 40,
-    seatsUsed: 28,
-    status: "active",
-  },
-  {
-    domain: "juniper-stack.example.test",
-    health: "risk",
-    id: "org_demo_09JS",
-    initials: "JS",
-    lastActive: "21 days ago",
-    mrr: 27_500,
-    name: "Juniper Stack",
-    openCases: 4,
-    owner: "Elena Park",
-    plan: "Enterprise",
-    previousMrr: 31_000,
-    renewalDate: "Aug 16, 2026",
-    renewalDays: 3,
-    seatsLimit: 125,
-    seatsUsed: 95,
-    status: "active",
-  },
-  {
-    domain: "kiteframe.example.test",
-    health: "watch",
-    id: "org_demo_10KS",
-    initials: "KS",
-    lastActive: "10 days ago",
-    mrr: 2_000,
-    name: "Kiteframe Studio",
-    openCases: 0,
-    owner: "Mika Rowan",
-    plan: "Starter",
-    previousMrr: 1_850,
-    renewalDate: "Trial",
-    renewalDays: 4,
-    seatsLimit: 10,
-    seatsUsed: 7,
-    status: "trial",
-    trialDaysLeft: 4,
-  },
-  {
-    domain: "loomwell.example.test",
-    health: "healthy",
-    id: "org_demo_11LS",
-    initials: "LS",
-    lastActive: "5 hr ago",
-    mrr: 9_550,
-    name: "Loomwell Systems",
-    openCases: 0,
-    owner: "Theo Moss",
-    plan: "Scale",
-    previousMrr: 8_900,
-    renewalDate: "Sep 30, 2026",
-    renewalDays: 48,
-    seatsLimit: 50,
-    seatsUsed: 38,
-    status: "active",
-  },
-  {
-    domain: "mossbank.example.test",
-    health: "risk",
-    id: "org_demo_12MA",
-    initials: "MA",
-    lastActive: "28 days ago",
-    mrr: 12_000,
-    name: "Mossbank AI",
-    openCases: 3,
-    owner: "Aisha Bell",
-    plan: "Scale",
-    previousMrr: 14_000,
-    renewalDate: "Sep 07, 2026",
-    renewalDays: 25,
-    seatsLimit: 60,
-    seatsUsed: 57,
-    status: "suspended",
-  },
-];
-
-export const INITIAL_OPERATIONS: OperationEntry[] = [
-  {
-    actor: "Demo operator",
-    id: "op-1",
-    message: "Sample dossier created for Alder & Finch Labs",
-    time: "10:15",
-    tone: "positive",
-  },
-  {
-    actor: "System",
-    id: "op-2",
-    message: "Juniper Stack moved to at risk",
-    time: "09:42",
-    tone: "warning",
-  },
-  {
-    actor: "Billing simulator",
-    id: "op-3",
-    message: "Payment retry failed for Evervale Robotics",
-    time: "08:54",
-    tone: "danger",
-  },
-  {
-    actor: "System",
-    id: "op-4",
-    message: "Seat threshold reached at Mossbank AI",
-    time: "07:48",
-    tone: "neutral",
-  },
-];
-
-export const DEFAULT_DOSSIER: CustomerDossier = {
-  company: "Alder & Finch Labs",
-  domain: "alder-finch.example.test",
-  health: "watch",
-  mrr: 24_500,
-  notes:
-    "Synthetic sample: adoption is strong in the analytics team, while the operations group still needs an enablement session before renewal review.",
-  organizationId: "org_demo_01AF",
-  owner: "Elena Park",
-  plan: "Enterprise",
-  renewalDate: "September 18, 2026",
-  risks: [
-    {
-      detail: "Operations workspace activity is down 24% over the last 30 days.",
-      label: "Adoption drift",
-      severity: "medium",
-    },
-    {
-      detail: "Security review is open with two unanswered control questions.",
-      label: "Security review",
-      severity: "high",
-    },
-  ],
-  seatsLimit: 120,
-  seatsUsed: 82,
-  stakeholders: [
-    { email: "mina@alder-finch.example.test", name: "Mina Vale", role: "Executive sponsor" },
-    { email: "rohan@alder-finch.example.test", name: "Rohan Pike", role: "Workspace admin" },
-    { email: "elle@alder-finch.example.test", name: "Elle North", role: "Security lead" },
-  ],
-  timeline: [
-    { date: "Aug 11", detail: "Eight operators completed the workflow lab.", title: "Enablement session" },
-    { date: "Aug 07", detail: "Owner acknowledged the adoption drift signal.", title: "Health review" },
-    { date: "Jul 29", detail: "Seat allocation increased from 100 to 120.", title: "Plan updated" },
-  ],
-};
 
 export function filterCustomers(
   customers: CustomerAccount[],
@@ -447,69 +178,98 @@ export function findDossierItem(items: Map<string, PluginProjectItem>) {
   return [...items.values()].find((item) => item.pluginId === CONTENT_TYPE_ID) ?? null;
 }
 
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord | null {
+  return value !== null && typeof value === "object" ? value as UnknownRecord : null;
+}
+
+function readText(source: UnknownRecord, key: keyof CustomerDossier, fallback: string) {
+  const value = source[key];
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+
+function readNumber(
+  source: UnknownRecord,
+  key: keyof CustomerDossier,
+  fallback: number,
+  minimum = 0,
+) {
+  const value = source[key];
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(minimum, value)
+    : fallback;
+}
+
+function readEnum<const Value extends string>(
+  value: unknown,
+  allowed: readonly Value[],
+  fallback: Value,
+): Value {
+  return typeof value === "string" && allowed.includes(value as Value)
+    ? value as Value
+    : fallback;
+}
+
+function readList<Item>(
+  value: unknown,
+  fallback: Item[],
+  parse: (record: UnknownRecord) => Item | null,
+): Item[] {
+  if (!Array.isArray(value)) return fallback;
+  return value.flatMap((candidate) => {
+    const record = asRecord(candidate);
+    if (!record) return [];
+    const item = parse(record);
+    return item ? [item] : [];
+  });
+}
+
+function parseStakeholder(record: UnknownRecord): DossierStakeholder | null {
+  const { email, name, role } = record;
+  return typeof email === "string" && typeof name === "string" && typeof role === "string"
+    ? { email, name, role }
+    : null;
+}
+
+function parseRisk(record: UnknownRecord): DossierRisk | null {
+  const { detail, label, severity } = record;
+  if (typeof detail !== "string" || typeof label !== "string") return null;
+  return { detail, label, severity: severity === "high" ? "high" : "medium" };
+}
+
+function parseTimelineEvent(record: UnknownRecord): DossierTimelineEvent | null {
+  const { date, detail, title } = record;
+  return typeof date === "string" && typeof detail === "string" && typeof title === "string"
+    ? { date, detail, title }
+    : null;
+}
+
 export function parseDossierRecord(value: unknown): CustomerDossier {
-  if (!value || typeof value !== "object") return DEFAULT_DOSSIER;
-  const source = value as Record<string, unknown>;
-  const text = (key: keyof CustomerDossier, fallback: string) =>
-    typeof source[key] === "string" && source[key].trim().length > 0
-      ? source[key]
-      : fallback;
-  const number = (key: keyof CustomerDossier, fallback: number, minimum = 0) =>
-    typeof source[key] === "number" && Number.isFinite(source[key])
-      ? Math.max(minimum, source[key])
-      : fallback;
-  const health = source.health === "healthy" || source.health === "risk" || source.health === "watch"
-    ? source.health
-    : DEFAULT_DOSSIER.health;
-  const plan = source.plan === "Enterprise" || source.plan === "Scale" || source.plan === "Starter"
-    ? source.plan
-    : DEFAULT_DOSSIER.plan;
-  const seatsLimit = number("seatsLimit", DEFAULT_DOSSIER.seatsLimit, 1);
-  const seatsUsed = Math.min(number("seatsUsed", DEFAULT_DOSSIER.seatsUsed), seatsLimit);
-  const stakeholders = Array.isArray(source.stakeholders)
-    ? source.stakeholders.flatMap((candidate) => {
-      if (!candidate || typeof candidate !== "object") return [];
-      const item = candidate as Record<string, unknown>;
-      if (typeof item.name !== "string" || typeof item.role !== "string" || typeof item.email !== "string") return [];
-      return [{ email: item.email, name: item.name, role: item.role }];
-    })
-    : DEFAULT_DOSSIER.stakeholders;
-  const risks = Array.isArray(source.risks)
-    ? source.risks.flatMap((candidate) => {
-      if (!candidate || typeof candidate !== "object") return [];
-      const item = candidate as Record<string, unknown>;
-      if (typeof item.label !== "string" || typeof item.detail !== "string") return [];
-      return [{
-        detail: item.detail,
-        label: item.label,
-        severity: item.severity === "high" ? "high" as const : "medium" as const,
-      }];
-    })
-    : DEFAULT_DOSSIER.risks;
-  const timeline = Array.isArray(source.timeline)
-    ? source.timeline.flatMap((candidate) => {
-      if (!candidate || typeof candidate !== "object") return [];
-      const item = candidate as Record<string, unknown>;
-      if (typeof item.date !== "string" || typeof item.title !== "string" || typeof item.detail !== "string") return [];
-      return [{ date: item.date, detail: item.detail, title: item.title }];
-    })
-    : DEFAULT_DOSSIER.timeline;
+  const source = asRecord(value);
+  if (!source) return DEFAULT_DOSSIER;
+
+  const seatsLimit = readNumber(source, "seatsLimit", DEFAULT_DOSSIER.seatsLimit, 1);
+  const seatsUsed = Math.min(
+    readNumber(source, "seatsUsed", DEFAULT_DOSSIER.seatsUsed),
+    seatsLimit,
+  );
 
   return {
-    company: text("company", DEFAULT_DOSSIER.company),
-    domain: text("domain", DEFAULT_DOSSIER.domain),
-    health,
-    mrr: number("mrr", DEFAULT_DOSSIER.mrr),
-    notes: text("notes", DEFAULT_DOSSIER.notes),
-    organizationId: text("organizationId", DEFAULT_DOSSIER.organizationId),
-    owner: text("owner", DEFAULT_DOSSIER.owner),
-    plan,
-    renewalDate: text("renewalDate", DEFAULT_DOSSIER.renewalDate),
-    risks,
+    company: readText(source, "company", DEFAULT_DOSSIER.company),
+    domain: readText(source, "domain", DEFAULT_DOSSIER.domain),
+    health: readEnum(source.health, ["healthy", "risk", "watch"], DEFAULT_DOSSIER.health),
+    mrr: readNumber(source, "mrr", DEFAULT_DOSSIER.mrr),
+    notes: readText(source, "notes", DEFAULT_DOSSIER.notes),
+    organizationId: readText(source, "organizationId", DEFAULT_DOSSIER.organizationId),
+    owner: readText(source, "owner", DEFAULT_DOSSIER.owner),
+    plan: readEnum(source.plan, ["Enterprise", "Scale", "Starter"], DEFAULT_DOSSIER.plan),
+    renewalDate: readText(source, "renewalDate", DEFAULT_DOSSIER.renewalDate),
+    risks: readList(source.risks, DEFAULT_DOSSIER.risks, parseRisk),
     seatsLimit,
     seatsUsed,
-    stakeholders,
-    timeline,
+    stakeholders: readList(source.stakeholders, DEFAULT_DOSSIER.stakeholders, parseStakeholder),
+    timeline: readList(source.timeline, DEFAULT_DOSSIER.timeline, parseTimelineEvent),
   };
 }
 
