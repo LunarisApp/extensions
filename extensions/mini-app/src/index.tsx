@@ -1,7 +1,5 @@
-import {
-	defineExternalContentType,
-	defineExternalPlugin,
-} from "@lunarisapp/plugin-sdk";
+import type { ContentTypeDefinition } from "@lunarisapp/plugin-sdk";
+import { definePlugin } from "@lunarisapp/plugin-sdk";
 import { AppWindowIcon, Download01Icon } from "@lunarisapp/ui/icons";
 import manifest from "../manifest.json";
 import "./styles.css";
@@ -14,7 +12,7 @@ import { MiniAppViewer } from "./mini-app-viewer";
 
 export const MINI_APP_EXTENSION_ID = "lunaris.mini-app";
 
-export const miniAppContentType = defineExternalContentType({
+export const miniAppContentType: ContentTypeDefinition = {
 	actions: [
 		{
 			icon: Download01Icon,
@@ -26,7 +24,6 @@ export const miniAppContentType = defineExternalContentType({
 			},
 		},
 	],
-	createLabel: "Mini App",
 	documentStorage: "none",
 	icon: AppWindowIcon,
 	id: MINI_APP_EXTENSION_ID,
@@ -35,10 +32,12 @@ export const miniAppContentType = defineExternalContentType({
 		<MiniAppViewer itemId={itemId} reportReady={reportReady} />
 	),
 	rendererSandbox: "local-srcdoc",
-});
+};
 
-export default defineExternalPlugin({
-	locales: { de, en, es, fr, "pt-BR": ptBR },
+export default definePlugin({
 	manifest,
-	modifications: [miniAppContentType],
+	activate({ contributions }) {
+		contributions.contentType(miniAppContentType);
+		contributions.locales({ de, en, es, fr, "pt-BR": ptBR });
+	},
 });

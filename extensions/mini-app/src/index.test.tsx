@@ -36,11 +36,7 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 		"'sha256-fCaVxzn99NXIV2Sj1rVbVZxfp8DmlTnAEsbUyIxGxjg='",
 	PLUGIN_SANDBOX_BOOTSTRAP_SOURCE:
 		'if(origin!=="null")throw new Error("Sandbox bootstrap requires an opaque origin");const decode=id=>Uint8Array.from(atob(document.getElementById(id)?.textContent||""),value=>value.charCodeAt(0));const style=document.createElement("style");style.textContent=new TextDecoder().decode(decode("lunaris-plugin-style"));document.head.append(style);const scriptUrl=URL.createObjectURL(new Blob([decode("lunaris-plugin-script")],{type:"text/javascript"}));const script=document.createElement("script");script.src=scriptUrl;script.onload=script.onerror=()=>URL.revokeObjectURL(scriptUrl);document.head.append(script);',
-	defineExternalContentType: (input: object) => ({
-		...input,
-		type: "content-type",
-	}),
-	defineExternalPlugin: (input: unknown) => input,
+	definePlugin: (input: unknown) => input,
 	useFileStorage: () => ({ download: downloadMock, upload: uploadMock }),
 	useLocale: () => ({ locale }),
 	useProjectItemName: () => "Budget",
@@ -77,19 +73,27 @@ describe("Mini Apps extension", () => {
 
 	it("registers an external document-less content type", () => {
 		expect(extension.manifest).toMatchObject({
+			api: "^0.3.0",
 			id: "lunaris.mini-app",
-			sdk: "^0.0.5",
-			version: "1.0.6",
+			version: "1.0.7",
 		});
 		expect(miniAppContentType).toMatchObject({
-			createLabel: "Mini App",
 			documentStorage: "none",
 			id: "lunaris.mini-app",
 			name: "Mini App",
 			rendererSandbox: "local-srcdoc",
-			type: "content-type",
 		});
-		expect(miniAppContentType.createMode).toBeUndefined();
+	});
+
+	it("registers contributions during activation", () => {
+		const contentType = vi.fn();
+		const locales = vi.fn();
+		extension.activate({
+			contributions: { contentType, locales },
+		} as never);
+
+		expect(contentType).toHaveBeenCalledWith(miniAppContentType);
+		expect(locales).toHaveBeenCalledOnce();
 	});
 
 	it("shows onboarding and uploads one valid HTML file", async () => {

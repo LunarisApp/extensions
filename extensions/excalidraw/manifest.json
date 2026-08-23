@@ -3,18 +3,16 @@
 	"name": "Excalidraw",
 	"description": "Collaborative drawing with Excalidraw",
 	"developer": "Lunaris",
-	"version": "1.0.5",
-	"sdk": "^0.0.5",
-	"modifications": [
+	"version": "1.0.6",
+	"api": "^0.3.0",
+	"permissions": ["content.read", "content.write"],
+	"contributions": [
 		{
 			"compilable": true,
-			"createLabel": "Excalidraw",
-			"createMode": "default",
 			"documentStorage": "yjs",
 			"hierarchyVisibility": "visible",
 			"id": "lunaris.excalidraw",
 			"name": "Excalidraw",
-			"singleton": false,
 			"userCreatable": true,
 			"type": "content-type"
 		}

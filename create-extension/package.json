@@ -1,6 +1,6 @@
 {
   "name": "@lunarisapp/create-extension",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Create a Lunaris extension",
   "type": "module",
   "license": "Apache-2.0",

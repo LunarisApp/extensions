@@ -16,8 +16,9 @@ const manifest = {
   description: "A calendar extension",
   developer: "Example",
   version: "1.0.0",
-  sdk: "^0.0.5",
-  modifications: [
+  api: "^0.3.0",
+  permissions: [],
+  contributions: [
     {
       defaultPlacement: "primary",
       id: "example.calendar",
@@ -172,6 +173,38 @@ describe("registry publication", () => {
     expect(published.plugins[0]?.latestVersion).toBe("1.10.0");
   });
 
+  test("omits immutable pre-0.3 descriptors from the rebuilt catalog", async () => {
+    const value = await fixture();
+    const releaseDirectory = path.join(value.site, "releases/example.calendar");
+    await mkdir(releaseDirectory, { recursive: true });
+    await writeFile(
+      path.join(releaseDirectory, "0.9.0.json"),
+      `${JSON.stringify({
+        manifest: {
+          id: manifest.id,
+          sdk: "^0.0.5",
+          version: "0.9.0",
+        },
+        sdk: "^0.0.5",
+      })}\n`,
+    );
+
+    await publishRegistry({
+      artifacts: value.artifacts,
+      repositoryRoot: value.root,
+      site: value.site,
+    });
+
+    expect(
+      (await catalog(value.site)).plugins[0]?.versions.map(
+        (version) => version.version,
+      ),
+    ).toEqual(["1.0.0"]);
+    expect(
+      await Bun.file(path.join(releaseDirectory, "0.9.0.json")).exists(),
+    ).toBe(true);
+  });
+
   test("rejects invalid stored descriptors", async () => {
     const value = await fixture();
     const releaseDirectory = path.join(value.site, "releases/example.calendar");
@@ -188,7 +221,7 @@ describe("registry publication", () => {
             sha256: "0".repeat(64),
             url: "https://plugins.lunaris.app/invalid.js",
           },
-          sdk: manifest.sdk,
+          api: manifest.api,
           status: "active",
         },
         null,

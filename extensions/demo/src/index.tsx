@@ -14,9 +14,8 @@ import {
   parseDossierRecord,
 } from "./domain";
 import {
-  defineExternalContentType,
-  defineExternalPlugin,
-  defineExternalView,
+  type ContentTypeDefinition,
+  definePlugin,
   withYjsDoc,
 } from "@lunarisapp/plugin-sdk";
 import { DashboardSquare01Icon, File02Icon } from "@lunarisapp/ui/icons";
@@ -25,49 +24,49 @@ import { AdminDashboard } from "./dashboard";
 import { CustomerDossierRenderer, DossierStatusBar } from "./dossier";
 import "./styles.css";
 
-export default defineExternalPlugin({
+const dossierContentType: ContentTypeDefinition = {
+  compilable: true,
+  documentStorage: "yjs",
+  getCompileContent: (documentId, context) =>
+    withYjsDoc(
+      context,
+      documentId,
+      (document) => {
+        const raw = document.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY);
+        if (!raw) return buildDossierCompileContent(DEFAULT_DOSSIER);
+        try {
+          return buildDossierCompileContent(parseDossierRecord(JSON.parse(raw)));
+        } catch {
+          return buildDossierCompileContent(DEFAULT_DOSSIER);
+        }
+      },
+      buildDossierCompileContent(DEFAULT_DOSSIER),
+    ),
+  hierarchyVisibility: "visible",
+  icon: File02Icon,
+  id: "lunaris.demo.customer-dossier",
+  initializeDocument: (document) => {
+    const map = document.getMap<string>(DOSSIER_MAP_NAME);
+    if (!map.has(DOSSIER_RECORD_KEY)) {
+      map.set(DOSSIER_RECORD_KEY, JSON.stringify(DEFAULT_DOSSIER));
+    }
+  },
+  name: "Customer dossier",
+  renderer: CustomerDossierRenderer,
+  statusBar: DossierStatusBar,
+  userCreatable: true,
+};
+
+export default definePlugin({
   manifest,
-  modifications: [
-    defineExternalView({
+  activate({ contributions }) {
+    contributions.view({
       defaultPlacement: "primary",
       icon: DashboardSquare01Icon,
       id: "lunaris.demo",
       name: "Demo",
       renderer: AdminDashboard,
-    }),
-    defineExternalContentType({
-      compilable: true,
-      createLabel: "Customer dossier",
-      documentStorage: "yjs",
-      getCompileContent: (documentId, context) =>
-        withYjsDoc(
-          context,
-          documentId,
-          (document) => {
-            const raw = document.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY);
-            if (!raw) return buildDossierCompileContent(DEFAULT_DOSSIER);
-            try {
-              return buildDossierCompileContent(parseDossierRecord(JSON.parse(raw)));
-            } catch {
-              return buildDossierCompileContent(DEFAULT_DOSSIER);
-            }
-          },
-          buildDossierCompileContent(DEFAULT_DOSSIER),
-        ),
-      hierarchyVisibility: "visible",
-      icon: File02Icon,
-      id: "lunaris.demo.customer-dossier",
-      initializeDocument: (document) => {
-        const map = document.getMap<string>(DOSSIER_MAP_NAME);
-        if (!map.has(DOSSIER_RECORD_KEY)) {
-          map.set(DOSSIER_RECORD_KEY, JSON.stringify(DEFAULT_DOSSIER));
-        }
-      },
-      name: "Customer dossier",
-      renderer: CustomerDossierRenderer,
-      singleton: true,
-      statusBar: DossierStatusBar,
-      userCreatable: true,
-    }),
-  ],
+    });
+    contributions.contentType(dossierContentType);
+  },
 });

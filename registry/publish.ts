@@ -168,12 +168,12 @@ async function publishBuild(
     version: manifest.version,
   });
   const descriptor: PluginReleaseDescriptor = {
+    api: manifest.api,
     ...(icon ? { icon } : {}),
     manifest,
     repository: metadata.repository,
     runtime: PLUGIN_SANDBOX_RUNTIME,
     script,
-    sdk: manifest.sdk,
     status: "active",
     ...(style ? { style } : {}),
   };
@@ -181,6 +181,30 @@ async function publishBuild(
   await writeImmutable(
     path.join(site, relative),
     Buffer.from(`${JSON.stringify(descriptor, null, 2)}\n`),
+  );
+}
+
+function isLegacyReleaseDescriptor(
+  value: unknown,
+  expected: { id: string; version: string },
+): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const descriptor = value as Record<string, unknown>;
+  if (
+    typeof descriptor.sdk !== "string" ||
+    descriptor.api !== undefined ||
+    !descriptor.manifest ||
+    typeof descriptor.manifest !== "object" ||
+    Array.isArray(descriptor.manifest)
+  ) {
+    return false;
+  }
+  const manifest = descriptor.manifest as Record<string, unknown>;
+  return (
+    typeof manifest.sdk === "string" &&
+    manifest.api === undefined &&
+    manifest.id === expected.id &&
+    manifest.version === expected.version
   );
 }
 
@@ -200,6 +224,7 @@ async function readDescriptors(
       const stored: unknown = JSON.parse(
         await readFile(path.join(releaseRoot, id.name, entry.name), "utf8"),
       );
+      if (isLegacyReleaseDescriptor(stored, { id: id.name, version })) continue;
       descriptors.push(
         parsePluginReleaseDescriptor(stored, { id: id.name, version }),
       );
@@ -232,9 +257,9 @@ function buildCatalog(
       const policyBlocked = blockedVersions.has(key);
       if (policyBlocked) observedBlockedVersions.add(key);
       return {
+        api: descriptor.api,
         descriptorUrl: `${baseUrl}/releases/${id}/${descriptor.manifest.version}.json`,
         runtime: descriptor.runtime,
-        sdk: descriptor.sdk,
         status: policyBlocked ? "blocked" : "active",
         version: descriptor.manifest.version,
       };

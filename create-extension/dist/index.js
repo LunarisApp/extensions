@@ -5,7 +5,7 @@ import { realpathSync } from "node:fs";
 import { cp, lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-var VERSION = "0.3.0";
+var VERSION = "0.4.0";
 var EXTENSION_ID_PATTERN = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
 var MAX_EXTENSION_ID_LENGTH = 50;
 var HELP = `Create a Lunaris extension
@@ -155,7 +155,7 @@ async function scaffoldExtension(options, templateDirectory) {
   manifest.name = options.name;
   manifest.description = options.description;
   manifest.developer = options.developer;
-  manifest.modifications = [
+  manifest.contributions = [
     {
       defaultPlacement: "primary",
       id: options.id,

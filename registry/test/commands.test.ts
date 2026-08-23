@@ -33,8 +33,9 @@ const manifest = {
   description: "A calendar extension",
   developer: "Example",
   version: "1.0.0",
-  sdk: "^0.0.5",
-  modifications: [
+  api: "^0.3.0",
+  permissions: [],
+  contributions: [
     {
       defaultPlacement: "primary",
       id: "example.calendar",

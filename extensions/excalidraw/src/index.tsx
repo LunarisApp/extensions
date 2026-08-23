@@ -1,9 +1,12 @@
 import { exportToBlob } from "@excalidraw/excalidraw";
-import type { CompileContent, PluginCompileContext } from "@lunarisapp/plugin-sdk";
+import type {
+	CompileContent,
+	ContentTypeDefinition,
+	PluginCompileContext,
+} from "@lunarisapp/plugin-sdk";
 import {
 	ContentRendererReady,
-	defineExternalContentType,
-	defineExternalPlugin,
+	definePlugin,
 	useLocale,
 	useWorkspaceAccess,
 } from "@lunarisapp/plugin-sdk";
@@ -188,9 +191,8 @@ function ExcalidrawStatusBar({ documentId }: { documentId: string }) {
 	return <ExcalidrawElementsCount yDoc={yDoc} />;
 }
 
-export const excalidrawContentType = defineExternalContentType({
+export const excalidrawContentType: ContentTypeDefinition = {
 	compilable: true,
-	createLabel: "Excalidraw",
 	documentStorage: "yjs",
 	getCompileContent: getExcalidrawCompileContent,
 	icon: excalidrawExtensionIcon,
@@ -204,12 +206,14 @@ export const excalidrawContentType = defineExternalContentType({
 		),
 	statusBar: ({ documentId }) =>
 		documentId ? <ExcalidrawStatusBar documentId={documentId} /> : null,
-});
+};
 
-export const excalidrawExtension = defineExternalPlugin({
-	locales: { de, en, es, fr, "pt-BR": ptBR },
+export const excalidrawExtension = definePlugin({
 	manifest,
-	modifications: [excalidrawContentType],
+	activate({ contributions }) {
+		contributions.contentType(excalidrawContentType);
+		contributions.locales({ de, en, es, fr, "pt-BR": ptBR });
+	},
 });
 
 export default excalidrawExtension;
