@@ -1,7 +1,8 @@
 import type {
   CompileContent,
-  PluginProjectItem,
+  PluginResource,
 } from "@lunarisapp/plugin-sdk";
+import { z } from "zod";
 import { DEFAULT_DOSSIER, INITIAL_CUSTOMERS, INITIAL_OPERATIONS } from "./sample-data";
 
 export { DEFAULT_DOSSIER, INITIAL_CUSTOMERS, INITIAL_OPERATIONS };
@@ -91,6 +92,35 @@ export interface CustomerDossier {
   timeline: DossierTimelineEvent[];
 }
 
+export const customerDossierSchema = z.object({
+  company: z.string(),
+  domain: z.string(),
+  health: z.enum(["healthy", "risk", "watch"]),
+  mrr: z.number().finite().nonnegative(),
+  notes: z.string(),
+  organizationId: z.string(),
+  owner: z.string(),
+  plan: z.enum(["Enterprise", "Scale", "Starter"]),
+  renewalDate: z.string(),
+  risks: z.array(z.object({
+    detail: z.string(),
+    label: z.string(),
+    severity: z.enum(["medium", "high"]),
+  })),
+  seatsLimit: z.number().finite().positive(),
+  seatsUsed: z.number().finite().nonnegative(),
+  stakeholders: z.array(z.object({
+    email: z.string(),
+    name: z.string(),
+    role: z.string(),
+  })),
+  timeline: z.array(z.object({
+    date: z.string(),
+    detail: z.string(),
+    title: z.string(),
+  })),
+});
+
 export function filterCustomers(
   customers: CustomerAccount[],
   filters: AccountFilters,
@@ -174,8 +204,10 @@ export function createOperationEntry(
   };
 }
 
-export function findDossierItem(items: Map<string, PluginProjectItem>) {
-  return [...items.values()].find((item) => item.pluginId === CONTENT_TYPE_ID) ?? null;
+export function findDossierResource(resources: Map<string, PluginResource>) {
+  return [...resources.values()].find(
+    (resource) => resource.resourceTypeId === CONTENT_TYPE_ID,
+  ) ?? null;
 }
 
 type UnknownRecord = Record<string, unknown>;

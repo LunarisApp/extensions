@@ -23,6 +23,10 @@ npx @lunarisapp/create-extension my-extension \
 
 Run `npx @lunarisapp/create-extension --help` for all options.
 
+Generated extensions target `@lunarisapp/plugin-sdk` `^0.4.0`. The starter
+keeps `manifest.json` to identity, API compatibility, and permissions, then
+registers an explicitly launchable standalone view during activation.
+
 ## Development
 
 ```sh

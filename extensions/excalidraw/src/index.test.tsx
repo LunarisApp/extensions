@@ -1,11 +1,19 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { excalidrawContentType, excalidrawExtension } from "./index";
+import {
+	EXCALIDRAW_SCHEMA_ID,
+	excalidrawExtension,
+	excalidrawRepresentation,
+	excalidrawResourceType,
+	excalidrawSceneSchema,
+	excalidrawStatus,
+	excalidrawView,
+} from "./index";
 
 const state = vi.hoisted(() => ({
 	canWriteContent: true,
-	elements: [] as Array<{ isDeleted?: boolean }>,
+	elements: [] as Array<{ id?: string; isDeleted?: boolean }>,
 	error: null as Error | null,
 	exportToBlob: vi.fn(),
 	isLoading: false,
@@ -20,7 +28,7 @@ vi.mock("@excalidraw/excalidraw", () => ({
 	exportToBlob: state.exportToBlob,
 }));
 vi.mock("@lunarisapp/plugin-sdk", () => ({
-	ContentRendererReady: ({
+	ViewReady: ({
 		children,
 		reportReady,
 	}: {
@@ -65,9 +73,18 @@ vi.mock("./yjs-excalidraw", () => ({
 function renderContent() {
 	render(
 		<>
-			{excalidrawContentType.renderer({
-				documentId: "document-1",
+			{excalidrawView.renderer({
 				params: {},
+				resource: {
+					documentId: "document-1",
+					parentId: null,
+					resourceId: "resource-1",
+					resourceTypeId: "lunaris.excalidraw",
+					schemaId: EXCALIDRAW_SCHEMA_ID,
+					schemaVersion: 1,
+					storageKind: "yjs",
+				},
+				storage: { documentId: "document-1", kind: "yjs" },
 			})}
 		</>,
 	);
@@ -91,24 +108,52 @@ afterEach(() => {
 });
 
 describe("Excalidraw external extension", () => {
-	it("registers the stable content type", () => {
+	it("registers the stable resource type and compatible default view", () => {
 		expect(excalidrawExtension.manifest.id).toBe("lunaris.excalidraw");
-		expect(excalidrawContentType).toMatchObject({
-			compilable: true,
-			documentStorage: "yjs",
-			id: "lunaris.excalidraw",
+		expect(excalidrawExtension.manifest.api).toBe("^0.4.0");
+		expect(excalidrawResourceType).toMatchObject({
+			defaultViewId: "lunaris.excalidraw",
+			resourceTypeId: "lunaris.excalidraw",
+			storage: { kind: "yjs" },
 		});
+		expect(excalidrawView).toMatchObject({
+			target: { kind: "resource", resourceTypeIds: ["lunaris.excalidraw"] },
+			viewId: excalidrawResourceType.defaultViewId,
+		});
+		expect(excalidrawSceneSchema.safeParse({ assets: {}, elements: [{}] }).success).toBe(true);
+		expect(excalidrawSceneSchema.safeParse({ assets: [], elements: {} }).success).toBe(false);
 	});
 
 	it("registers contributions during activation", () => {
-		const contentType = vi.fn();
+		const resourceType = vi.fn();
+		const view = vi.fn();
+		const status = vi.fn();
+		const representation = vi.fn();
 		const locales = vi.fn();
 		excalidrawExtension.activate({
-			contributions: { contentType, locales },
+			contributions: { locales, representation, resourceType, status, view },
 		} as never);
 
-		expect(contentType).toHaveBeenCalledWith(excalidrawContentType);
+		expect(resourceType).toHaveBeenCalledWith(excalidrawResourceType);
+		expect(view).toHaveBeenCalledWith(excalidrawView);
+		expect(status).toHaveBeenCalledWith(excalidrawStatus);
+		expect(representation).toHaveBeenCalledWith(excalidrawRepresentation);
 		expect(locales).toHaveBeenCalledOnce();
+	});
+
+	it("reads and validates the existing elements/assets document shape", async () => {
+		const asset = { dataURL: "data:image/png;base64,AA==" };
+		state.elements = [{ id: "element-1", isDeleted: false }];
+		const payload = await excalidrawResourceType.schema.read({
+			document: testYDoc(new Map([["file-1", asset]])) as never,
+			documentId: "document-1",
+			resourceId: "resource-1",
+		});
+		expect(payload).toEqual({
+			assets: { "file-1": asset },
+			elements: state.elements,
+		});
+		expect(excalidrawSceneSchema.safeParse(payload).success).toBe(true);
 	});
 
 	it("shows a local skeleton while the Yjs document loads", () => {
@@ -151,10 +196,19 @@ describe("Excalidraw external extension", () => {
 		state.yDoc = testYDoc();
 		render(
 			<>
-				{excalidrawContentType.renderer({
-					documentId: "document-1",
+				{excalidrawView.renderer({
 					params: {},
 					reportReady,
+					resource: {
+						documentId: "document-1",
+						parentId: null,
+						resourceId: "resource-1",
+						resourceTypeId: "lunaris.excalidraw",
+						schemaId: EXCALIDRAW_SCHEMA_ID,
+						schemaVersion: 1,
+						storageKind: "yjs",
+					},
+					storage: { documentId: "document-1", kind: "yjs" },
 				})}
 			</>,
 		);
@@ -167,9 +221,10 @@ describe("Excalidraw external extension", () => {
 		state.elements = [{}, { isDeleted: true }, { isDeleted: false }];
 		render(
 			<>
-				{excalidrawContentType.statusBar?.({
-					contentTypeId: "lunaris.excalidraw",
+				{excalidrawStatus.render({
 					documentId: "document-1",
+					resourceId: "resource-1",
+					resourceTypeId: "lunaris.excalidraw",
 				})}
 			</>,
 		);
@@ -182,9 +237,10 @@ describe("Excalidraw external extension", () => {
 		state.elements = [{}];
 		const statusBar = () => (
 			<>
-				{excalidrawContentType.statusBar?.({
-					contentTypeId: "lunaris.excalidraw",
+				{excalidrawStatus.render({
 					documentId: "document-1",
+					resourceId: "resource-1",
+					resourceTypeId: "lunaris.excalidraw",
 				})}
 			</>
 		);
@@ -207,7 +263,7 @@ describe("Excalidraw external extension", () => {
 	it("returns empty compile content for an empty drawing", async () => {
 		state.yDoc = testYDoc();
 		await expect(
-			excalidrawContentType.getCompileContent?.("document-1", {} as never),
+			excalidrawRepresentation.getContent("document-1", {} as never),
 		).resolves.toEqual({ sections: [], title: "" });
 	});
 
@@ -236,7 +292,7 @@ describe("Excalidraw external extension", () => {
 			},
 		);
 
-		const compiled = await excalidrawContentType.getCompileContent?.(
+		const compiled = await excalidrawRepresentation.getContent(
 			"document-1",
 			{} as never,
 		);

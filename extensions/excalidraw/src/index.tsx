@@ -1,6 +1,8 @@
-import type { ContentTypeDefinition } from "@lunarisapp/plugin-sdk";
 import {
-	ContentRendererReady,
+	type ResourcePayloadContext,
+	type ResourceStatusContext,
+	type ResourceViewProps,
+	ViewReady,
 	definePlugin,
 	useLocale,
 	useWorkspaceAccess,
@@ -12,6 +14,7 @@ import {
 import { useSyncExternalStore } from "react";
 import { yjsToExcalidraw } from "y-excalidraw";
 import type { Doc, Map as YMap } from "yjs";
+import { z } from "zod";
 import manifest from "../manifest.json";
 import { getExcalidrawCompileContent } from "./compile";
 import { EXCALIDRAW_EXTENSION_ID } from "./constants";
@@ -103,7 +106,7 @@ export function ExcalidrawView({
 	}
 
 	return (
-		<ContentRendererReady reportReady={reportReady}>
+		<ViewReady reportReady={reportReady}>
 			<div className="excalidraw-shell" data-color-scheme={theme}>
 				<YjsExcalidraw
 					key={documentId}
@@ -113,7 +116,7 @@ export function ExcalidrawView({
 					yDoc={yDoc}
 				/>
 			</div>
-		</ContentRendererReady>
+		</ViewReady>
 	);
 }
 
@@ -129,35 +132,78 @@ function ExcalidrawElementsCount({ yDoc }: { yDoc: Doc }) {
 	);
 }
 
-function ExcalidrawStatusBar({ documentId }: { documentId: string }) {
-	const { yDoc } = useCurrentProjectYjsDocument(documentId);
+function ExcalidrawStatusBar({ documentId }: ResourceStatusContext) {
+	const { yDoc } = useCurrentProjectYjsDocument(documentId ?? undefined);
 	if (!yDoc) {
 		return <span className="excalidraw-statusbar">Excalidraw</span>;
 	}
 	return <ExcalidrawElementsCount yDoc={yDoc} />;
 }
 
-export const excalidrawContentType: ContentTypeDefinition = {
-	compilable: true,
-	documentStorage: "yjs",
-	getCompileContent: getExcalidrawCompileContent,
+export const EXCALIDRAW_SCHEMA_ID = "lunaris.excalidraw.scene";
+
+export const excalidrawSceneSchema = z.object({
+	assets: z.record(z.string(), z.unknown()),
+	elements: z.array(z.record(z.string(), z.unknown())),
+});
+
+export const excalidrawResourceType = {
+	defaultViewId: EXCALIDRAW_EXTENSION_ID,
+	hierarchy: { userCreatable: true, visible: true },
 	icon: excalidrawExtensionIcon,
-	id: EXCALIDRAW_EXTENSION_ID,
 	name: "Excalidraw",
-	renderer: ({ documentId, reportReady }) =>
-		documentId ? (
-			<ExcalidrawView documentId={documentId} reportReady={reportReady} />
+	resourceTypeId: EXCALIDRAW_EXTENSION_ID,
+	schema: {
+		currentVersion: 1,
+		id: EXCALIDRAW_SCHEMA_ID,
+		read: ({ document }: ResourcePayloadContext) => ({
+			assets: Object.fromEntries(document?.getMap("assets").entries() ?? []),
+			elements: document
+				? yjsToExcalidraw(document.getArray<YMap<unknown>>("elements"))
+				: [],
+		}),
+		versions: { 1: excalidrawSceneSchema },
+	},
+	storage: { kind: "yjs" as const },
+};
+
+export const excalidrawView = {
+	icon: excalidrawExtensionIcon,
+	name: "Excalidraw",
+	renderer: ({ reportReady, storage }: ResourceViewProps) =>
+		storage.kind === "yjs" ? (
+			<ExcalidrawView documentId={storage.documentId} reportReady={reportReady} />
 		) : (
 			<ExcalidrawState title="Document ID not provided" />
 		),
-	statusBar: ({ documentId }) =>
-		documentId ? <ExcalidrawStatusBar documentId={documentId} /> : null,
+	target: {
+		kind: "resource" as const,
+		resourceTypeIds: [EXCALIDRAW_EXTENSION_ID],
+		schemas: [{ id: EXCALIDRAW_SCHEMA_ID, minimumVersion: 1, maximumVersion: 1 }],
+	},
+	viewId: EXCALIDRAW_EXTENSION_ID,
+};
+
+export const excalidrawStatus = {
+	id: "lunaris.excalidraw.status",
+	render: ExcalidrawStatusBar,
+	resourceTypeIds: [EXCALIDRAW_EXTENSION_ID],
+};
+
+export const excalidrawRepresentation = {
+	getContent: getExcalidrawCompileContent,
+	id: "lunaris.excalidraw.compile",
+	mediaType: "application/vnd.lunaris.compile+json" as const,
+	resourceTypeIds: [EXCALIDRAW_EXTENSION_ID],
 };
 
 export const excalidrawExtension = definePlugin({
 	manifest,
 	activate({ contributions }) {
-		contributions.contentType(excalidrawContentType);
+		contributions.resourceType(excalidrawResourceType);
+		contributions.view(excalidrawView);
+		contributions.status(excalidrawStatus);
+		contributions.representation(excalidrawRepresentation);
 		contributions.locales({ de, en, es, fr, "pt-BR": ptBR });
 	},
 });

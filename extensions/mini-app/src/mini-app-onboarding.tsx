@@ -56,12 +56,12 @@ function validateHtmlFile(file: File, t: Translate): string | null {
 export function MiniAppOnboarding({
 	canUpload,
 	fileStorage,
-	itemId,
+	resourceId,
 	t,
 }: {
 	canUpload: boolean;
 	fileStorage: FileStorage;
-	itemId: string;
+	resourceId: string;
 	t: Translate;
 }) {
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -76,7 +76,7 @@ export function MiniAppOnboarding({
 
 		setIsUploading(true);
 		try {
-			await fileStorage.upload({ file: normalizeHtmlFile(file), itemId });
+			await fileStorage.upload({ file: normalizeHtmlFile(file), resourceId });
 		} catch {
 			setError(t("uploadFailed"));
 		} finally {

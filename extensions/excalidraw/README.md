@@ -1,8 +1,8 @@
 # Excalidraw
 
 Excalidraw adds collaborative drawings to Lunaris projects. Drawings use the
-same `lunaris.excalidraw` content type and Yjs document layout as the former
-bundled extension, so existing content opens without migration.
+same `lunaris.excalidraw` resource type and Yjs document layout as the former
+bundled extension, so existing resources open without migration.
 
 The extension supports live collaborative persistence, workspace permissions,
 light and dark themes, localized Excalidraw controls, element counts, and image

@@ -1,6 +1,7 @@
-import type { ContentTypeDefinition } from "@lunarisapp/plugin-sdk";
+import type { ResourceCommandContext, ResourceViewProps } from "@lunarisapp/plugin-sdk";
 import { definePlugin } from "@lunarisapp/plugin-sdk";
 import { AppWindowIcon, Download01Icon } from "@lunarisapp/ui/icons";
+import { z } from "zod";
 import manifest from "../manifest.json";
 import "./styles.css";
 import de from "./locales/de.json";
@@ -12,32 +13,61 @@ import { MiniAppViewer } from "./mini-app-viewer";
 
 export const MINI_APP_EXTENSION_ID = "lunaris.mini-app";
 
-export const miniAppContentType: ContentTypeDefinition = {
-	actions: [
+export const MINI_APP_SCHEMA_ID = "lunaris.mini-app.metadata";
+
+export const miniAppMetadataSchema = z.object({}).strict();
+
+export const miniAppResourceType = {
+	defaultViewId: MINI_APP_EXTENSION_ID,
+	hierarchy: { userCreatable: true, visible: true },
+	icon: AppWindowIcon,
+	name: "Mini App",
+	resourceTypeId: MINI_APP_EXTENSION_ID,
+	schema: {
+		currentVersion: 1,
+		id: MINI_APP_SCHEMA_ID,
+		read: () => ({}),
+		versions: { 1: miniAppMetadataSchema },
+	},
+	storage: { kind: "file" as const },
+};
+
+export const miniAppView = {
+	icon: AppWindowIcon,
+	name: "Mini App",
+	renderer: ({ reportReady, resource }: ResourceViewProps) => (
+		<MiniAppViewer resourceId={resource.resourceId} reportReady={reportReady} />
+	),
+	rendererSandbox: "local-srcdoc" as const,
+	target: {
+		kind: "resource" as const,
+		resourceTypeIds: [MINI_APP_EXTENSION_ID],
+		schemas: [{ id: MINI_APP_SCHEMA_ID, minimumVersion: 1, maximumVersion: 1 }],
+	},
+	viewId: MINI_APP_EXTENSION_ID,
+};
+
+export const miniAppCommands = {
+	commands: [
 		{
 			icon: Download01Icon,
-			id: "download-source",
+			id: "lunaris.mini-app.download-source",
 			labelKey: "miniAppExtension.miniApp.downloadSource",
-			onClick: (context) => {
-				if (!context.itemId) return;
-				void context.fileStorage.download(context.itemId).catch(() => false);
+			onExecute: (context: ResourceCommandContext) => {
+				void context.fileStorage.download(context.resourceId).catch(() => false);
 			},
 		},
 	],
-	documentStorage: "none",
-	icon: AppWindowIcon,
-	id: MINI_APP_EXTENSION_ID,
-	name: "Mini App",
-	renderer: ({ itemId, reportReady }) => (
-		<MiniAppViewer itemId={itemId} reportReady={reportReady} />
-	),
-	rendererSandbox: "local-srcdoc",
+	id: "lunaris.mini-app.commands",
+	resourceTypeIds: [MINI_APP_EXTENSION_ID],
 };
 
 export default definePlugin({
 	manifest,
 	activate({ contributions }) {
-		contributions.contentType(miniAppContentType);
+		contributions.resourceType(miniAppResourceType);
+		contributions.view(miniAppView);
+		contributions.command(miniAppCommands);
 		contributions.locales({ de, en, es, fr, "pt-BR": ptBR });
 	},
 });

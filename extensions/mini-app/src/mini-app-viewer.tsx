@@ -1,7 +1,7 @@
 import {
-	ContentRendererReady,
+	ViewReady,
 	useFileStorage,
-	useProjectItemName,
+	useProjectResourceName,
 	useStoredFile,
 	useWorkspaceAccess,
 } from "@lunarisapp/plugin-sdk";
@@ -111,17 +111,17 @@ function MiniAppError({
 }
 
 export function MiniAppViewer({
-	itemId,
+	resourceId,
 	reportReady,
 }: {
-	itemId?: string;
+	resourceId?: string;
 	reportReady?: () => void;
 }) {
 	const t = useMiniAppTranslation();
 	const { canWriteContent } = useWorkspaceAccess();
 	const fileStorage = useFileStorage();
-	const { file, metadata, objectUrl } = useStoredFile(itemId ?? "");
-	const itemName = useProjectItemName({ itemId });
+	const { file, metadata, objectUrl } = useStoredFile(resourceId ?? "");
+	const resourceName = useProjectResourceName({ resourceId });
 	const source = useMiniAppSource(file?.id ?? null, objectUrl);
 	const sandboxDocument = useMemo(
 		() =>
@@ -129,18 +129,18 @@ export function MiniAppViewer({
 		[source],
 	);
 
-	if (!itemId) return <MiniAppError title={t("missingItem")} />;
+	if (!resourceId) return <MiniAppError title={t("missingItem")} />;
 
 	if (!metadata) {
 		return (
-			<ContentRendererReady reportReady={reportReady}>
+			<ViewReady reportReady={reportReady}>
 				<MiniAppOnboarding
 					canUpload={canWriteContent}
 					fileStorage={fileStorage}
-					itemId={itemId}
+					resourceId={resourceId}
 					t={t}
 				/>
-			</ContentRendererReady>
+			</ViewReady>
 		);
 	}
 
@@ -151,27 +151,27 @@ export function MiniAppViewer({
 
 	if (!objectUrl || source.status === "error") {
 		return (
-			<ContentRendererReady reportReady={reportReady}>
+			<ViewReady reportReady={reportReady}>
 				<MiniAppError
 					description={metadata.filename}
 					title={t(downloadPending ? "downloadPending" : "sourceUnavailable")}
 				/>
-			</ContentRendererReady>
+			</ViewReady>
 		);
 	}
 
 	if (source.status === "loading" || !sandboxDocument) return null;
 
 	return (
-		<ContentRendererReady reportReady={reportReady}>
+		<ViewReady reportReady={reportReady}>
 			<iframe
 				allow={MINI_APP_PERMISSIONS_POLICY}
 				className="mini-app-frame"
 				referrerPolicy="no-referrer"
 				sandbox="allow-scripts"
 				srcDoc={sandboxDocument}
-				title={t("frameTitle", { name: itemName })}
+				title={t("frameTitle", { name: resourceName })}
 			/>
-		</ContentRendererReady>
+		</ViewReady>
 	);
 }

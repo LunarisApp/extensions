@@ -13,7 +13,7 @@ The curated extension registry and tools for building community extensions for
 Each curated extension lives in its own directory under `extensions/` and follows the
 same structure as the canonical template. The initial registry fixture is
 [`demo`](./extensions/demo), a synthetic SaaS operations console that exercises
-both view and content-type loading through the public extension SDK.
+both standalone views and durable resources through the public extension SDK.
 
 ## Published registry
 

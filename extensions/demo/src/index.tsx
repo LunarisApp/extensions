@@ -11,23 +11,27 @@ import {
   DEFAULT_DOSSIER,
   DOSSIER_MAP_NAME,
   DOSSIER_RECORD_KEY,
+  customerDossierSchema,
   parseDossierRecord,
 } from "./domain";
 import {
-  type ContentTypeDefinition,
+  type PluginCompileContext,
+  type ResourcePayloadContext,
   definePlugin,
   withYjsDoc,
 } from "@lunarisapp/plugin-sdk";
 import { DashboardSquare01Icon, File02Icon } from "@lunarisapp/ui/icons";
+import type { Doc } from "yjs";
 import manifest from "../manifest.json";
 import { AdminDashboard } from "./dashboard";
 import { CustomerDossierRenderer, DossierStatusBar } from "./dossier";
 import "./styles.css";
 
-const dossierContentType: ContentTypeDefinition = {
-  compilable: true,
-  documentStorage: "yjs",
-  getCompileContent: (documentId, context) =>
+export const DOSSIER_SCHEMA_ID = "lunaris.demo.customer-dossier.document";
+export const DOSSIER_VIEW_ID = "lunaris.demo.customer-dossier";
+
+export const dossierRepresentation = {
+  getContent: (documentId: string, context: PluginCompileContext) =>
     withYjsDoc(
       context,
       documentId,
@@ -42,31 +46,66 @@ const dossierContentType: ContentTypeDefinition = {
       },
       buildDossierCompileContent(DEFAULT_DOSSIER),
     ),
-  hierarchyVisibility: "visible",
+  id: "lunaris.demo.customer-dossier.compile",
+  mediaType: "application/vnd.lunaris.compile+json" as const,
+  resourceTypeIds: ["lunaris.demo.customer-dossier"],
+};
+
+export const dossierResourceType = {
+  defaultViewId: DOSSIER_VIEW_ID,
+  hierarchy: { userCreatable: true, visible: true },
   icon: File02Icon,
-  id: "lunaris.demo.customer-dossier",
-  initializeDocument: (document) => {
-    const map = document.getMap<string>(DOSSIER_MAP_NAME);
-    if (!map.has(DOSSIER_RECORD_KEY)) {
-      map.set(DOSSIER_RECORD_KEY, JSON.stringify(DEFAULT_DOSSIER));
-    }
+  name: "Customer dossier",
+  resourceTypeId: "lunaris.demo.customer-dossier",
+  schema: {
+    currentVersion: 1,
+    id: DOSSIER_SCHEMA_ID,
+    read: ({ document }: ResourcePayloadContext) => {
+      const raw = document?.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY);
+      return raw ? JSON.parse(raw) : DEFAULT_DOSSIER;
+    },
+    versions: { 1: customerDossierSchema },
   },
+  storage: {
+    kind: "yjs" as const,
+    initialize: (document: Doc) => {
+      const map = document.getMap<string>(DOSSIER_MAP_NAME);
+      if (!map.has(DOSSIER_RECORD_KEY)) {
+        map.set(DOSSIER_RECORD_KEY, JSON.stringify(DEFAULT_DOSSIER));
+      }
+    },
+  },
+};
+
+export const dossierView = {
+  icon: File02Icon,
   name: "Customer dossier",
   renderer: CustomerDossierRenderer,
-  statusBar: DossierStatusBar,
-  userCreatable: true,
+  target: {
+    kind: "resource" as const,
+    resourceTypeIds: ["lunaris.demo.customer-dossier"],
+    schemas: [{ id: DOSSIER_SCHEMA_ID, minimumVersion: 1, maximumVersion: 1 }],
+  },
+  viewId: DOSSIER_VIEW_ID,
 };
 
 export default definePlugin({
   manifest,
   activate({ contributions }) {
     contributions.view({
-      defaultPlacement: "primary",
       icon: DashboardSquare01Icon,
-      id: "lunaris.demo",
       name: "Demo",
       renderer: AdminDashboard,
+      target: { kind: "standalone", launcher: { defaultPlacement: "primary" } },
+      viewId: "lunaris.demo",
     });
-    contributions.contentType(dossierContentType);
+    contributions.resourceType(dossierResourceType);
+    contributions.view(dossierView);
+    contributions.status({
+      id: "lunaris.demo.customer-dossier.status",
+      render: DossierStatusBar,
+      resourceTypeIds: ["lunaris.demo.customer-dossier"],
+    });
+    contributions.representation(dossierRepresentation);
   },
 });

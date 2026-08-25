@@ -3,15 +3,7 @@
   "name": "Example Notes",
   "developer": "Example Developer",
   "version": "1.0.0",
-  "api": "^0.3.0",
+  "api": "^0.4.0",
   "description": "Example externally loaded Lunaris extension",
-  "permissions": [],
-  "contributions": [
-    {
-      "defaultPlacement": "primary",
-      "id": "example.notes",
-      "name": "Example Notes",
-      "type": "view"
-    }
-  ]
+  "permissions": []
 }

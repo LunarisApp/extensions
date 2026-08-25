@@ -204,14 +204,6 @@ export async function scaffoldExtension(
   manifest.name = options.name;
   manifest.description = options.description;
   manifest.developer = options.developer;
-  manifest.contributions = [
-    {
-      defaultPlacement: "primary",
-      id: options.id,
-      name: options.name,
-      type: "view",
-    },
-  ];
   await writeJson(manifestPath, manifest);
 
   const packagePath = join(options.directory, "package.json");

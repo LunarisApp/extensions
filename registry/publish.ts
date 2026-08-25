@@ -78,7 +78,7 @@ async function writeImmutable(
 
 async function publishAsset({
   baseUrl,
-  contentType,
+  resource,
   directory,
   filename,
   id,
@@ -86,7 +86,7 @@ async function publishAsset({
   version,
 }: {
   baseUrl: string;
-  contentType: string;
+  resource: string;
   directory: string;
   filename: string;
   id: string;
@@ -101,7 +101,7 @@ async function publishAsset({
   await writeImmutable(path.join(site, relative), value);
   return {
     bytes: value.byteLength,
-    contentType,
+    resource,
     sha256,
     url: `${baseUrl}/${relative}`,
   };
@@ -140,7 +140,7 @@ async function publishBuild(
 
   const script = await publishAsset({
     baseUrl,
-    contentType: "application/javascript; charset=utf-8",
+    resource: "application/javascript; charset=utf-8",
     directory,
     filename: "main.js",
     id: manifest.id,
@@ -151,7 +151,7 @@ async function publishBuild(
     throw new Error(`${manifest.id}@${manifest.version} has no main.js`);
   const style = await publishAsset({
     baseUrl,
-    contentType: "text/css; charset=utf-8",
+    resource: "text/css; charset=utf-8",
     directory,
     filename: "styles.css",
     id: manifest.id,
@@ -160,7 +160,7 @@ async function publishBuild(
   });
   const icon = await publishAsset({
     baseUrl,
-    contentType: "image/png",
+    resource: "image/png",
     directory,
     filename: "icon.png",
     id: manifest.id,
@@ -184,25 +184,63 @@ async function publishBuild(
   );
 }
 
-function isLegacyReleaseDescriptor(
+function isProtocolOneAsset(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const asset = value as Record<string, unknown>;
+  return (
+    typeof asset.bytes === "number" &&
+    Number.isInteger(asset.bytes) &&
+    asset.bytes >= 0 &&
+    typeof asset.contentType === "string" &&
+    asset.contentType.length > 0 &&
+    typeof asset.sha256 === "string" &&
+    /^[a-f0-9]{64}$/.test(asset.sha256) &&
+    typeof asset.url === "string" &&
+    URL.canParse(asset.url)
+  );
+}
+
+function isRecognizedProtocolOneReleaseDescriptor(
   value: unknown,
   expected: { id: string; version: string },
 ): boolean {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const descriptor = value as Record<string, unknown>;
   if (
-    typeof descriptor.sdk !== "string" ||
-    descriptor.api !== undefined ||
+    typeof descriptor.api !== "string" ||
+    descriptor.repository === undefined ||
+    typeof descriptor.repository !== "string" ||
+    !descriptor.runtime ||
+    typeof descriptor.runtime !== "object" ||
+    Array.isArray(descriptor.runtime) ||
+    !isProtocolOneAsset(descriptor.script) ||
+    !["active", "blocked"].includes(String(descriptor.status)) ||
     !descriptor.manifest ||
     typeof descriptor.manifest !== "object" ||
     Array.isArray(descriptor.manifest)
   ) {
     return false;
   }
+  const runtime = descriptor.runtime as Record<string, unknown>;
+  if (runtime.kind !== "iframe" || runtime.protocol !== 1) return false;
+  if (descriptor.icon !== undefined && !isProtocolOneAsset(descriptor.icon))
+    return false;
+  if (descriptor.style !== undefined && !isProtocolOneAsset(descriptor.style))
+    return false;
   const manifest = descriptor.manifest as Record<string, unknown>;
   return (
-    typeof manifest.sdk === "string" &&
-    manifest.api === undefined &&
+    manifest.api === descriptor.api &&
+    typeof manifest.name === "string" &&
+    typeof manifest.description === "string" &&
+    typeof manifest.developer === "string" &&
+    Array.isArray(manifest.contributions) &&
+    !!manifest.conflicts &&
+    typeof manifest.conflicts === "object" &&
+    !Array.isArray(manifest.conflicts) &&
+    !!manifest.dependencies &&
+    typeof manifest.dependencies === "object" &&
+    !Array.isArray(manifest.dependencies) &&
+    Array.isArray(manifest.permissions) &&
     manifest.id === expected.id &&
     manifest.version === expected.version
   );
@@ -224,7 +262,14 @@ async function readDescriptors(
       const stored: unknown = JSON.parse(
         await readFile(path.join(releaseRoot, id.name, entry.name), "utf8"),
       );
-      if (isLegacyReleaseDescriptor(stored, { id: id.name, version })) continue;
+      if (
+        isRecognizedProtocolOneReleaseDescriptor(stored, {
+          id: id.name,
+          version,
+        })
+      ) {
+        continue;
+      }
       descriptors.push(
         parsePluginReleaseDescriptor(stored, { id: id.name, version }),
       );
