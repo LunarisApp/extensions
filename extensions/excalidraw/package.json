@@ -1,6 +1,6 @@
 {
 	"name": "lunaris-extension-excalidraw",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"private": true,
 	"type": "module",
 	"scripts": {
