@@ -67,20 +67,19 @@ describe("scaffoldExtension", () => {
     const manifestText = await readFile(join(target, "manifest.json"), "utf8");
     const manifest = JSON.parse(manifestText);
     expect(manifest).toMatchObject({
+      api: "^0.4.0",
       developer: "Acme",
       id: "acme.notes",
       name: "Acme Notes",
-      contributions: [
-        {
-          defaultPlacement: "primary",
-          id: "acme.notes",
-          name: "Acme Notes",
-          type: "view",
-        },
-      ],
+      permissions: [],
     });
+    expect(manifest).not.toHaveProperty("sdk");
+    expect(manifest).not.toHaveProperty("modifications");
+    expect(manifest).not.toHaveProperty("contributions");
     expect(manifestText).toBe(`${JSON.stringify(manifest, null, 2)}\n`);
-    expect(await readFile(join(target, "src/index.tsx"), "utf8")).toContain('id: "acme.notes"');
+    const source = await readFile(join(target, "src/index.tsx"), "utf8");
+    expect(source).toContain('viewId: "acme.notes"');
+    expect(source).toContain('target: { kind: "standalone"');
     const packageJson = JSON.parse(await readFile(join(target, "package.json"), "utf8"));
     expect(packageJson.name).toBe("lunaris-extension-acme-notes");
     expect(packageJson.scripts.build).toBe("bunx --bun vite build");

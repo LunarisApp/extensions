@@ -33,16 +33,8 @@ const manifest = {
   description: "A calendar extension",
   developer: "Example",
   version: "1.0.0",
-  api: "^0.3.0",
+  api: "^0.4.0",
   permissions: [],
-  contributions: [
-    {
-      defaultPlacement: "primary",
-      id: "example.calendar",
-      name: "Calendar",
-      type: "view",
-    },
-  ],
 };
 
 afterEach(removeTemporaryDirectories);

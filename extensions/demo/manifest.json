@@ -3,24 +3,7 @@
   "name": "Demo",
   "developer": "Lunaris",
   "version": "1.2.4",
-  "api": "^0.3.0",
-  "description": "A synthetic SaaS operations console demonstrating Lunaris views and content types.",
-  "permissions": ["content.read", "content.write"],
-  "contributions": [
-    {
-      "defaultPlacement": "primary",
-      "id": "lunaris.demo",
-      "name": "Demo",
-      "type": "view"
-    },
-    {
-      "compilable": true,
-      "documentStorage": "yjs",
-      "hierarchyVisibility": "visible",
-      "id": "lunaris.demo.customer-dossier",
-      "name": "Customer dossier",
-      "userCreatable": true,
-      "type": "content-type"
-    }
-  ]
+  "api": "^0.4.0",
+  "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
+  "permissions": ["content.read", "content.write"]
 }

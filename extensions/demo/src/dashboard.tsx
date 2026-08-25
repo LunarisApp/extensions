@@ -1,8 +1,10 @@
 import {
   PLUGIN_PROJECT_ROOT_ID,
+  type PluginResourceActions,
+  type PluginWorkspaceNavigation,
   useCurrentProject,
-  useProjectItemActions,
-  useProjectItemsMap,
+  useProjectResourceActions,
+  useProjectResourcesMap,
   useWorkspaceAccess,
   useWorkspaceNavigation,
 } from "@lunarisapp/plugin-sdk";
@@ -23,7 +25,7 @@ import {
   type CustomerAccount,
   createOperationEntry,
   filterCustomers,
-  findDossierItem,
+  findDossierResource,
   INITIAL_CUSTOMERS,
   INITIAL_OPERATIONS,
   type OperationEntry,
@@ -35,6 +37,36 @@ import { OperationsLog } from "./operations-log";
 
 const MENU_MARGIN = 8;
 const MENU_WIDTH = 218;
+
+interface DossierResourceTarget {
+  documentId: string | null;
+  name: string;
+  resourceId: string;
+  schemaVersion: number;
+}
+
+export function openDossierResource(
+  navigation: Pick<PluginWorkspaceNavigation, "openResource">,
+  resource: DossierResourceTarget,
+) {
+  navigation.openResource({
+    documentId: resource.documentId,
+    resourceId: resource.resourceId,
+    resourceTypeId: CONTENT_TYPE_ID,
+    schemaVersion: resource.schemaVersion,
+    title: resource.name,
+  });
+}
+
+export function createDossierResource(
+  actions: Pick<PluginResourceActions, "createResource">,
+) {
+  return actions.createResource({
+    name: "Alder & Finch Labs — Customer dossier",
+    parentId: PLUGIN_PROJECT_ROOT_ID,
+    resourceTypeId: CONTENT_TYPE_ID,
+  });
+}
 
 function getMenuPosition(customer: CustomerAccount, trigger: HTMLButtonElement) {
   const anchor = trigger.getBoundingClientRect();
@@ -96,11 +128,11 @@ export function AdminDashboard() {
   const [notice, setNotice] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const { projectId } = useCurrentProject();
-  const projectItems = useProjectItemsMap();
-  const itemActions = useProjectItemActions();
+  const projectResources = useProjectResourcesMap();
+  const resourceActions = useProjectResourceActions();
   const navigation = useWorkspaceNavigation();
   const access = useWorkspaceAccess();
-  const existingDossier = findDossierItem(projectItems);
+  const existingDossier = findDossierResource(projectResources);
 
   const visibleCustomers = useMemo(
     () => sortCustomers(filterCustomers(customers, filters), sort),
@@ -172,21 +204,13 @@ export function AdminDashboard() {
     }
   };
 
-  const openDossier = (item: { documentId: string | null; id: string; name: string }) => {
-    navigation.openItem({
-      documentId: item.documentId,
-      itemId: item.id,
-      pluginId: CONTENT_TYPE_ID,
-      title: item.name,
-    });
-  };
-
   const handleDossier = async () => {
     if (existingDossier) {
-      openDossier({
+      openDossierResource(navigation, {
         documentId: existingDossier.documentId,
-        id: existingDossier.id,
         name: existingDossier.name ?? "Customer dossier",
+        resourceId: existingDossier.resourceId,
+        schemaVersion: existingDossier.schemaVersion,
       });
       return;
     }
@@ -194,15 +218,11 @@ export function AdminDashboard() {
 
     setIsCreating(true);
     try {
-      const created = await itemActions.create({
-        contentTypeId: CONTENT_TYPE_ID,
-        name: "Alder & Finch Labs — Customer dossier",
-        parentId: PLUGIN_PROJECT_ROOT_ID,
-      });
+      const created = await createDossierResource(resourceActions);
       if (!created) throw new Error("The host did not create the dossier.");
       addOperation("Sample dossier created for Alder & Finch Labs", "positive");
       setNotice("Sample customer dossier created.");
-      openDossier(created);
+      openDossierResource(navigation, { ...created, schemaVersion: 1 });
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Unknown host error";
       setNotice(`Could not create the dossier. ${reason}`);

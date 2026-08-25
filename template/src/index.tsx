@@ -7,9 +7,10 @@ export default definePlugin({
   activate({ contributions }) {
     contributions.view({
       icon: Note01Icon,
-      id: "example.notes",
       name: "Example Notes",
       renderer: () => <div className="p-4">Hello from an external extension.</div>,
+      target: { kind: "standalone", launcher: { defaultPlacement: "primary" } },
+      viewId: "example.notes",
     });
   },
 });

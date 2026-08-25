@@ -43,7 +43,7 @@ async function verifyAsset(asset: PluginAsset): Promise<void> {
     throw new Error(`${asset.url} has the wrong SHA-256 digest`);
   }
   const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.startsWith(asset.contentType.split(";")[0] ?? "")) {
+  if (!contentType.startsWith(asset.resource.split(";")[0] ?? "")) {
     throw new Error(`${asset.url} has unexpected content type ${contentType}`);
   }
 }

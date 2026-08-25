@@ -9,7 +9,7 @@ web
 ## Users
 
 SaaS operators evaluating a believable customer-administration workflow, and
-extension developers inspecting a complete example of Lunaris view and content
+extension developers inspecting a complete example of Lunaris view and resource
 type integrations.
 
 ## Product Purpose
@@ -23,7 +23,7 @@ clear enough to use as extension reference material.
 ## Positioning
 
 Unlike a static component gallery, Demo connects a working operational view to
-a real Lunaris content type with host-backed creation, Yjs persistence, and
+a real Lunaris resource type with host-backed creation, Yjs persistence, and
 structured compilation, while keeping all SaaS account actions local and
 synthetic.
 
@@ -36,7 +36,7 @@ must remain usable in narrow panels and follow the host's light or dark theme.
 ## Capabilities and Constraints
 
 - Register the existing `lunaris.demo` primary view and the new
-  `lunaris.demo.customer-dossier` content type.
+  `lunaris.demo.customer-dossier` resource type and its default view.
 - Use clearly fictional companies, people, domains, metrics, and events.
 - Simulated account mutations live only in component state and reset when the
   view remounts.

@@ -1,4 +1,4 @@
-import { ContentRendererReady, type ContentTypeRendererProps } from "@lunarisapp/plugin-sdk";
+import { ViewReady, type ResourceViewProps } from "@lunarisapp/plugin-sdk";
 import { useCurrentProjectYjsDocument, useYMapJson } from "@lunarisapp/plugin-sdk/data";
 import { Alert02Icon, Calendar03Icon, HugeiconsIcon } from "@lunarisapp/ui/icons";
 import {
@@ -26,7 +26,7 @@ function DossierDocument({ document, reportReady }: { document: ReadyYDoc; repor
   const seatPercent = Math.round((dossier.seatsUsed / dossier.seatsLimit) * 100);
 
   return (
-    <ContentRendererReady reportReady={reportReady}>
+    <ViewReady reportReady={reportReady}>
       <article className="dossier-shell" data-design-seed="cb5fe784">
         <header className="dossier-header">
           <div className="dossier-title">
@@ -171,11 +171,12 @@ function DossierDocument({ document, reportReady }: { document: ReadyYDoc; repor
           </aside>
         </div>
       </article>
-    </ContentRendererReady>
+    </ViewReady>
   );
 }
 
-export function CustomerDossierRenderer({ documentId, reportReady }: ContentTypeRendererProps) {
+export function CustomerDossierRenderer({ reportReady, storage }: ResourceViewProps) {
+  const documentId = storage.kind === "yjs" ? storage.documentId : "";
   const documentState = useCurrentProjectYjsDocument(documentId);
 
   if (!documentId) {

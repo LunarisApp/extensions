@@ -1,14 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import type { PluginProjectItem } from "@lunarisapp/plugin-sdk";
+import type { PluginResource } from "@lunarisapp/plugin-sdk";
 import {
   applyAccountAction,
   buildDossierCompileContent,
   CONTENT_TYPE_ID,
   createOperationEntry,
+  customerDossierSchema,
   DEFAULT_DOSSIER,
   deriveMetrics,
   filterCustomers,
-  findDossierItem,
+  findDossierResource,
   INITIAL_CUSTOMERS,
   parseDossierRecord,
   sortCustomers,
@@ -75,12 +76,19 @@ describe("customer ledger helpers", () => {
 });
 
 describe("customer dossier helpers", () => {
-  test("finds the singleton dossier among project items", () => {
-    const items = new Map<string, PluginProjectItem>([
-      ["folder", { documentId: null, id: "folder", name: "Folder", parentId: null, pluginId: null }],
-      ["dossier", { documentId: "doc-1", id: "dossier", name: "Customer dossier", parentId: null, pluginId: CONTENT_TYPE_ID }],
+  test("finds the first dossier while allowing additional resources", () => {
+    const resources = new Map<string, PluginResource>([
+      ["folder", { documentId: null, name: "Folder", parentId: null, resourceId: "folder", resourceTypeId: "lunaris.folder", schemaVersion: 1 }],
+      ["dossier-1", { documentId: "doc-1", name: "Customer dossier", parentId: null, resourceId: "dossier-1", resourceTypeId: CONTENT_TYPE_ID, schemaVersion: 1 }],
+      ["dossier-2", { documentId: "doc-2", name: "Another dossier", parentId: null, resourceId: "dossier-2", resourceTypeId: CONTENT_TYPE_ID, schemaVersion: 1 }],
     ]);
-    expect(findDossierItem(items)?.documentId).toBe("doc-1");
+    expect(findDossierResource(resources)?.documentId).toBe("doc-1");
+    expect([...resources.values()].filter((resource) => resource.resourceTypeId === CONTENT_TYPE_ID)).toHaveLength(2);
+  });
+
+  test("validates the existing version-1 logical payload", () => {
+    expect(customerDossierSchema.safeParse(DEFAULT_DOSSIER).success).toBe(true);
+    expect(customerDossierSchema.safeParse({ ...DEFAULT_DOSSIER, risks: "high" }).success).toBe(false);
   });
 
   test("compiles the persisted sample into portable sections", () => {

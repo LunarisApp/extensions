@@ -16,16 +16,8 @@ const manifest = {
   description: "A calendar extension",
   developer: "Example",
   version: "1.0.0",
-  api: "^0.3.0",
+  api: "^0.4.0",
   permissions: [],
-  contributions: [
-    {
-      defaultPlacement: "primary",
-      id: "example.calendar",
-      name: "Calendar",
-      type: "view" as const,
-    },
-  ],
 };
 
 async function fixture() {
@@ -83,14 +75,16 @@ describe("registry publication", () => {
     expect(descriptor.script.url).toMatch(
       /^https:\/\/plugins\.lunaris\.app\/artifacts\/example\.calendar\/1\.0\.0\/[a-f0-9]{64}\/main\.js$/,
     );
-    expect(descriptor.script.contentType).toBe(
+    expect(descriptor.script.resource).toBe(
       "application/javascript; charset=utf-8",
     );
-    expect(descriptor.runtime).toEqual({ kind: "iframe", protocol: 1 });
+    expect(descriptor.api).toBe("^0.4.0");
+    expect(descriptor.runtime).toEqual({ kind: "iframe", protocol: 2 });
     expect(published.plugins[0]?.versions[0]?.runtime).toEqual({
       kind: "iframe",
-      protocol: 1,
+      protocol: 2,
     });
+    expect(published.plugins[0]?.versions[0]?.api).toBe("^0.4.0");
   });
 
   test("is idempotent for an identical build", async () => {
@@ -173,7 +167,7 @@ describe("registry publication", () => {
     expect(published.plugins[0]?.latestVersion).toBe("1.10.0");
   });
 
-  test("omits immutable pre-0.3 descriptors from the rebuilt catalog", async () => {
+  test("omits recognized immutable protocol-1 descriptors from the rebuilt catalog", async () => {
     const value = await fixture();
     const releaseDirectory = path.join(value.site, "releases/example.calendar");
     await mkdir(releaseDirectory, { recursive: true });
@@ -182,10 +176,33 @@ describe("registry publication", () => {
       `${JSON.stringify({
         manifest: {
           id: manifest.id,
-          sdk: "^0.0.5",
+          name: manifest.name,
+          description: manifest.description,
+          developer: manifest.developer,
+          api: "^0.3.0",
+          conflicts: {},
+          contributions: [
+            {
+              defaultPlacement: "primary",
+              id: manifest.id,
+              name: manifest.name,
+              type: "view",
+            },
+          ],
+          dependencies: {},
+          permissions: [],
           version: "0.9.0",
         },
-        sdk: "^0.0.5",
+        api: "^0.3.0",
+        repository: "example/calendar",
+        runtime: { kind: "iframe", protocol: 1 },
+        script: {
+          bytes: 1,
+          contentType: "application/javascript; charset=utf-8",
+          sha256: "0".repeat(64),
+          url: "https://plugins.lunaris.app/legacy.js",
+        },
+        status: "active",
       })}\n`,
     );
 
@@ -217,11 +234,12 @@ describe("registry publication", () => {
           repository: "example/calendar",
           script: {
             bytes: 1,
-            contentType: "application/javascript; charset=utf-8",
+            resource: "",
             sha256: "0".repeat(64),
             url: "https://plugins.lunaris.app/invalid.js",
           },
           api: manifest.api,
+          runtime: { kind: "iframe", protocol: 2 },
           status: "active",
         },
         null,
@@ -235,7 +253,75 @@ describe("registry publication", () => {
         repositoryRoot: value.root,
         site: value.site,
       }),
-    ).rejects.toThrow("runtime");
+    ).rejects.toThrow("resource");
+  });
+
+  test("does not exclude malformed protocol-1 descriptors", async () => {
+    const value = await fixture();
+    const releaseDirectory = path.join(value.site, "releases/example.calendar");
+    await mkdir(releaseDirectory, { recursive: true });
+    await writeFile(
+      path.join(releaseDirectory, "0.9.0.json"),
+      `${JSON.stringify({
+        api: "^0.3.0",
+        manifest: {
+          api: "^0.3.0",
+          description: manifest.description,
+          developer: manifest.developer,
+          id: manifest.id,
+          name: manifest.name,
+          permissions: [],
+          version: "0.9.0",
+        },
+        repository: "example/calendar",
+        runtime: { kind: "iframe", protocol: 1 },
+        script: {
+          bytes: 1,
+          contentType: "application/javascript; charset=utf-8",
+          sha256: "0".repeat(64),
+          url: "https://plugins.lunaris.app/malformed-legacy.js",
+        },
+        status: "active",
+      })}\n`,
+    );
+
+    await expect(
+      publishRegistry({
+        artifacts: value.artifacts,
+        repositoryRoot: value.root,
+        site: value.site,
+      }),
+    ).rejects.toThrow("protocol");
+  });
+
+  test("rejects unknown stored sandbox protocols", async () => {
+    const value = await fixture();
+    const releaseDirectory = path.join(value.site, "releases/example.calendar");
+    await mkdir(releaseDirectory, { recursive: true });
+    await writeFile(
+      path.join(releaseDirectory, "0.9.0.json"),
+      `${JSON.stringify({
+        api: manifest.api,
+        manifest: { ...manifest, version: "0.9.0" },
+        repository: "example/calendar",
+        runtime: { kind: "iframe", protocol: 3 },
+        script: {
+          bytes: 1,
+          resource: "application/javascript; charset=utf-8",
+          sha256: "0".repeat(64),
+          url: "https://plugins.lunaris.app/unknown.js",
+        },
+        status: "active",
+      })}\n`,
+    );
+
+    await expect(
+      publishRegistry({
+        artifacts: value.artifacts,
+        repositoryRoot: value.root,
+        site: value.site,
+      }),
+    ).rejects.toThrow("protocol");
   });
 
   test("rejects changed bytes without a version bump", async () => {

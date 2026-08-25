@@ -3,18 +3,7 @@
   "name": "Mini Apps",
   "developer": "Lunaris",
   "version": "1.0.7",
-  "api": "^0.3.0",
+  "api": "^0.4.0",
   "description": "Run interactive, self-contained HTML apps in your project",
-  "permissions": ["content.read", "files.read", "files.write"],
-  "contributions": [
-    {
-      "compilable": false,
-      "documentStorage": "none",
-      "hierarchyVisibility": "visible",
-      "id": "lunaris.mini-app",
-      "name": "Mini App",
-      "userCreatable": true,
-      "type": "content-type"
-    }
-  ]
+  "permissions": ["content.read", "files.read", "files.write"]
 }
