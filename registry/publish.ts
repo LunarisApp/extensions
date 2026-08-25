@@ -207,8 +207,6 @@ function isRecognizedProtocolOneReleaseDescriptor(
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const descriptor = value as Record<string, unknown>;
   if (
-    typeof descriptor.api !== "string" ||
-    descriptor.repository === undefined ||
     typeof descriptor.repository !== "string" ||
     !descriptor.runtime ||
     typeof descriptor.runtime !== "object" ||
@@ -228,11 +226,17 @@ function isRecognizedProtocolOneReleaseDescriptor(
   if (descriptor.style !== undefined && !isProtocolOneAsset(descriptor.style))
     return false;
   const manifest = descriptor.manifest as Record<string, unknown>;
-  return (
-    manifest.api === descriptor.api &&
+  const hasCommonManifestFields =
     typeof manifest.name === "string" &&
     typeof manifest.description === "string" &&
     typeof manifest.developer === "string" &&
+    manifest.id === expected.id &&
+    manifest.version === expected.version;
+  if (!hasCommonManifestFields) return false;
+
+  const apiManifest =
+    typeof descriptor.api === "string" &&
+    manifest.api === descriptor.api &&
     Array.isArray(manifest.contributions) &&
     !!manifest.conflicts &&
     typeof manifest.conflicts === "object" &&
@@ -240,10 +244,12 @@ function isRecognizedProtocolOneReleaseDescriptor(
     !!manifest.dependencies &&
     typeof manifest.dependencies === "object" &&
     !Array.isArray(manifest.dependencies) &&
-    Array.isArray(manifest.permissions) &&
-    manifest.id === expected.id &&
-    manifest.version === expected.version
-  );
+    Array.isArray(manifest.permissions);
+  const sdkManifest =
+    typeof descriptor.sdk === "string" &&
+    manifest.sdk === descriptor.sdk &&
+    Array.isArray(manifest.modifications);
+  return apiManifest || sdkManifest;
 }
 
 async function readDescriptors(

@@ -222,6 +222,51 @@ describe("registry publication", () => {
     ).toBe(true);
   });
 
+  test("omits recognized immutable SDK-era protocol-1 descriptors", async () => {
+    const value = await fixture();
+    const releaseDirectory = path.join(value.site, "releases/example.calendar");
+    await mkdir(releaseDirectory, { recursive: true });
+    await writeFile(
+      path.join(releaseDirectory, "0.8.0.json"),
+      `${JSON.stringify({
+        manifest: {
+          id: manifest.id,
+          name: manifest.name,
+          description: manifest.description,
+          developer: manifest.developer,
+          modifications: [],
+          sdk: "^0.0.5",
+          version: "0.8.0",
+        },
+        repository: "example/calendar",
+        runtime: { kind: "iframe", protocol: 1 },
+        script: {
+          bytes: 1,
+          contentType: "application/javascript; charset=utf-8",
+          sha256: "0".repeat(64),
+          url: "https://plugins.lunaris.app/legacy-sdk.js",
+        },
+        sdk: "^0.0.5",
+        status: "active",
+      })}\n`,
+    );
+
+    await publishRegistry({
+      artifacts: value.artifacts,
+      repositoryRoot: value.root,
+      site: value.site,
+    });
+
+    expect(
+      (await catalog(value.site)).plugins[0]?.versions.map(
+        (version) => version.version,
+      ),
+    ).toEqual(["1.0.0"]);
+    expect(
+      await Bun.file(path.join(releaseDirectory, "0.8.0.json")).exists(),
+    ).toBe(true);
+  });
+
   test("rejects invalid stored descriptors", async () => {
     const value = await fixture();
     const releaseDirectory = path.join(value.site, "releases/example.calendar");
