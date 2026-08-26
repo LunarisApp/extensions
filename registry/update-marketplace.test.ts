@@ -42,7 +42,7 @@ function descriptor(version: string) {
       bytes: 1,
       resource: "image/png",
       sha256: "b".repeat(64),
-      url: `https://cdn.example/test.extension/${version}/icon.png`,
+      url: "./icon.png",
     },
     manifest: {
       api: "^0.4.0",
@@ -107,7 +107,9 @@ describe("update-marketplace", () => {
     const entry = marketplace.extensions[0];
     expect(entry.latestVersion).toBe("1.0.0");
     expect(entry.description).toBe("Release 1.1.0");
-    expect(entry.iconUrl).toContain("/1.1.0/icon.png");
+    expect(entry.iconUrl).toBe(
+      "https://cdn.example/test.extension/1.1.0/icon.png",
+    );
     expect(
       entry.versions.map((release: { version: string }) => release.version),
     ).toEqual(["1.1.0", "1.0.0"]);
@@ -126,7 +128,7 @@ describe("update-marketplace", () => {
     expect(unchanged.generatedAt).toBe(generatedAt);
   });
 
-  it("rejects policy entries for unpublished releases", async () => {
+  it("rejects policy entries for unpublished artifacts", async () => {
     const { fragments, root } = await fixture(["missing.extension@1.0.0"]);
     await writeFragment(fragments, "1.0.0");
 

@@ -1,15 +1,26 @@
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { promisify } from "node:util";
 import { rcompare } from "semver";
 import { readRegistryPolicy } from "./config.ts";
+import { REPOSITORY_PATTERN } from "./constants.ts";
 import { parseExtensionManifest } from "./manifest.ts";
 
 const root = process.cwd();
 const marketplacePath = path.join(root, "marketplace.json");
 interface MarketplaceFragment {
   descriptor: unknown;
+  descriptorBytes?: Uint8Array;
   descriptorUrl: string;
+}
+
+const execFileAsync = promisify(execFile);
+
+async function git(...args: string[]): Promise<string> {
+  const { stdout } = await execFileAsync("git", args, { cwd: root });
+  return stdout.trim();
 }
 
 async function readFragments(): Promise<MarketplaceFragment[]> {
@@ -27,26 +38,65 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
     );
   }
 
-  const extensionsDirectory = path.join(root, "extensions");
+  const artifactStatus = await git("status", "--porcelain", "--", "artifacts");
+  if (artifactStatus) {
+    throw new Error("Commit artifact changes before updating marketplace.json");
+  }
+  const revision =
+    process.env.MARKETPLACE_ARTIFACT_REVISION ??
+    (await git("rev-parse", "HEAD"));
+  if (!/^[a-f0-9]{40,64}$/.test(revision)) {
+    throw new Error(
+      "MARKETPLACE_ARTIFACT_REVISION must be a full Git commit SHA",
+    );
+  }
+  const repository =
+    process.env.MARKETPLACE_REPOSITORY ?? "LunarisApp/extensions";
+  if (!REPOSITORY_PATTERN.test(repository)) {
+    throw new Error("MARKETPLACE_REPOSITORY must be an owner/repository pair");
+  }
+  const artifactsDirectory = path.join(root, "artifacts");
   const fragments: MarketplaceFragment[] = [];
-  for (const entry of await readdir(extensionsDirectory, {
+  for (const extensionEntry of await readdir(artifactsDirectory, {
     withFileTypes: true,
   })) {
-    if (!entry.isDirectory()) continue;
-    const descriptor = JSON.parse(
-      await readFile(
-        path.join(extensionsDirectory, entry.name, "dist/release.json"),
+    if (!extensionEntry.isDirectory()) continue;
+    const extensionDirectory = path.join(
+      artifactsDirectory,
+      extensionEntry.name,
+    );
+    for (const versionEntry of await readdir(extensionDirectory, {
+      withFileTypes: true,
+    })) {
+      if (!versionEntry.isDirectory()) continue;
+      const descriptorText = await readFile(
+        path.join(extensionDirectory, versionEntry.name, "release.json"),
         "utf8",
-      ),
-    ) as {
-      manifest: unknown;
-      repository: string;
-    };
-    const manifest = parseExtensionManifest(descriptor.manifest);
-    fragments.push({
-      descriptor,
-      descriptorUrl: `${descriptor.repository}/releases/download/${manifest.id}@${manifest.version}/release.json`,
-    });
+      );
+      const descriptor = JSON.parse(descriptorText) as { manifest: unknown };
+      const manifest = parseExtensionManifest(descriptor.manifest);
+      if (
+        manifest.id !== extensionEntry.name ||
+        manifest.version !== versionEntry.name
+      ) {
+        throw new Error(
+          `Artifact path does not match ${manifest.id}@${manifest.version}`,
+        );
+      }
+      const artifactPath = [
+        "artifacts",
+        manifest.id,
+        manifest.version,
+        "release.json",
+      ]
+        .map(encodeURIComponent)
+        .join("/");
+      fragments.push({
+        descriptor,
+        descriptorBytes: Buffer.from(descriptorText),
+        descriptorUrl: `https://raw.githubusercontent.com/${repository}/${revision}/${artifactPath}`,
+      });
+    }
   }
   return fragments;
 }
@@ -77,9 +127,9 @@ if (marketplace.enabled !== policy.enabled) {
 }
 
 for (const fragment of await readFragments()) {
-  const descriptorBytes = Buffer.from(
-    `${JSON.stringify(fragment.descriptor, null, 2)}\n`,
-  );
+  const descriptorBytes =
+    fragment.descriptorBytes ??
+    Buffer.from(`${JSON.stringify(fragment.descriptor, null, 2)}\n`);
   const descriptor = fragment.descriptor as {
     api: string;
     icon?: { url: string };
@@ -110,7 +160,9 @@ for (const fragment of await readFragments()) {
     entry = {
       description: manifest.description,
       developer: manifest.developer,
-      ...(descriptor.icon ? { iconUrl: descriptor.icon.url } : {}),
+      ...(descriptor.icon
+        ? { iconUrl: new URL(descriptor.icon.url, fragment.descriptorUrl).href }
+        : {}),
       id: manifest.id,
       latestVersion: manifest.version,
       name: manifest.name,
@@ -152,8 +204,11 @@ for (const fragment of await readFragments()) {
       entry[key] = value;
       changed = true;
     }
-    if (descriptor.icon && entry.iconUrl !== descriptor.icon.url) {
-      entry.iconUrl = descriptor.icon.url;
+    const iconUrl = descriptor.icon
+      ? new URL(descriptor.icon.url, fragment.descriptorUrl).href
+      : undefined;
+    if (iconUrl && entry.iconUrl !== iconUrl) {
+      entry.iconUrl = iconUrl;
       changed = true;
     } else if (!descriptor.icon && "iconUrl" in entry) {
       delete entry.iconUrl;

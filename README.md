@@ -5,19 +5,21 @@ Lunaris reads [`marketplace.json`](./marketplace.json) directly from this reposi
 There is no registry website or GitHub API dependency.
 
 - [`extensions`](./extensions): official extension source
-- [`registry`](./registry): manual release/index tools
+- [`artifacts`](./artifacts): versioned descriptors and executable assets
+- [`registry`](./registry): artifact/index tools
 - [`create-extension`](./create-extension): extension initializer
 - [`template`](./template): extension starter and marketplace examples
 
-## Publishing official releases
+## Publishing official extensions
 
-Merge a tested extension version bump to `main`. Build it locally, create
-`<extension-id>@<version>` as a draft GitHub Release, upload and verify `release.json`
-plus its assets, then publish it. Run `bun registry/update-marketplace.ts` and commit
-the root index only after the Release exists.
+Build and test an extension locally, then run `registry/build-artifact.ts`. Commit the
+new `artifacts/<extension-id>/<version>` directory before updating the marketplace.
+Run `bun registry/update-marketplace.ts` in a second commit so descriptor URLs contain
+the full artifact commit SHA.
 
-Enable GitHub immutable releases in repository settings. Released files and tags must
-never be replaced. Marketplace Release snapshots are optional audit artifacts only.
+Published artifact directories must never be replaced. Every new build requires a new
+extension version. Tags such as `<extension-id>@<version>` are optional and are not part
+of the client trust model.
 
 ## Create another marketplace
 
@@ -35,4 +37,4 @@ Content-Type: application/json
 ```
 
 See [`template/README.md`](./template/README.md) for one- and multi-extension layouts,
-GitHub Releases, and generic static hosting.
+commit-pinned GitHub artifacts, and generic static hosting.

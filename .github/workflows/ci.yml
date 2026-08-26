@@ -65,3 +65,9 @@ jobs:
           if bun -e 'process.exit(require("./package.json").scripts?.test ? 0 : 1)'; then bun run test; fi
       - run: bun run typecheck
       - run: bun run build
+      - env:
+          EXTENSION_ARTIFACTS_ROOT: ${{ github.workspace }}/artifacts
+          EXTENSION_EXPECTED_ID: ${{ matrix.id }}
+          EXTENSION_EXPECTED_VERSION: ${{ matrix.version }}
+          EXTENSION_REPOSITORY: LunarisApp/extensions
+        run: bun ../../registry/build-artifact.ts --check

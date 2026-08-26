@@ -3,11 +3,18 @@
 Build the extension with `bun run typecheck && bun run build`. Publish `release.json`,
 `main.js`, optional `styles.css`, and optional `icon.png` at immutable public HTTPS
 URLs. Each asset in `release.json` needs URL, byte length, media type, and SHA-256.
+Asset URLs may be relative to the descriptor.
 
 ## One extension
 
 ```text
 marketplace.json
+artifacts/
+  com.example.extension/
+    1.0.0/
+      release.json
+      main.js
+      styles.css
 src/
 manifest.json
 ```
@@ -32,7 +39,7 @@ manifest.json
       "runtime": { "kind": "iframe", "protocol": 2 },
       "status": "active",
       "descriptor": {
-        "url": "./releases/com.example.extension/1.0.0/release.json",
+        "url": "https://raw.githubusercontent.com/example/extensions/0123456789abcdef0123456789abcdef01234567/artifacts/com.example.extension/1.0.0/release.json",
         "bytes": 1234,
         "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
       }
@@ -44,14 +51,29 @@ manifest.json
 ## Multiple extensions
 
 Keep one root `marketplace.json`; place each extension in `extensions/<name>/`. IDs and
-versions must be unique across the index.
+versions must be unique across the index. Store published builds under
+`artifacts/<extension-id>/<version>/`.
 
-## GitHub Releases
+## GitHub repositories
 
-Use tag `<extension-id>@<version>`. Create a draft release, upload descriptor/assets,
-verify downloaded sizes and digests, publish it, then merge the index update. Enable
-immutable releases. Lunaris reads the raw root index and downloads assets directly; it
-does not use the Releases API.
+Commit a new artifact directory first. In a second commit, add its descriptor to
+`marketplace.json` using a `raw.githubusercontent.com` URL containing the first commit's
+full SHA. Commit-specific URLs are immutable and allow browser CORS. Tags such as
+`<extension-id>@<version>` are optional; clients do not depend on tags or GitHub
+Releases.
+
+An artifact descriptor can keep its asset URLs transport-neutral:
+
+```json
+{
+  "script": {
+    "url": "./main.js",
+    "bytes": 1234,
+    "resource": "text/javascript",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  }
+}
+```
 
 ## Generic HTTPS hosting
 
