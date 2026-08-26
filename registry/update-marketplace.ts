@@ -93,7 +93,7 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
         (await git(
           "log",
           "-1",
-          "--diff-filter=A",
+          ...(overwrite ? [] : ["--diff-filter=A"]),
           "--format=%H",
           "--",
           artifactPath,

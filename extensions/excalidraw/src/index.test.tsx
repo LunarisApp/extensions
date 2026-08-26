@@ -194,9 +194,10 @@ describe("Excalidraw external extension", () => {
 					},
 					{ originalText: "First\r\nlabel", type: "text", x: 10, y: 40 },
 					{ originalText: "First\nlabel", type: "text", x: 20, y: 60 },
+					{ originalText: "Budget < 5 > actual", type: "text", x: 10, y: 100 },
 				],
 			}),
-		).toBe("Planning frame\nFirst\nlabel\nSecond label");
+		).toBe("Planning frame\nFirst\nlabel\nSecond label\nBudget < 5 > actual");
 	});
 
 	it("returns null for malformed, empty, deleted, hidden, and structural-only scenes", () => {
@@ -210,7 +211,10 @@ describe("Excalidraw external extension", () => {
 					{ isGenerated: true, text: "Generated", type: "text" },
 					{ hidden: true, text: "Hidden", type: "text" },
 					{ height: 20, type: "rectangle", width: 40 },
-					{ text: "data:text/plain;base64,SGVsbG8=", type: "text" },
+					{
+						text: "data:text/plain;charset=utf-8;base64,SGVsbG8=",
+						type: "text",
+					},
 				],
 			}),
 		).toBeNull();

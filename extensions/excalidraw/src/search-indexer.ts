@@ -3,8 +3,8 @@ import { EXCALIDRAW_EXTENSION_ID } from "./constants";
 
 const MAX_INDEXED_TEXT_LENGTH = 100_000;
 const NON_VISIBLE_MARKUP_PATTERN = /<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi;
-const MARKUP_PATTERN = /<[^>]*>/g;
-const DATA_URL_PATTERN = /^data:[^;,]+;base64,/i;
+const MARKUP_PATTERN = /<!--[\s\S]*?-->|<\/?[a-z][^>]*>/gi;
+const DATA_URL_PATTERN = /^data:[^,]*;base64,/i;
 const NAMED_ELEMENT_TYPES = new Set(["frame", "magicframe"]);
 
 type SceneElement = Record<string, unknown>;
