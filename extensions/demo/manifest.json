@@ -2,7 +2,7 @@
   "id": "lunaris.demo",
   "name": "Demo",
   "developer": "Lunaris",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "api": "^0.4.0",
   "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
   "permissions": ["content.read", "content.write"]
