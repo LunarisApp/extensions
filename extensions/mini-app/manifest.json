@@ -2,7 +2,7 @@
   "id": "lunaris.mini-app",
   "name": "Mini Apps",
   "developer": "Lunaris",
-  "version": "1.0.9",
+  "version": "0.0.1",
   "api": "^0.4.0",
   "description": "Run interactive, self-contained HTML apps in your project",
   "permissions": ["content.read", "files.read", "files.write"]

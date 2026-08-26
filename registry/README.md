@@ -1,55 +1,14 @@
-# Lunaris extension registry
+# Manual marketplace publishing
 
-This directory owns the configuration and publishing tools for the static
-registry at `https://plugins.lunaris.app`.
+`create-release.ts` creates a hash-pinned `release.json` from an extension build.
+`update-marketplace.ts` reads local extension builds and merges their published,
+hash-pinned descriptors into root `marketplace.json`. Publishing is manual; no GitHub
+Actions or GitHub Releases API is used by Lunaris discovery.
 
-## Configuration
+For each extension: install, test, typecheck, audit, build, run `stage-build.ts`, run
+`create-release.ts`, create a draft `<extension-id>@<version>` Release with `gh`, upload
+all generated assets, download and verify them, then publish. After every Release
+exists, run `bun registry/update-marketplace.ts` and commit the root index.
 
-- `community-extensions.json` lists reviewed public extension repositories.
-- `policy.json` controls the catalog kill switch and blocked
-  `<extension-id>@<version>` entries.
-- Curated extensions are discovered from `../extensions/*/manifest.json`.
-
-Curated versions publish when their manifest version bump reaches `main`.
-Community releases are discovered hourly from exact, non-draft GitHub release
-tags. A published ID and version is immutable; change the manifest version
-before changing its build output.
-
-Manifests declare the compatible plugin API range `^0.4.0` and required
-permissions; extensions register resources and views during activation. The
-repository tooling installs `@lunarisapp/plugin-sdk` at `^0.4.0`. Catalog v1
-publishes `{ "kind": "iframe", "protocol": 2 }` on every new descriptor and
-catalog version. Immutable protocol-1 descriptors remain on the Pages branch
-but are omitted when the compatible catalog is rebuilt.
-
-## GitHub Pages setup
-
-GitHub Pages publishes from the root of the `gh-pages` branch. The repository
-administrator must select **Deploy from a branch** as the Pages source, verify
-`lunaris.app` for the `LunarisApp` organization, configure
-`plugins.lunaris.app` as the custom domain, and point its DNS CNAME to
-`lunarisapp.github.io`.
-
-To deploy manually, build and stage the extension artifacts, run `publish.ts`
-against a checkout of `gh-pages`, commit and push that generated tree, then
-request the branch build:
-
-```sh
-EXTENSION_ARTIFACTS_DIR=extension-artifacts \
-  REGISTRY_SITE_DIR=registry-site \
-  bun registry/publish.ts
-git -C registry-site add -A
-git -C registry-site commit -m "Publish extension registry"
-git -C registry-site push origin gh-pages
-gh api --method POST repos/LunarisApp/extensions/pages/builds
-```
-
-Run the registry checks locally with:
-
-```sh
-cd registry
-bun install --frozen-lockfile
-bun test
-bun run typecheck
-bun run check
-```
+The root index is mutable discovery data. Installed extensions trust their persisted
+descriptor URL, exact bytes, and SHA-256, not later index changes.

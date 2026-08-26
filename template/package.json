@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lunarisapp/plugin-sdk": "^0.4.0",
+    "@lunarisapp/plugin-sdk": "^0.4.1",
     "@lunarisapp/ui": "^0.0.1",
     "react": "^19.2.8"
   },

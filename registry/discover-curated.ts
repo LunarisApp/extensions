@@ -1,12 +1,10 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { validateManifest } from "@lunarisapp/plugin-sdk";
-import { readCommunityExtensions } from "./config.ts";
+import { parseExtensionManifest } from "./manifest.ts";
 
 const root = process.cwd();
 const extensionsDirectory = path.join(root, "extensions");
-const community = await readCommunityExtensions(root);
-const ids = new Set(community.map((extension) => extension.id));
+const ids = new Set<string>();
 const include: Array<{
   id: string;
   repository: string;
@@ -19,13 +17,13 @@ for (const entry of await readdir(extensionsDirectory, {
 })) {
   if (!entry.isDirectory()) continue;
   const relativeRoot = `extensions/${entry.name}`;
-  const manifest = validateManifest(
+  const manifest = parseExtensionManifest(
     JSON.parse(
       await readFile(path.join(root, relativeRoot, "manifest.json"), "utf8"),
     ),
   );
   if (ids.has(manifest.id)) {
-    throw new Error(`Duplicate curated/community extension ID: ${manifest.id}`);
+    throw new Error(`Duplicate curated extension ID: ${manifest.id}`);
   }
   ids.add(manifest.id);
   include.push({

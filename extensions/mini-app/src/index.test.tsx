@@ -86,7 +86,7 @@ describe("Mini Apps extension", () => {
 		expect(extension.manifest).toMatchObject({
 			api: "^0.4.0",
 			id: "lunaris.mini-app",
-			version: "1.0.9",
+			version: "0.0.1",
 		});
 		expect(miniAppResourceType).toMatchObject({
 			defaultViewId: "lunaris.mini-app",

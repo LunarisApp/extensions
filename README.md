@@ -1,29 +1,38 @@
 # Lunaris extensions
 
-The curated extension registry and tools for building community extensions for
-[Lunaris](https://github.com/LunarisApp/lunaris).
+Official extension marketplace for [Lunaris](https://github.com/LunarisApp/lunaris).
+Lunaris reads [`marketplace.json`](./marketplace.json) directly from this repository.
+There is no registry website or GitHub API dependency.
 
-- [`extensions`](./extensions): curated extensions maintained in this registry
-- [`registry`](./registry): catalog configuration and GitHub Pages publishing tools
-- [`create-extension`](./create-extension): npm extension initializer
-- [`template`](./template): canonical extension starter
+- [`extensions`](./extensions): official extension source
+- [`registry`](./registry): manual release/index tools
+- [`create-extension`](./create-extension): extension initializer
+- [`template`](./template): extension starter and marketplace examples
 
-## Curated extensions
+## Publishing official releases
 
-Each curated extension lives in its own directory under `extensions/` and follows the
-same structure as the canonical template. The initial registry fixture is
-[`demo`](./extensions/demo), a synthetic SaaS operations console that exercises
-both standalone views and durable resources through the public extension SDK.
+Merge a tested extension version bump to `main`. Build it locally, create
+`<extension-id>@<version>` as a draft GitHub Release, upload and verify `release.json`
+plus its assets, then publish it. Run `bun registry/update-marketplace.ts` and commit
+the root index only after the Release exists.
 
-## Published registry
+Enable GitHub immutable releases in repository settings. Released files and tags must
+never be replaced. Marketplace Release snapshots are optional audit artifacts only.
 
-The registry is published as static files at
-[`plugins.lunaris.app`](https://plugins.lunaris.app). Curated extension versions are
-published after their manifest version bump reaches `main`. Community authors
-submit a reviewed `{ "id", "repository" }` entry to
-[`registry/community-extensions.json`](./registry/community-extensions.json); the
-hourly workflow builds new non-draft GitHub releases from their exact tags.
+## Create another marketplace
 
-Published `<extension-id>@<version>` descriptors and assets are immutable. To
-disable the complete catalog or block an already-published version, update
-[`registry/policy.json`](./registry/policy.json) through review.
+Any public host can serve the same root JSON contract. GitHub users can point Lunaris
+at `https://github.com/owner/repository`; Lunaris resolves its root `marketplace.json`.
+Other hosts provide the complete HTTPS manifest URL. Descriptor URLs can be absolute or
+relative to that URL. Descriptors and every executable asset are pinned by byte length
+and SHA-256.
+
+All manifest, descriptor, and asset responses must permit browser CORS, for example:
+
+```http
+Access-Control-Allow-Origin: *
+Content-Type: application/json
+```
+
+See [`template/README.md`](./template/README.md) for one- and multi-extension layouts,
+GitHub Releases, and generic static hosting.

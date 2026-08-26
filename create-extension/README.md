@@ -27,6 +27,12 @@ Generated extensions target `@lunarisapp/plugin-sdk` `^0.4.0`. The starter
 keeps `manifest.json` to identity, API compatibility, and permissions, then
 registers an explicitly launchable standalone view during activation.
 
+Publish through your own public marketplace by adding a root `marketplace.json`.
+GitHub repositories should attach `release.json` and executable assets to immutable
+Releases tagged `<extension-id>@<version>`. Generic static hosts work too when every
+index, descriptor, and asset response allows CORS. See the generated template README
+for complete one-extension and multi-extension examples.
+
 ## Development
 
 ```sh

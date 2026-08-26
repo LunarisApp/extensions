@@ -1,12 +1,12 @@
 import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { validateManifest } from "@lunarisapp/plugin-sdk";
 import {
   MAX_ICON_BYTES,
   MAX_SCRIPT_BYTES,
   MAX_STYLE_BYTES,
   REPOSITORY_PATTERN,
 } from "./constants.ts";
+import { parseExtensionManifest } from "./manifest.ts";
 
 const directory = path.resolve(process.env.EXTENSION_DIST ?? "dist");
 const repository = process.env.EXTENSION_REPOSITORY;
@@ -30,7 +30,7 @@ if (await exists(path.join(directory, "plugin.json"))) {
   throw new Error("Legacy plugin.json is not supported; use manifest.json");
 }
 
-const manifest = validateManifest(
+const manifest = parseExtensionManifest(
   JSON.parse(await readFile(path.join(directory, "manifest.json"), "utf8")),
 );
 if (expectedId && manifest.id !== expectedId) {
