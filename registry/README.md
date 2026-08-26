@@ -41,7 +41,7 @@ EXTENSION_ARTIFACTS_DIR=extension-artifacts \
 git -C registry-site add -A
 git -C registry-site commit -m "Publish extension registry"
 git -C registry-site push origin gh-pages
-gh api --method POST repos/LunarisApp/plugins/pages/builds
+gh api --method POST repos/LunarisApp/extensions/pages/builds
 ```
 
 Run the registry checks locally with:
