@@ -25,6 +25,7 @@ import en from "./locales/en.json";
 import es from "./locales/es.json";
 import fr from "./locales/fr.json";
 import ptBR from "./locales/pt-BR.json";
+import { excalidrawSearchIndexer } from "./search-indexer";
 import "./styles.css";
 import { YjsExcalidraw } from "./yjs-excalidraw";
 
@@ -199,6 +200,7 @@ export const excalidrawExtension = definePlugin({
 		contributions.resourceType(excalidrawResourceType);
 		contributions.view(excalidrawView);
 		contributions.representation(excalidrawRepresentation);
+		contributions.searchIndexer(excalidrawSearchIndexer);
 		contributions.locales({ de, en, es, fr, "pt-BR": ptBR });
 	},
 });

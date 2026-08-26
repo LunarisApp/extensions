@@ -9,6 +9,10 @@ import {
 	excalidrawSceneSchema,
 	excalidrawView,
 } from "./index";
+import {
+	excalidrawSearchIndexer,
+	extractExcalidrawSearchText,
+} from "./search-indexer";
 
 const state = vi.hoisted(() => ({
 	canWriteContent: true,
@@ -125,7 +129,9 @@ afterEach(() => {
 describe("Excalidraw external extension", () => {
 	it("registers the stable resource type and compatible default view", () => {
 		expect(excalidrawExtension.manifest.id).toBe("lunaris.excalidraw");
-		expect(excalidrawExtension.manifest.api).toBe("^0.5.0");
+		expect(excalidrawExtension.manifest.api).toBe("^0.6.0");
+		expect(excalidrawExtension.manifest.version).toBe("0.0.1");
+		expect(excalidrawExtension.manifest.permissions).toContain("content.read");
 		expect(excalidrawResourceType).toMatchObject({
 			defaultViewId: "lunaris.excalidraw",
 			resourceTypeId: "lunaris.excalidraw",
@@ -144,15 +150,74 @@ describe("Excalidraw external extension", () => {
 		const resourceType = vi.fn();
 		const view = vi.fn();
 		const representation = vi.fn();
+		const searchIndexer = vi.fn();
 		const locales = vi.fn();
 		excalidrawExtension.activate({
-			contributions: { locales, representation, resourceType, view },
+			contributions: {
+				locales,
+				representation,
+				resourceType,
+				searchIndexer,
+				view,
+			},
 		} as never);
 
 		expect(resourceType).toHaveBeenCalledWith(excalidrawResourceType);
 		expect(view).toHaveBeenCalledWith(excalidrawView);
 		expect(representation).toHaveBeenCalledWith(excalidrawRepresentation);
+		expect(searchIndexer).toHaveBeenCalledOnce();
+		expect(searchIndexer).toHaveBeenCalledWith(excalidrawSearchIndexer);
+		expect(excalidrawSearchIndexer).toMatchObject({
+			id: "lunaris.excalidraw.search-indexer",
+			resourceTypeIds: ["lunaris.excalidraw"],
+		});
 		expect(locales).toHaveBeenCalledOnce();
+	});
+
+	it("extracts visible labels in reading order as normalized plain text", () => {
+		expect(
+			extractExcalidrawSearchText({
+				assets: { binary: "data:image/png;base64,AA==" },
+				elements: [
+					{
+						originalText: "Second   label",
+						text: "Second label",
+						type: "text",
+						x: 10,
+						y: 80,
+					},
+					{
+						name: "<strong>Planning</strong> frame",
+						type: "frame",
+						x: 0,
+						y: 0,
+					},
+					{ originalText: "First\r\nlabel", type: "text", x: 10, y: 40 },
+					{ originalText: "First\nlabel", type: "text", x: 20, y: 60 },
+					{ originalText: "Budget < 5 > actual", type: "text", x: 10, y: 100 },
+				],
+			}),
+		).toBe("Planning frame\nFirst\nlabel\nSecond label\nBudget < 5 > actual");
+	});
+
+	it("returns null for malformed, empty, deleted, hidden, and structural-only scenes", () => {
+		expect(extractExcalidrawSearchText(null)).toBeNull();
+		expect(extractExcalidrawSearchText({ elements: "not-an-array" })).toBeNull();
+		expect(
+			extractExcalidrawSearchText({
+				assets: {},
+				elements: [
+					{ originalText: "Deleted", isDeleted: true, type: "text" },
+					{ isGenerated: true, text: "Generated", type: "text" },
+					{ hidden: true, text: "Hidden", type: "text" },
+					{ height: 20, type: "rectangle", width: 40 },
+					{
+						text: "data:text/plain;charset=utf-8;base64,SGVsbG8=",
+						type: "text",
+					},
+				],
+			}),
+		).toBeNull();
 	});
 
 	it("reads and validates the existing elements/assets document shape", async () => {

@@ -37,7 +37,7 @@ async function fixture(blockedVersions: string[] = []) {
 
 function descriptor(version: string) {
   return {
-    api: "^0.5.0",
+    api: "^0.6.0",
     icon: {
       bytes: 1,
       resource: "image/png",
@@ -45,7 +45,7 @@ function descriptor(version: string) {
       url: "./icon.png",
     },
     manifest: {
-      api: "^0.5.0",
+      api: "^0.6.0",
       description: `Release ${version}`,
       developer: "Test Publisher",
       id: "test.extension",
@@ -54,7 +54,7 @@ function descriptor(version: string) {
       version,
     },
     repository: "https://github.com/example/extensions",
-    runtime: { kind: "iframe", protocol: 3 },
+    runtime: { kind: "iframe", protocol: 4 },
     status: "active",
   };
 }
@@ -81,6 +81,8 @@ async function update(root: string, fragments?: string, overwrite = false) {
   } else {
     delete env.MARKETPLACE_FRAGMENTS_DIR;
   }
+  delete env.MARKETPLACE_ARTIFACT_REVISION;
+  delete env.MARKETPLACE_REPOSITORY;
   const subprocess = Bun.spawn(
     [process.execPath, script, ...(overwrite ? ["--overwrite"] : [])],
     {
@@ -234,5 +236,36 @@ describe("update-marketplace", () => {
     const versions = marketplace.extensions[0].versions;
     expect(versions[0].descriptor.url).toContain(secondRevision);
     expect(versions[1].descriptor.url).toContain(firstRevision);
+  });
+
+  it("pins an overwritten artifact to its replacement commit", async () => {
+    const { root } = await fixture();
+    await git(root, "init");
+    await writeArtifact(root, "1.0.0");
+    await git(root, "add", ".");
+    await git(root, "commit", "-m", "publish 1.0.0");
+
+    await update(root);
+    await git(root, "add", "marketplace.json");
+    await git(root, "commit", "-m", "update marketplace");
+
+    const replacement = descriptor("1.0.0");
+    replacement.manifest.description = "Replacement release";
+    await writeFile(
+      path.join(root, "artifacts/test.extension/1.0.0/release.json"),
+      `${JSON.stringify(replacement, null, 2)}\n`,
+    );
+    await git(root, "add", "artifacts");
+    await git(root, "commit", "-m", "replace 1.0.0");
+    const replacementRevision = await git(root, "rev-parse", "HEAD");
+
+    await update(root, undefined, true);
+
+    const marketplace = JSON.parse(
+      await readFile(path.join(root, "marketplace.json"), "utf8"),
+    );
+    expect(marketplace.extensions[0].versions[0].descriptor.url).toContain(
+      replacementRevision,
+    );
   });
 });

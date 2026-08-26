@@ -40,3 +40,9 @@ Content-Type: application/json
 
 See [`template/README.md`](./template/README.md) for one- and multi-extension layouts,
 commit-pinned GitHub artifacts, and generic static hosting.
+
+## Plugin SDK 0.6 migration
+
+Curated extensions and the starter target Plugin SDK 0.6 and iframe sandbox protocol 4.
+Excalidraw 0.0.1 also contributes a host-managed local search indexer for live canvas
+text and named frames. Index storage, lifecycle, ranking, and search UI remain host-owned.

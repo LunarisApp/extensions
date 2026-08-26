@@ -3,7 +3,7 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-08-26T12:10:35.733Z",
+  "generatedAt": "2026-08-26T18:48:40.556Z",
   "extensions": [
     {
       "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
@@ -14,15 +14,15 @@
       "repository": "https://github.com/LunarisApp/extensions",
       "versions": [
         {
-          "api": "^0.5.0",
+          "api": "^0.6.0",
           "descriptor": {
             "bytes": 880,
-            "sha256": "36c2d097fda6eb4f48c086fd6fdcb116d0c7d1c3f4ec9b280b734cbbf12ec3e4",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/471e479905150c37c45bf29397efa58c34825232/artifacts/lunaris.demo/0.0.1/release.json"
+            "sha256": "84a954d0c65017486bb24972fbf64867e1c2161b897b80645ad5fecd062cf8fa",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/ff2817a249195ac733f57a9d659c5a8ef18a4f73/artifacts/lunaris.demo/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
-            "protocol": 3
+            "protocol": 4
           },
           "status": "active",
           "version": "0.0.1"
@@ -32,22 +32,22 @@
     {
       "description": "Collaborative drawing with Excalidraw",
       "developer": "Lunaris",
-      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/471e479905150c37c45bf29397efa58c34825232/artifacts/lunaris.excalidraw/0.0.1/icon.png",
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/ab0f7987f171b3680ca79b338c7fb31cea8381c9/artifacts/lunaris.excalidraw/0.0.1/icon.png",
       "id": "lunaris.excalidraw",
       "latestVersion": "0.0.1",
       "name": "Excalidraw",
       "repository": "https://github.com/LunarisApp/extensions",
       "versions": [
         {
-          "api": "^0.5.0",
+          "api": "^0.6.0",
           "descriptor": {
             "bytes": 1020,
-            "sha256": "bd625619d08729962f0196ff1ffb2218bdb504704e275fbec8fda93172874192",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/471e479905150c37c45bf29397efa58c34825232/artifacts/lunaris.excalidraw/0.0.1/release.json"
+            "sha256": "3544edccdd0ae461ebcf5aefeb819fd9fbd388d9b7e8b9869b2f6d411970960d",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/ab0f7987f171b3680ca79b338c7fb31cea8381c9/artifacts/lunaris.excalidraw/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
-            "protocol": 3
+            "protocol": 4
           },
           "status": "active",
           "version": "0.0.1"
@@ -57,22 +57,22 @@
     {
       "description": "Run interactive, self-contained HTML apps in your project",
       "developer": "Lunaris",
-      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/471e479905150c37c45bf29397efa58c34825232/artifacts/lunaris.mini-app/0.0.1/icon.png",
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/ff2817a249195ac733f57a9d659c5a8ef18a4f73/artifacts/lunaris.mini-app/0.0.1/icon.png",
       "id": "lunaris.mini-app",
       "latestVersion": "0.0.1",
       "name": "Mini Apps",
       "repository": "https://github.com/LunarisApp/extensions",
       "versions": [
         {
-          "api": "^0.5.0",
+          "api": "^0.6.0",
           "descriptor": {
             "bytes": 1051,
-            "sha256": "940e3db323ef450b13fea7eb88b192ae564907551ab482d02e6048eff7ea8660",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/471e479905150c37c45bf29397efa58c34825232/artifacts/lunaris.mini-app/0.0.1/release.json"
+            "sha256": "15d518363ff0ace65df77b565d505d3c8cebf5c6eec8b0e612bd1edcb709f897",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/ff2817a249195ac733f57a9d659c5a8ef18a4f73/artifacts/lunaris.mini-app/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
-            "protocol": 3
+            "protocol": 4
           },
           "status": "active",
           "version": "0.0.1"

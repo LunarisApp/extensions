@@ -93,7 +93,7 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
         (await git(
           "log",
           "-1",
-          "--diff-filter=A",
+          ...(overwrite ? [] : ["--diff-filter=A"]),
           "--format=%H",
           "--",
           artifactPath,
@@ -149,7 +149,7 @@ for (const fragment of await readFragments()) {
     icon?: { url: string };
     manifest: unknown;
     repository: string;
-    runtime: { kind: "iframe"; protocol: 3 };
+    runtime: { kind: "iframe"; protocol: 4 };
     status: "active" | "blocked";
   };
   const manifest = parseExtensionManifest(descriptor.manifest);

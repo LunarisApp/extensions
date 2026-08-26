@@ -1,5 +1,5 @@
 {
-  "api": "^0.5.0",
+  "api": "^0.6.0",
   "icon": {
     "bytes": 7157,
     "resource": "image/png",
@@ -7,7 +7,7 @@
     "url": "./icon.png"
   },
   "manifest": {
-    "api": "^0.5.0",
+    "api": "^0.6.0",
     "conflicts": {},
     "dependencies": {},
     "description": "Run interactive, self-contained HTML apps in your project",
@@ -24,12 +24,12 @@
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
     "kind": "iframe",
-    "protocol": 3
+    "protocol": 4
   },
   "script": {
-    "bytes": 376087,
+    "bytes": 377292,
     "resource": "text/javascript",
-    "sha256": "a32d647eb89997088625b105317c113a9c01bb69e33202a0184bbe4edf700f20",
+    "sha256": "f9beb89b5085a007c8328a11e87d8b1e9b12cea9b98c475b62cf83cbc2760267",
     "url": "./main.js"
   },
   "status": "active",

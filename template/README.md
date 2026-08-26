@@ -35,8 +35,8 @@ manifest.json
     "latestVersion": "1.0.0",
     "versions": [{
       "version": "1.0.0",
-      "api": "^0.5.0",
-      "runtime": { "kind": "iframe", "protocol": 3 },
+      "api": "^0.6.0",
+      "runtime": { "kind": "iframe", "protocol": 4 },
       "status": "active",
       "descriptor": {
         "url": "https://raw.githubusercontent.com/example/extensions/0123456789abcdef0123456789abcdef01234567/artifacts/com.example.extension/1.0.0/release.json",
