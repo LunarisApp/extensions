@@ -158,7 +158,7 @@ describe("registry command validation", () => {
       include: [
         {
           id: manifest.id,
-          repository: "LunarisApp/plugins",
+          repository: "LunarisApp/extensions",
           root: "extensions/calendar",
           version: manifest.version,
         },

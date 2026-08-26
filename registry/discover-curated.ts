@@ -30,7 +30,7 @@ for (const entry of await readdir(extensionsDirectory, {
   ids.add(manifest.id);
   include.push({
     id: manifest.id,
-    repository: "LunarisApp/plugins",
+    repository: "LunarisApp/extensions",
     root: relativeRoot,
     version: manifest.version,
   });
