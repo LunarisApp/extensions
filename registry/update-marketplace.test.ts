@@ -74,15 +74,51 @@ async function writeFragment(
   return release;
 }
 
-async function update(root: string, fragments: string) {
+async function update(root: string, fragments?: string) {
+  const env = { ...Bun.env };
+  if (fragments) {
+    env.MARKETPLACE_FRAGMENTS_DIR = fragments;
+  } else {
+    delete env.MARKETPLACE_FRAGMENTS_DIR;
+  }
   const subprocess = Bun.spawn([process.execPath, script], {
     cwd: root,
-    env: { ...Bun.env, MARKETPLACE_FRAGMENTS_DIR: fragments },
+    env,
     stderr: "pipe",
   });
   if ((await subprocess.exited) !== 0) {
     throw new Error(await new Response(subprocess.stderr).text());
   }
+}
+
+async function git(root: string, ...args: string[]): Promise<string> {
+  const subprocess = Bun.spawn(
+    [
+      "git",
+      "-c",
+      "user.name=Lunaris Tests",
+      "-c",
+      "user.email=tests@lunaris.app",
+      ...args,
+    ],
+    { cwd: root, stderr: "pipe", stdout: "pipe" },
+  );
+  const [exitCode, stdout, stderr] = await Promise.all([
+    subprocess.exited,
+    new Response(subprocess.stdout).text(),
+    new Response(subprocess.stderr).text(),
+  ]);
+  if (exitCode !== 0) throw new Error(stderr);
+  return stdout.trim();
+}
+
+async function writeArtifact(root: string, version: string): Promise<void> {
+  const directory = path.join(root, "artifacts/test.extension", version);
+  await mkdir(directory, { recursive: true });
+  await writeFile(
+    path.join(directory, "release.json"),
+    `${JSON.stringify(descriptor(version), null, 2)}\n`,
+  );
 }
 
 afterEach(async () => {
@@ -135,5 +171,31 @@ describe("update-marketplace", () => {
     await expect(update(root, fragments)).rejects.toThrow(
       "Policy blocks unpublished versions",
     );
+  });
+
+  it("pins each artifact to the commit that introduced it", async () => {
+    const { root } = await fixture();
+    await git(root, "init");
+    await writeArtifact(root, "1.0.0");
+    await git(root, "add", ".");
+    await git(root, "commit", "-m", "publish 1.0.0");
+    const firstRevision = await git(root, "rev-parse", "HEAD");
+
+    await update(root);
+    await git(root, "add", "marketplace.json");
+    await git(root, "commit", "-m", "update marketplace");
+    await writeArtifact(root, "1.1.0");
+    await git(root, "add", "artifacts");
+    await git(root, "commit", "-m", "publish 1.1.0");
+    const secondRevision = await git(root, "rev-parse", "HEAD");
+
+    await update(root);
+
+    const marketplace = JSON.parse(
+      await readFile(path.join(root, "marketplace.json"), "utf8"),
+    );
+    const versions = marketplace.extensions[0].versions;
+    expect(versions[0].descriptor.url).toContain(secondRevision);
+    expect(versions[1].descriptor.url).toContain(firstRevision);
   });
 });

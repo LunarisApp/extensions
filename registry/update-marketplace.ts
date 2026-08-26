@@ -42,10 +42,8 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
   if (artifactStatus) {
     throw new Error("Commit artifact changes before updating marketplace.json");
   }
-  const revision =
-    process.env.MARKETPLACE_ARTIFACT_REVISION ??
-    (await git("rev-parse", "HEAD"));
-  if (!/^[a-f0-9]{40,64}$/.test(revision)) {
+  const configuredRevision = process.env.MARKETPLACE_ARTIFACT_REVISION;
+  if (configuredRevision && !/^[a-f0-9]{40,64}$/.test(configuredRevision)) {
     throw new Error(
       "MARKETPLACE_ARTIFACT_REVISION must be a full Git commit SHA",
     );
@@ -88,13 +86,28 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
         manifest.id,
         manifest.version,
         "release.json",
-      ]
+      ].join("/");
+      const revision =
+        configuredRevision ??
+        (await git(
+          "log",
+          "-1",
+          "--diff-filter=A",
+          "--format=%H",
+          "--",
+          artifactPath,
+        ));
+      if (!/^[a-f0-9]{40,64}$/.test(revision)) {
+        throw new Error(`No committed artifact revision for ${artifactPath}`);
+      }
+      const encodedArtifactPath = artifactPath
+        .split("/")
         .map(encodeURIComponent)
         .join("/");
       fragments.push({
         descriptor,
         descriptorBytes: Buffer.from(descriptorText),
-        descriptorUrl: `https://raw.githubusercontent.com/${repository}/${revision}/${artifactPath}`,
+        descriptorUrl: `https://raw.githubusercontent.com/${repository}/${revision}/${encodedArtifactPath}`,
       });
     }
   }
