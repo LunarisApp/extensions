@@ -47,7 +47,7 @@ describe("Demo extension activation", () => {
       viewId: dossierResourceType.defaultViewId,
     });
     expect(extension.manifest.api).toBe("^0.6.0");
-    expect(extension.manifest.version).toBe("0.0.2");
+    expect(extension.manifest.version).toBe("0.0.1");
   });
 
   test("creates and opens dossier resources through the host APIs", async () => {
