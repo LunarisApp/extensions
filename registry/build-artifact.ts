@@ -8,6 +8,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
+import { PLUGIN_SANDBOX_PROTOCOL_VERSION } from "@lunarisapp/plugin-sdk";
 import {
   MAX_ICON_BYTES,
   MAX_SCRIPT_BYTES,
@@ -103,7 +104,7 @@ const descriptor = {
   ...(icon ? { icon: icon.descriptor } : {}),
   manifest,
   repository: `https://github.com/${repository}`,
-  runtime: { kind: "iframe", protocol: 3 },
+  runtime: { kind: "iframe", protocol: PLUGIN_SANDBOX_PROTOCOL_VERSION },
   script: script.descriptor,
   status: "active",
   ...(style ? { style: style.descriptor } : {}),

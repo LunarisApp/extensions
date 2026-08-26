@@ -3,7 +3,7 @@
 	"name": "Excalidraw",
 	"description": "Collaborative drawing with Excalidraw",
 	"developer": "Lunaris",
-	"version": "0.0.1",
-	"api": "^0.5.0",
+	"version": "0.0.2",
+	"api": "^0.6.0",
 	"permissions": ["content.read", "content.write"]
 }

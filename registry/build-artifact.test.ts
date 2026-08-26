@@ -17,7 +17,7 @@ async function fixture() {
     path.join(dist, "manifest.json"),
     `${JSON.stringify(
       {
-        api: "^0.5.0",
+        api: "^0.6.0",
         description: "A test extension",
         developer: "Test Publisher",
         id: "test.extension",
@@ -91,6 +91,8 @@ describe("build-artifact", () => {
       url: "./main.js",
     });
     expect(descriptor.style.url).toBe("./styles.css");
+    expect(descriptor.api).toBe("^0.6.0");
+    expect(descriptor.runtime).toEqual({ kind: "iframe", protocol: 4 });
     expect((await build(dist, artifacts, true)).exitCode).toBe(0);
   });
 

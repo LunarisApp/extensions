@@ -37,7 +37,7 @@ async function fixture(blockedVersions: string[] = []) {
 
 function descriptor(version: string) {
   return {
-    api: "^0.5.0",
+    api: "^0.6.0",
     icon: {
       bytes: 1,
       resource: "image/png",
@@ -45,7 +45,7 @@ function descriptor(version: string) {
       url: "./icon.png",
     },
     manifest: {
-      api: "^0.5.0",
+      api: "^0.6.0",
       description: `Release ${version}`,
       developer: "Test Publisher",
       id: "test.extension",
@@ -54,7 +54,7 @@ function descriptor(version: string) {
       version,
     },
     repository: "https://github.com/example/extensions",
-    runtime: { kind: "iframe", protocol: 3 },
+    runtime: { kind: "iframe", protocol: 4 },
     status: "active",
   };
 }
