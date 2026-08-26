@@ -1,5 +1,12 @@
 import { createHash } from "node:crypto";
-import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import {
   MAX_ICON_BYTES,
@@ -18,6 +25,11 @@ const repository = process.env.EXTENSION_REPOSITORY ?? "LunarisApp/extensions";
 const expectedId = process.env.EXTENSION_EXPECTED_ID;
 const expectedVersion = process.env.EXTENSION_EXPECTED_VERSION;
 const checkOnly = process.argv.includes("--check");
+const overwrite = process.argv.includes("--overwrite");
+
+if (checkOnly && overwrite) {
+  throw new Error("--check and --overwrite cannot be used together");
+}
 
 if (!REPOSITORY_PATTERN.test(repository)) {
   throw new Error("EXTENSION_REPOSITORY must be an owner/repository pair");
@@ -91,7 +103,7 @@ const descriptor = {
   ...(icon ? { icon: icon.descriptor } : {}),
   manifest,
   repository: `https://github.com/${repository}`,
-  runtime: { kind: "iframe", protocol: 2 },
+  runtime: { kind: "iframe", protocol: 3 },
   script: script.descriptor,
   status: "active",
   ...(style ? { style: style.descriptor } : {}),
@@ -117,7 +129,7 @@ if (checkOnly) {
     }
   }
   process.stdout.write(`${manifest.id}@${manifest.version} verified\n`);
-} else {
+} else if (!overwrite) {
   try {
     await stat(destination);
     throw new Error(
@@ -133,4 +145,13 @@ if (checkOnly) {
     ),
   );
   process.stdout.write(`${manifest.id}@${manifest.version} created\n`);
+} else {
+  await rm(destination, { force: true, recursive: true });
+  await mkdir(destination, { recursive: true });
+  await Promise.all(
+    [...files].map(([filename, value]) =>
+      writeFile(path.join(destination, filename), value),
+    ),
+  );
+  process.stdout.write(`${manifest.id}@${manifest.version} overwritten\n`);
 }

@@ -14,7 +14,7 @@ describe("Lunaris theme contract", () => {
     expect(styles).not.toContain("color-scheme:");
   });
 
-  test("keeps the standalone status bar independent from component-scoped tokens", () => {
+  test("keeps the resource view status bar independent from component-scoped tokens", () => {
     const statusBarStyles = styles.match(/\.dossier-statusbar\s*\{([^}]*)\}/)?.[1];
     expect(statusBarStyles).toBeDefined();
     expect(statusBarStyles).not.toContain("var(--demo-");

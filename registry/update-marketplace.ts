@@ -10,6 +10,7 @@ import { parseExtensionManifest } from "./manifest.ts";
 
 const root = process.cwd();
 const marketplacePath = path.join(root, "marketplace.json");
+const overwrite = process.argv.includes("--overwrite");
 interface MarketplaceFragment {
   descriptor: unknown;
   descriptorBytes?: Uint8Array;
@@ -148,7 +149,7 @@ for (const fragment of await readFragments()) {
     icon?: { url: string };
     manifest: unknown;
     repository: string;
-    runtime: { kind: "iframe"; protocol: 2 };
+    runtime: { kind: "iframe"; protocol: 3 };
     status: "active" | "blocked";
   };
   const manifest = parseExtensionManifest(descriptor.manifest);
@@ -188,16 +189,16 @@ for (const fragment of await readFragments()) {
     (candidate) => candidate.version === manifest.version,
   );
   if (existingVersion) {
-    if (
+    const descriptorChanged =
       JSON.stringify(existingVersion.descriptor) !==
-      JSON.stringify(version.descriptor)
-    ) {
+      JSON.stringify(version.descriptor);
+    if (descriptorChanged && !overwrite) {
       throw new Error(
         `Published descriptor changed: ${manifest.id}@${manifest.version}`,
       );
     }
-    if (existingVersion.status !== version.status) {
-      existingVersion.status = version.status;
+    if (JSON.stringify(existingVersion) !== JSON.stringify(version)) {
+      Object.assign(existingVersion, version);
       changed = true;
     }
   } else {

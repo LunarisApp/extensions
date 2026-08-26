@@ -1,5 +1,5 @@
 {
-  "api": "^0.4.0",
+  "api": "^0.5.0",
   "icon": {
     "bytes": 18265,
     "resource": "image/png",
@@ -7,7 +7,7 @@
     "url": "./icon.png"
   },
   "manifest": {
-    "api": "^0.4.0",
+    "api": "^0.5.0",
     "conflicts": {},
     "dependencies": {},
     "description": "Collaborative drawing with Excalidraw",
@@ -23,12 +23,12 @@
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
     "kind": "iframe",
-    "protocol": 2
+    "protocol": 3
   },
   "script": {
-    "bytes": 8022070,
+    "bytes": 8021737,
     "resource": "text/javascript",
-    "sha256": "a8ecde394a2dd3338d081117e915ae016937ba036bb47aa35e2c4c9553459198",
+    "sha256": "0f428be28eb5a5d0a4a965fecd28a803a4eda9b5a864d3b6838e76fe6e3c8e26",
     "url": "./main.js"
   },
   "status": "active",

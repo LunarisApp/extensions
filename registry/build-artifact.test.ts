@@ -17,7 +17,7 @@ async function fixture() {
     path.join(dist, "manifest.json"),
     `${JSON.stringify(
       {
-        api: "^0.4.0",
+        api: "^0.5.0",
         description: "A test extension",
         developer: "Test Publisher",
         id: "test.extension",
@@ -38,9 +38,15 @@ async function build(
   dist: string,
   artifacts: string,
   checkOnly = false,
+  overwrite = false,
 ): Promise<{ exitCode: number; stderr: string }> {
   const subprocess = Bun.spawn(
-    [process.execPath, script, ...(checkOnly ? ["--check"] : [])],
+    [
+      process.execPath,
+      script,
+      ...(checkOnly ? ["--check"] : []),
+      ...(overwrite ? ["--overwrite"] : []),
+    ],
     {
       env: {
         ...Bun.env,
@@ -95,5 +101,19 @@ describe("build-artifact", () => {
     const second = await build(dist, artifacts);
     expect(second.exitCode).not.toBe(0);
     expect(second.stderr).toContain("already exists; bump the version");
+  });
+
+  it("overwrites an existing version only when explicitly requested", async () => {
+    const { artifacts, dist } = await fixture();
+    expect((await build(dist, artifacts)).exitCode).toBe(0);
+    await writeFile(path.join(dist, "main.js"), "export default false;\n");
+
+    expect((await build(dist, artifacts, false, true)).exitCode).toBe(0);
+
+    const destination = path.join(artifacts, "test.extension", "1.0.0");
+    expect(await readFile(path.join(destination, "main.js"), "utf8")).toBe(
+      "export default false;\n",
+    );
+    expect((await build(dist, artifacts, true)).exitCode).toBe(0);
   });
 });

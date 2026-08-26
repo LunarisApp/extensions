@@ -24,7 +24,11 @@ git commit -m "chore: update marketplace"
 
 The artifact commit and marketplace commit must remain separate: the second commit
 records the first commit's full SHA. `build-artifact.ts` refuses to overwrite an
-existing version. Use `--check` to compare a build with its committed artifact.
+existing version by default. Use `--check` to compare a build with its committed
+artifact. For an explicitly authorized replacement release, use `--overwrite`; this
+removes the existing artifact directory only after the replacement build is validated.
+Pass `--overwrite` to `update-marketplace.ts` as well so the replacement descriptor's
+byte size, SHA-256, URL, API range, and runtime metadata replace the existing pins.
 
 The root index is mutable discovery data. Installed extensions trust their persisted
 descriptor URL, exact bytes, and SHA-256, not later index changes.

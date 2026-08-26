@@ -35,8 +35,8 @@ manifest.json
     "latestVersion": "1.0.0",
     "versions": [{
       "version": "1.0.0",
-      "api": "^0.4.0",
-      "runtime": { "kind": "iframe", "protocol": 2 },
+      "api": "^0.5.0",
+      "runtime": { "kind": "iframe", "protocol": 3 },
       "status": "active",
       "descriptor": {
         "url": "https://raw.githubusercontent.com/example/extensions/0123456789abcdef0123456789abcdef01234567/artifacts/com.example.extension/1.0.0/release.json",
@@ -53,6 +53,31 @@ manifest.json
 Keep one root `marketplace.json`; place each extension in `extensions/<name>/`. IDs and
 versions must be unique across the index. Store published builds under
 `artifacts/<extension-id>/<version>/`.
+
+## Resource view status bars
+
+SDK 0.5 status content belongs to the resource view that owns it. Add one `statusBar`
+renderer to each resource view that needs status content; standalone views cannot
+provide one. The host displays only the active view's renderer.
+
+```tsx
+import type { ResourceViewStatusProps } from "@lunarisapp/plugin-sdk";
+
+function DocumentStatus({ resource }: ResourceViewStatusProps) {
+  return <span>{resource.resourceId}</span>;
+}
+
+contributions.view({
+  name: "Document",
+  renderer: DocumentView,
+  statusBar: DocumentStatus,
+  target: { kind: "resource", resourceTypeIds: ["com.example.document"] },
+  viewId: "com.example.document",
+});
+```
+
+When several related values are needed, keep a single `statusBar` renderer and return
+them together in a React fragment.
 
 ## GitHub repositories
 

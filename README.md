@@ -17,9 +17,11 @@ new `artifacts/<extension-id>/<version>` directory before updating the marketpla
 Run `bun registry/update-marketplace.ts` in a second commit so descriptor URLs contain
 the full artifact commit SHA.
 
-Published artifact directories must never be replaced. Every new build requires a new
-extension version. Tags such as `<extension-id>@<version>` are optional and are not part
-of the client trust model.
+Published artifact directories are immutable by default, so every normal build requires
+a new extension version. An explicitly authorized replacement release can be regenerated
+with `registry/build-artifact.ts --overwrite`; its marketplace descriptor pins must also
+be refreshed. Tags such as `<extension-id>@<version>` are optional and are not part of
+the client trust model.
 
 ## Create another marketplace
 

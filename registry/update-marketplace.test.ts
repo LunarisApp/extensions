@@ -37,7 +37,7 @@ async function fixture(blockedVersions: string[] = []) {
 
 function descriptor(version: string) {
   return {
-    api: "^0.4.0",
+    api: "^0.5.0",
     icon: {
       bytes: 1,
       resource: "image/png",
@@ -45,7 +45,7 @@ function descriptor(version: string) {
       url: "./icon.png",
     },
     manifest: {
-      api: "^0.4.0",
+      api: "^0.5.0",
       description: `Release ${version}`,
       developer: "Test Publisher",
       id: "test.extension",
@@ -54,7 +54,7 @@ function descriptor(version: string) {
       version,
     },
     repository: "https://github.com/example/extensions",
-    runtime: { kind: "iframe", protocol: 2 },
+    runtime: { kind: "iframe", protocol: 3 },
     status: "active",
   };
 }
@@ -74,18 +74,21 @@ async function writeFragment(
   return release;
 }
 
-async function update(root: string, fragments?: string) {
+async function update(root: string, fragments?: string, overwrite = false) {
   const env = { ...Bun.env };
   if (fragments) {
     env.MARKETPLACE_FRAGMENTS_DIR = fragments;
   } else {
     delete env.MARKETPLACE_FRAGMENTS_DIR;
   }
-  const subprocess = Bun.spawn([process.execPath, script], {
-    cwd: root,
-    env,
-    stderr: "pipe",
-  });
+  const subprocess = Bun.spawn(
+    [process.execPath, script, ...(overwrite ? ["--overwrite"] : [])],
+    {
+      cwd: root,
+      env,
+      stderr: "pipe",
+    },
+  );
   if ((await subprocess.exited) !== 0) {
     throw new Error(await new Response(subprocess.stderr).text());
   }
@@ -171,6 +174,40 @@ describe("update-marketplace", () => {
     await expect(update(root, fragments)).rejects.toThrow(
       "Policy blocks unpublished versions",
     );
+  });
+
+  it("replaces descriptor pins only when explicitly requested", async () => {
+    const { fragments, root } = await fixture();
+    await writeFragment(fragments, "1.0.0");
+    await update(root, fragments);
+    const initial = JSON.parse(
+      await readFile(path.join(root, "marketplace.json"), "utf8"),
+    );
+    const initialHash = initial.extensions[0].versions[0].descriptor.sha256;
+
+    const replacement = descriptor("1.0.0");
+    replacement.manifest.description = "Replacement release";
+    await writeFile(
+      path.join(fragments, "1.0.0.json"),
+      JSON.stringify({
+        descriptor: replacement,
+        descriptorUrl:
+          "https://cdn.example/test.extension/1.0.0/replacement.json",
+      }),
+    );
+
+    await expect(update(root, fragments)).rejects.toThrow(
+      "Published descriptor changed",
+    );
+    await update(root, fragments, true);
+
+    const marketplace = JSON.parse(
+      await readFile(path.join(root, "marketplace.json"), "utf8"),
+    );
+    const release = marketplace.extensions[0].versions[0];
+    expect(release.descriptor.sha256).not.toBe(initialHash);
+    expect(release.descriptor.url).toEndWith("replacement.json");
+    expect(marketplace.extensions[0].description).toBe("Replacement release");
   });
 
   it("pins each artifact to the commit that introduced it", async () => {

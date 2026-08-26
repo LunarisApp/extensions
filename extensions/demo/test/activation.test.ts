@@ -15,7 +15,6 @@ describe("Demo extension activation", () => {
     const registrations = {
       representation: [] as unknown[],
       resourceType: [] as unknown[],
-      status: [] as unknown[],
       view: [] as unknown[],
     };
 
@@ -23,7 +22,6 @@ describe("Demo extension activation", () => {
       contributions: {
         representation: (value: unknown) => registrations.representation.push(value),
         resourceType: (value: unknown) => registrations.resourceType.push(value),
-        status: (value: unknown) => registrations.status.push(value),
         view: (value: unknown) => registrations.view.push(value),
       },
     } as never);
@@ -41,16 +39,17 @@ describe("Demo extension activation", () => {
       storage: { kind: "yjs" },
     });
     expect(dossierView).toMatchObject({
+      statusBar: expect.any(Function),
       target: {
         kind: "resource",
         resourceTypeIds: ["lunaris.demo.customer-dossier"],
       },
       viewId: dossierResourceType.defaultViewId,
     });
-    expect(extension.manifest.api).toBe("^0.4.0");
+    expect(extension.manifest.api).toBe("^0.5.0");
   });
 
-  test("creates and opens dossier resources through the 0.4 host APIs", async () => {
+  test("creates and opens dossier resources through the host APIs", async () => {
     const createResource = (input: unknown) => Promise.resolve({
       documentId: "document-1",
       name: "Alder & Finch Labs — Customer dossier",
