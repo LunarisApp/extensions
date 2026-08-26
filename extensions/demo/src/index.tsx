@@ -17,6 +17,7 @@ import {
 import {
   type PluginCompileContext,
   type ResourcePayloadContext,
+  type ResourceViewStatusProps,
   definePlugin,
   withYjsDoc,
 } from "@lunarisapp/plugin-sdk";
@@ -81,6 +82,7 @@ export const dossierView = {
   icon: File02Icon,
   name: "Customer dossier",
   renderer: CustomerDossierRenderer,
+  statusBar: (_props: ResourceViewStatusProps) => <DossierStatusBar />,
   target: {
     kind: "resource" as const,
     resourceTypeIds: ["lunaris.demo.customer-dossier"],
@@ -101,11 +103,6 @@ export default definePlugin({
     });
     contributions.resourceType(dossierResourceType);
     contributions.view(dossierView);
-    contributions.status({
-      id: "lunaris.demo.customer-dossier.status",
-      render: DossierStatusBar,
-      resourceTypeIds: ["lunaris.demo.customer-dossier"],
-    });
     contributions.representation(dossierRepresentation);
   },
 });

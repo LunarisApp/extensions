@@ -7,7 +7,6 @@ import {
 	excalidrawRepresentation,
 	excalidrawResourceType,
 	excalidrawSceneSchema,
-	excalidrawStatus,
 	excalidrawView,
 } from "./index";
 
@@ -90,6 +89,22 @@ function renderContent() {
 	);
 }
 
+function renderStatusBar() {
+	return excalidrawView.statusBar({
+		params: {},
+		resource: {
+			documentId: "document-1",
+			parentId: null,
+			resourceId: "resource-1",
+			resourceTypeId: "lunaris.excalidraw",
+			schemaId: EXCALIDRAW_SCHEMA_ID,
+			schemaVersion: 1,
+			storageKind: "yjs",
+		},
+		storage: { documentId: "document-1", kind: "yjs" },
+	});
+}
+
 function testYDoc(assets = new Map<string, unknown>()) {
 	return { getArray: () => ({}), getMap: () => assets };
 }
@@ -110,13 +125,14 @@ afterEach(() => {
 describe("Excalidraw external extension", () => {
 	it("registers the stable resource type and compatible default view", () => {
 		expect(excalidrawExtension.manifest.id).toBe("lunaris.excalidraw");
-		expect(excalidrawExtension.manifest.api).toBe("^0.4.0");
+		expect(excalidrawExtension.manifest.api).toBe("^0.5.0");
 		expect(excalidrawResourceType).toMatchObject({
 			defaultViewId: "lunaris.excalidraw",
 			resourceTypeId: "lunaris.excalidraw",
 			storage: { kind: "yjs" },
 		});
 		expect(excalidrawView).toMatchObject({
+			statusBar: expect.any(Function),
 			target: { kind: "resource", resourceTypeIds: ["lunaris.excalidraw"] },
 			viewId: excalidrawResourceType.defaultViewId,
 		});
@@ -127,16 +143,14 @@ describe("Excalidraw external extension", () => {
 	it("registers contributions during activation", () => {
 		const resourceType = vi.fn();
 		const view = vi.fn();
-		const status = vi.fn();
 		const representation = vi.fn();
 		const locales = vi.fn();
 		excalidrawExtension.activate({
-			contributions: { locales, representation, resourceType, status, view },
+			contributions: { locales, representation, resourceType, view },
 		} as never);
 
 		expect(resourceType).toHaveBeenCalledWith(excalidrawResourceType);
 		expect(view).toHaveBeenCalledWith(excalidrawView);
-		expect(status).toHaveBeenCalledWith(excalidrawStatus);
 		expect(representation).toHaveBeenCalledWith(excalidrawRepresentation);
 		expect(locales).toHaveBeenCalledOnce();
 	});
@@ -221,11 +235,7 @@ describe("Excalidraw external extension", () => {
 		state.elements = [{}, { isDeleted: true }, { isDeleted: false }];
 		render(
 			<>
-				{excalidrawStatus.render({
-					documentId: "document-1",
-					resourceId: "resource-1",
-					resourceTypeId: "lunaris.excalidraw",
-				})}
+				{renderStatusBar()}
 			</>,
 		);
 		expect(screen.getByText("2 elements")).toBeTruthy();
@@ -237,11 +247,7 @@ describe("Excalidraw external extension", () => {
 		state.elements = [{}];
 		const statusBar = () => (
 			<>
-				{excalidrawStatus.render({
-					documentId: "document-1",
-					resourceId: "resource-1",
-					resourceTypeId: "lunaris.excalidraw",
-				})}
+				{renderStatusBar()}
 			</>
 		);
 		const view = render(statusBar());

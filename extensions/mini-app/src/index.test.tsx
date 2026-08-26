@@ -84,7 +84,7 @@ describe("Mini Apps extension", () => {
 
 	it("registers a file resource type and compatible sandboxed view", () => {
 		expect(extension.manifest).toMatchObject({
-			api: "^0.4.0",
+			api: "^0.5.0",
 			id: "lunaris.mini-app",
 			version: "0.0.1",
 		});

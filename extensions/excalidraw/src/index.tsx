@@ -1,7 +1,7 @@
 import {
 	type ResourcePayloadContext,
-	type ResourceStatusContext,
 	type ResourceViewProps,
+	type ResourceViewStatusProps,
 	ViewReady,
 	definePlugin,
 	useLocale,
@@ -132,8 +132,9 @@ function ExcalidrawElementsCount({ yDoc }: { yDoc: Doc }) {
 	);
 }
 
-function ExcalidrawStatusBar({ documentId }: ResourceStatusContext) {
-	const { yDoc } = useCurrentProjectYjsDocument(documentId ?? undefined);
+function ExcalidrawStatusBar({ storage }: ResourceViewStatusProps) {
+	const documentId = storage.kind === "yjs" ? storage.documentId : undefined;
+	const { yDoc } = useCurrentProjectYjsDocument(documentId);
 	if (!yDoc) {
 		return <span className="excalidraw-statusbar">Excalidraw</span>;
 	}
@@ -176,18 +177,13 @@ export const excalidrawView = {
 		) : (
 			<ExcalidrawState title="Document ID not provided" />
 		),
+	statusBar: ExcalidrawStatusBar,
 	target: {
 		kind: "resource" as const,
 		resourceTypeIds: [EXCALIDRAW_EXTENSION_ID],
 		schemas: [{ id: EXCALIDRAW_SCHEMA_ID, minimumVersion: 1, maximumVersion: 1 }],
 	},
 	viewId: EXCALIDRAW_EXTENSION_ID,
-};
-
-export const excalidrawStatus = {
-	id: "lunaris.excalidraw.status",
-	render: ExcalidrawStatusBar,
-	resourceTypeIds: [EXCALIDRAW_EXTENSION_ID],
 };
 
 export const excalidrawRepresentation = {
@@ -202,7 +198,6 @@ export const excalidrawExtension = definePlugin({
 	activate({ contributions }) {
 		contributions.resourceType(excalidrawResourceType);
 		contributions.view(excalidrawView);
-		contributions.status(excalidrawStatus);
 		contributions.representation(excalidrawRepresentation);
 		contributions.locales({ de, en, es, fr, "pt-BR": ptBR });
 	},
