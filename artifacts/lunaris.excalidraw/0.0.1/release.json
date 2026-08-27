@@ -1,5 +1,5 @@
 {
-  "api": "^0.7.0",
+  "api": "^0.8.0",
   "icon": {
     "bytes": 18265,
     "resource": "image/png",
@@ -7,7 +7,7 @@
     "url": "./icon.png"
   },
   "manifest": {
-    "api": "^0.7.0",
+    "api": "^0.8.0",
     "conflicts": {},
     "dependencies": {},
     "description": "Collaborative drawing with Excalidraw",
@@ -26,9 +26,9 @@
     "protocol": 5
   },
   "script": {
-    "bytes": 8026601,
+    "bytes": 8026451,
     "resource": "text/javascript",
-    "sha256": "4873cc165977a04d073c8e878b89ea69c4d7ae92109be611c2efb3cbc51de49d",
+    "sha256": "a9b6061d25f228f4b8e12ae126ec0edc5ce36c5678884e5a9ab2da5c9a1c2f46",
     "url": "./main.js"
   },
   "status": "active",

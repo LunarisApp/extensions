@@ -134,7 +134,7 @@ afterEach(() => {
 describe("Excalidraw external extension", () => {
 	it("registers the stable resource type and compatible default view", () => {
 		expect(excalidrawExtension.manifest.id).toBe("lunaris.excalidraw");
-		expect(excalidrawExtension.manifest.api).toBe("^0.7.0");
+		expect(excalidrawExtension.manifest.api).toBe("^0.8.0");
 		expect(excalidrawExtension.manifest.version).toBe("0.0.1");
 		expect(excalidrawExtension.manifest.permissions).toContain("content.read");
 		expect(excalidrawResourceType).toMatchObject({

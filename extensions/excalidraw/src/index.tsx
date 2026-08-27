@@ -178,11 +178,11 @@ export const excalidrawResourceType = {
 export const excalidrawView = {
 	icon: excalidrawExtensionIcon,
 	name: "Excalidraw",
-	renderer: ({ reportReady, storage }: ResourceViewProps) => {
+	renderer: ({ reportReady, resource, storage }: ResourceViewProps) => {
 		const content = storage.content;
 		return content?.kind === "yjs" ? (
 			<ExcalidrawView
-				key={content.storageId}
+				key={resource.resourceId}
 				reportReady={reportReady}
 				storage={content}
 			/>

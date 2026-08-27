@@ -35,7 +35,7 @@ manifest.json
     "latestVersion": "1.0.0",
     "versions": [{
       "version": "1.0.0",
-      "api": "^0.7.0",
+      "api": "^0.8.0",
       "runtime": { "kind": "iframe", "protocol": 5 },
       "status": "active",
       "descriptor": {
@@ -56,7 +56,7 @@ versions must be unique across the index. Store published builds under
 
 ## Resource views and status bars
 
-SDK 0.7 resource views declare the named storage slots they consume. Use
+SDK 0.8 resource views declare the named storage slots they consume. Use
 `storageRequirements: {}` when a view needs no durable storage. Status content belongs
 to the resource view that owns it; standalone views cannot provide a `statusBar`.
 

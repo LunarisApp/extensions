@@ -10,7 +10,7 @@
 	},
 	"dependencies": {
 		"@excalidraw/excalidraw": "^0.18.1",
-		"@lunarisapp/plugin-sdk": "0.7.0",
+		"@lunarisapp/plugin-sdk": "^0.8.0",
 		"react": "^19.2.8",
 		"y-excalidraw": "^2.0.12",
 		"y-protocols": "^1.0.7",

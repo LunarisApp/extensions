@@ -103,7 +103,7 @@ describe("customer dossier helpers", () => {
         storage: { content: { kind: "yjs", storageId: "storage-2" } },
       }],
     ]);
-    expect(findDossierResource(resources)?.storage.content?.storageId).toBe("storage-1");
+    expect(findDossierResource(resources)?.resourceId).toBe("dossier-1");
     expect([...resources.values()].filter((resource) => resource.resourceTypeId === CONTENT_TYPE_ID)).toHaveLength(2);
   });
 
