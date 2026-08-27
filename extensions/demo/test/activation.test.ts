@@ -47,7 +47,7 @@ describe("Demo extension activation", () => {
       },
       viewId: dossierResourceType.defaultViewId,
     });
-    expect(extension.manifest.api).toBe("^0.7.0");
+    expect(extension.manifest.api).toBe("^0.8.0");
     expect(extension.manifest.version).toBe("0.0.1");
   });
 

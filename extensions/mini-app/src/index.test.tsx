@@ -19,7 +19,8 @@ const { downloadMock, uploadMock } = vi.hoisted(() => ({
 
 let canWriteContent = true;
 let locale = "en";
-let observedStorageId = "";
+let observedResourceId = "";
+let observedStorage: unknown;
 const FILE_STORAGE = { kind: "file", storageId: "file-storage-1" } as const;
 let storedFileState: {
 	file: null | {
@@ -41,9 +42,12 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 	definePlugin: (input: unknown) => input,
 	useFileStorage: () => ({ download: downloadMock, upload: uploadMock }),
 	useLocale: () => ({ locale }),
-	useProjectResourceName: () => "Budget",
-	useStoredFile: (storage: { storageId: string }) => {
-		observedStorageId = storage.storageId;
+	useProjectResourceName: (resourceId: string) => {
+		observedResourceId = resourceId;
+		return "Budget";
+	},
+	useStoredFile: (storage: unknown) => {
+		observedStorage = storage;
 		return storedFileState;
 	},
 	useWorkspaceAccess: () => ({ canWriteContent }),
@@ -78,14 +82,15 @@ describe("Mini Apps extension", () => {
 		vi.clearAllMocks();
 		canWriteContent = true;
 		locale = "en";
-		observedStorageId = "";
+		observedResourceId = "";
+		observedStorage = undefined;
 		storedFileState = { file: null, metadata: null, objectUrl: null };
 		uploadMock.mockResolvedValue({ fileId: "att_1" });
 	});
 
 	it("registers a file resource type and compatible sandboxed view", () => {
 		expect(extension.manifest).toMatchObject({
-			api: "^0.7.0",
+			api: "^0.8.0",
 			id: "lunaris.mini-app",
 			version: "0.0.1",
 		});
@@ -137,7 +142,8 @@ describe("Mini Apps extension", () => {
 			</>,
 		);
 
-		expect(observedStorageId).toBe("file-storage-1");
+		expect(observedResourceId).toBe("resource_1");
+		expect(observedStorage).toBe(FILE_STORAGE);
 		expect(screen.getByRole("heading", { name: "Bring your Mini App to life" })).toBeTruthy();
 	});
 

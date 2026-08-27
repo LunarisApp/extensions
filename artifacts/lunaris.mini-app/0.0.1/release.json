@@ -1,5 +1,5 @@
 {
-  "api": "^0.7.0",
+  "api": "^0.8.0",
   "icon": {
     "bytes": 7157,
     "resource": "image/png",
@@ -7,7 +7,7 @@
     "url": "./icon.png"
   },
   "manifest": {
-    "api": "^0.7.0",
+    "api": "^0.8.0",
     "conflicts": {},
     "dependencies": {},
     "description": "Run interactive, self-contained HTML apps in your project",
@@ -27,9 +27,9 @@
     "protocol": 5
   },
   "script": {
-    "bytes": 379425,
+    "bytes": 379199,
     "resource": "text/javascript",
-    "sha256": "4654388e75c4878f9b8596800af2996f62cee1405853463afe0649dad2cef434",
+    "sha256": "cfdcbb929dc89e967ae0ba2db1cedaf02b889ee0ad800780e73a588f4e70221f",
     "url": "./main.js"
   },
   "status": "active",

@@ -1,7 +1,7 @@
 {
-  "api": "^0.7.0",
+  "api": "^0.8.0",
   "manifest": {
-    "api": "^0.7.0",
+    "api": "^0.8.0",
     "conflicts": {},
     "dependencies": {},
     "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
@@ -20,9 +20,9 @@
     "protocol": 5
   },
   "script": {
-    "bytes": 428862,
+    "bytes": 428700,
     "resource": "text/javascript",
-    "sha256": "d2a68c52a001ee69013e5745869d6c8022e59cbea5948d9f07d5c858fda1e73d",
+    "sha256": "ac61a92488fde501787ad275d16895c521ee582d6fe1d60518d52763ed438858",
     "url": "./main.js"
   },
   "status": "active",

@@ -118,7 +118,7 @@ export function MiniAppViewer({
 	reportReady,
 	storage,
 }: {
-	resourceId?: string;
+	resourceId: string;
 	reportReady?: () => void;
 	storage: FileStorageHandle;
 }) {
@@ -126,15 +126,13 @@ export function MiniAppViewer({
 	const { canWriteContent } = useWorkspaceAccess();
 	const fileStorage = useFileStorage();
 	const { file, metadata, objectUrl } = useStoredFile(storage);
-	const resourceName = useProjectResourceName({ resourceId });
+	const resourceName = useProjectResourceName(resourceId);
 	const source = useMiniAppSource(file?.id ?? null, objectUrl);
 	const sandboxDocument = useMemo(
 		() =>
 			source.status === "ready" ? buildMiniAppDocument(source.source) : null,
 		[source],
 	);
-
-	if (!resourceId) return <MiniAppError title={t("missingItem")} />;
 
 	if (!metadata) {
 		return (

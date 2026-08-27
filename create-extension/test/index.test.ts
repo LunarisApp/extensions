@@ -67,7 +67,7 @@ describe("scaffoldExtension", () => {
     const manifestText = await readFile(join(target, "manifest.json"), "utf8");
     const manifest = JSON.parse(manifestText);
     expect(manifest).toMatchObject({
-      api: "^0.7.0",
+      api: "^0.8.0",
       developer: "Acme",
       id: "acme.notes",
       name: "Acme Notes",
