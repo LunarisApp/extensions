@@ -1,7 +1,7 @@
 {
-  "api": "^0.6.0",
+  "api": "^0.7.0",
   "manifest": {
-    "api": "^0.6.0",
+    "api": "^0.7.0",
     "conflicts": {},
     "dependencies": {},
     "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
@@ -17,12 +17,12 @@
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
     "kind": "iframe",
-    "protocol": 4
+    "protocol": 5
   },
   "script": {
-    "bytes": 426679,
+    "bytes": 428862,
     "resource": "text/javascript",
-    "sha256": "e9e5059fcb764ec4be9e96ca337909456470391b567fbd5c4d4f2aaff80516b4",
+    "sha256": "d2a68c52a001ee69013e5745869d6c8022e59cbea5948d9f07d5c858fda1e73d",
     "url": "./main.js"
   },
   "status": "active",

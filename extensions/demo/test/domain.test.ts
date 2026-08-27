@@ -78,11 +78,32 @@ describe("customer ledger helpers", () => {
 describe("customer dossier helpers", () => {
   test("finds the first dossier while allowing additional resources", () => {
     const resources = new Map<string, PluginResource>([
-      ["folder", { documentId: null, name: "Folder", parentId: null, resourceId: "folder", resourceTypeId: "lunaris.folder", schemaVersion: 1 }],
-      ["dossier-1", { documentId: "doc-1", name: "Customer dossier", parentId: null, resourceId: "dossier-1", resourceTypeId: CONTENT_TYPE_ID, schemaVersion: 1 }],
-      ["dossier-2", { documentId: "doc-2", name: "Another dossier", parentId: null, resourceId: "dossier-2", resourceTypeId: CONTENT_TYPE_ID, schemaVersion: 1 }],
+      ["folder", {
+        name: "Folder",
+        parentId: null,
+        resourceId: "folder",
+        resourceTypeId: "lunaris.folder",
+        schemaVersion: 1,
+        storage: {},
+      }],
+      ["dossier-1", {
+        name: "Customer dossier",
+        parentId: null,
+        resourceId: "dossier-1",
+        resourceTypeId: CONTENT_TYPE_ID,
+        schemaVersion: 1,
+        storage: { content: { kind: "yjs", storageId: "storage-1" } },
+      }],
+      ["dossier-2", {
+        name: "Another dossier",
+        parentId: null,
+        resourceId: "dossier-2",
+        resourceTypeId: CONTENT_TYPE_ID,
+        schemaVersion: 1,
+        storage: { content: { kind: "yjs", storageId: "storage-2" } },
+      }],
     ]);
-    expect(findDossierResource(resources)?.documentId).toBe("doc-1");
+    expect(findDossierResource(resources)?.storage.content?.storageId).toBe("storage-1");
     expect([...resources.values()].filter((resource) => resource.resourceTypeId === CONTENT_TYPE_ID)).toHaveLength(2);
   });
 

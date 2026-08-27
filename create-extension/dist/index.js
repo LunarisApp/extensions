@@ -2,10 +2,28 @@
 
 // src/index.ts
 import { realpathSync } from "node:fs";
-import { cp, lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { basename, dirname, join, resolve } from "node:path";
+import { lstat, mkdir, readdir as readdir2, readFile, writeFile } from "node:fs/promises";
+import { basename, dirname, join as join2, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-var VERSION = "0.4.0";
+
+// src/template-files.ts
+import { cp, readdir } from "node:fs/promises";
+import { join } from "node:path";
+var EXCLUDED_TEMPLATE_ENTRIES = new Set(["dist", "node_modules"]);
+async function copyTemplateFiles(sourceDirectory, destinationDirectory) {
+  for (const entry of await readdir(sourceDirectory)) {
+    if (EXCLUDED_TEMPLATE_ENTRIES.has(entry))
+      continue;
+    await cp(join(sourceDirectory, entry), join(destinationDirectory, entry), {
+      errorOnExist: true,
+      force: false,
+      recursive: true
+    });
+  }
+}
+
+// src/index.ts
+var VERSION = "0.4.1";
 var EXTENSION_ID_PATTERN = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
 var MAX_EXTENSION_ID_LENGTH = 50;
 var HELP = `Create a Lunaris extension
@@ -110,19 +128,13 @@ async function copyTemplate(templateDirectory, targetDirectory) {
       throw new Error("Target directory must not be a symbolic link");
     if (!target.isDirectory())
       throw new Error("Target path must be a directory");
-    if ((await readdir(targetDirectory)).length > 0) {
+    if ((await readdir2(targetDirectory)).length > 0) {
       throw new Error(`Target directory is not empty: ${targetDirectory}`);
     }
   } else {
     await mkdir(targetDirectory, { recursive: true });
   }
-  for (const entry of await readdir(templateDirectory)) {
-    await cp(join(templateDirectory, entry), join(targetDirectory, entry), {
-      errorOnExist: true,
-      force: false,
-      recursive: true
-    });
-  }
+  await copyTemplateFiles(templateDirectory, targetDirectory);
 }
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
@@ -149,21 +161,21 @@ async function scaffoldExtension(options, templateDirectory) {
   }
   await mkdir(dirname(options.directory), { recursive: true });
   await copyTemplate(resolvedTemplateDirectory, options.directory);
-  const manifestPath = join(options.directory, "manifest.json");
+  const manifestPath = join2(options.directory, "manifest.json");
   const manifest = await readJson(manifestPath);
   manifest.id = options.id;
   manifest.name = options.name;
   manifest.description = options.description;
   manifest.developer = options.developer;
   await writeJson(manifestPath, manifest);
-  const packagePath = join(options.directory, "package.json");
+  const packagePath = join2(options.directory, "package.json");
   const packageJson = await readJson(packagePath);
   packageJson.name = `lunaris-extension-${options.slug}`;
   await writeJson(packagePath, packageJson);
-  const sourcePath = join(options.directory, "src/index.tsx");
+  const sourcePath = join2(options.directory, "src/index.tsx");
   const source = await readFile(sourcePath, "utf8");
   await writeFile(sourcePath, source.replaceAll('"example.notes"', JSON.stringify(options.id)).replaceAll('"Example Notes"', JSON.stringify(options.name)));
-  const readmePath = join(options.directory, "README.md");
+  const readmePath = join2(options.directory, "README.md");
   const readme = await readFile(readmePath, "utf8");
   await writeFile(readmePath, readme.replace("# Example Lunaris extension", `# ${options.name}`).replace("1. Replace example metadata and implementation.", `1. Edit \`src/index.tsx\` to implement ${options.name}.`));
 }

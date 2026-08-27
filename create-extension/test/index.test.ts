@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs, resolveExtensionOptions, scaffoldExtension } from "../src/index.js";
@@ -67,7 +67,7 @@ describe("scaffoldExtension", () => {
     const manifestText = await readFile(join(target, "manifest.json"), "utf8");
     const manifest = JSON.parse(manifestText);
     expect(manifest).toMatchObject({
-      api: "^0.6.0",
+      api: "^0.7.0",
       developer: "Acme",
       id: "acme.notes",
       name: "Acme Notes",
@@ -99,6 +99,38 @@ describe("scaffoldExtension", () => {
     expect(await readFile(join(target, "src/index.tsx"), "utf8")).toContain(
       'name: "Writer \\"Pro\\""'
     );
+  });
+
+  test("omits generated template directories", async () => {
+    const root = await temporaryDirectory();
+    const template = join(root, "template");
+    await mkdir(join(template, "src"), { recursive: true });
+    await mkdir(join(template, "dist"), { recursive: true });
+    await mkdir(join(template, "node_modules"), { recursive: true });
+    await writeFile(join(template, "README.md"), "# Example Lunaris extension\n");
+    await writeFile(
+      join(template, "manifest.json"),
+      `${JSON.stringify({
+        description: "Example",
+        developer: "Example Developer",
+        id: "example.notes",
+        name: "Example Notes",
+      })}\n`
+    );
+    await writeFile(join(template, "package.json"), '{"name":"example"}\n');
+    await writeFile(
+      join(template, "src/index.tsx"),
+      'const id = "example.notes"; const name = "Example Notes";\n'
+    );
+    await writeFile(join(template, "dist/main.js"), "generated");
+    await writeFile(join(template, "node_modules/dependency.js"), "generated");
+
+    const target = join(root, "generated");
+    const options = resolveExtensionOptions(parseArgs([target, "--id", "acme.notes"]));
+    await scaffoldExtension(options, template);
+
+    expect(await Bun.file(join(target, "dist/main.js")).exists()).toBe(false);
+    expect(await Bun.file(join(target, "node_modules/dependency.js")).exists()).toBe(false);
   });
 
   test("refuses a non-empty target", async () => {

@@ -32,10 +32,13 @@ export const DOSSIER_SCHEMA_ID = "lunaris.demo.customer-dossier.document";
 export const DOSSIER_VIEW_ID = "lunaris.demo.customer-dossier";
 
 export const dossierRepresentation = {
-  getContent: (documentId: string, context: PluginCompileContext) =>
-    withYjsDoc(
+  getContent: async (resourceId: string, context: PluginCompileContext) => {
+    const resource = await context.getProjectResource(resourceId);
+    const content = resource?.storage.content;
+    if (content?.kind !== "yjs") return buildDossierCompileContent(DEFAULT_DOSSIER);
+    return withYjsDoc(
       context,
-      documentId,
+      content,
       (document) => {
         const raw = document.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY);
         if (!raw) return buildDossierCompileContent(DEFAULT_DOSSIER);
@@ -46,7 +49,8 @@ export const dossierRepresentation = {
         }
       },
       buildDossierCompileContent(DEFAULT_DOSSIER),
-    ),
+    );
+  },
   id: "lunaris.demo.customer-dossier.compile",
   mediaType: "application/vnd.lunaris.compile+json" as const,
   resourceTypeIds: ["lunaris.demo.customer-dossier"],
@@ -61,19 +65,24 @@ export const dossierResourceType = {
   schema: {
     currentVersion: 1,
     id: DOSSIER_SCHEMA_ID,
-    read: ({ document }: ResourcePayloadContext) => {
-      const raw = document?.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY);
+    read: ({ storage }: ResourcePayloadContext) => {
+      const content = storage.content;
+      const raw = content?.kind === "yjs"
+        ? content.document.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY)
+        : undefined;
       return raw ? JSON.parse(raw) : DEFAULT_DOSSIER;
     },
     versions: { 1: customerDossierSchema },
   },
   storage: {
-    kind: "yjs" as const,
-    initialize: (document: Doc) => {
-      const map = document.getMap<string>(DOSSIER_MAP_NAME);
-      if (!map.has(DOSSIER_RECORD_KEY)) {
-        map.set(DOSSIER_RECORD_KEY, JSON.stringify(DEFAULT_DOSSIER));
-      }
+    content: {
+      kind: "yjs" as const,
+      initialize: (document: Doc) => {
+        const map = document.getMap<string>(DOSSIER_MAP_NAME);
+        if (!map.has(DOSSIER_RECORD_KEY)) {
+          map.set(DOSSIER_RECORD_KEY, JSON.stringify(DEFAULT_DOSSIER));
+        }
+      },
     },
   },
 };
@@ -83,6 +92,7 @@ export const dossierView = {
   name: "Customer dossier",
   renderer: CustomerDossierRenderer,
   statusBar: (_props: ResourceViewStatusProps) => <DossierStatusBar />,
+  storageRequirements: { content: "yjs" as const },
   target: {
     kind: "resource" as const,
     resourceTypeIds: ["lunaris.demo.customer-dossier"],

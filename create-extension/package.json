@@ -1,6 +1,6 @@
 {
   "name": "@lunarisapp/create-extension",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Create a Lunaris extension",
   "type": "module",
   "license": "Apache-2.0",
@@ -18,7 +18,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --target=node --outfile=dist/index.js && rm -rf dist/template && cp -R ../template dist/template && chmod +x dist/index.js",
+    "build": "bun build src/index.ts --target=node --outfile=dist/index.js && bun scripts/copy-template.ts && chmod +x dist/index.js",
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "prepack": "bun run build",

@@ -149,7 +149,7 @@ for (const fragment of await readFragments()) {
     icon?: { url: string };
     manifest: unknown;
     repository: string;
-    runtime: { kind: "iframe"; protocol: 4 };
+    runtime: { kind: "iframe"; protocol: 5 };
     status: "active" | "blocked";
   };
   const manifest = parseExtensionManifest(descriptor.manifest);

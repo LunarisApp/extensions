@@ -1,5 +1,5 @@
 import { ViewReady, type ResourceViewProps } from "@lunarisapp/plugin-sdk";
-import { useCurrentProjectYjsDocument, useYMapJson } from "@lunarisapp/plugin-sdk/data";
+import { useYjsStorage, useYMapJson } from "@lunarisapp/plugin-sdk/data";
 import { Alert02Icon, Calendar03Icon, HugeiconsIcon } from "@lunarisapp/ui/icons";
 import {
   type CustomerDossier,
@@ -17,7 +17,7 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-type ReadyYDoc = NonNullable<ReturnType<typeof useCurrentProjectYjsDocument>["yDoc"]>;
+type ReadyYDoc = NonNullable<ReturnType<typeof useYjsStorage>["yDoc"]>;
 
 function DossierDocument({ document, reportReady }: { document: ReadyYDoc; reportReady?: () => void }) {
   const dossierMap = document.getMap<string>(DOSSIER_MAP_NAME);
@@ -176,10 +176,10 @@ function DossierDocument({ document, reportReady }: { document: ReadyYDoc; repor
 }
 
 export function CustomerDossierRenderer({ reportReady, storage }: ResourceViewProps) {
-  const documentId = storage.kind === "yjs" ? storage.documentId : "";
-  const documentState = useCurrentProjectYjsDocument(documentId);
+  const content = storage.content;
+  const documentState = useYjsStorage(content?.kind === "yjs" ? content : undefined);
 
-  if (!documentId) {
+  if (content?.kind !== "yjs") {
     return (
       <section className="dossier-state error" role="alert">
         <HugeiconsIcon aria-hidden="true" icon={Alert02Icon} size={24} />

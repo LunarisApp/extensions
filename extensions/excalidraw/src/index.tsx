@@ -1,5 +1,6 @@
 import {
 	type ResourcePayloadContext,
+	type ResourceStorageHandle,
 	type ResourceViewProps,
 	type ResourceViewStatusProps,
 	ViewReady,
@@ -8,7 +9,7 @@ import {
 	useWorkspaceAccess,
 } from "@lunarisapp/plugin-sdk";
 import {
-	useCurrentProjectYjsDocument,
+	useYjsStorage,
 	useYArray,
 } from "@lunarisapp/plugin-sdk/data";
 import { useSyncExternalStore } from "react";
@@ -28,6 +29,8 @@ import ptBR from "./locales/pt-BR.json";
 import { excalidrawSearchIndexer } from "./search-indexer";
 import "./styles.css";
 import { YjsExcalidraw } from "./yjs-excalidraw";
+
+type YjsStorageHandle = Extract<ResourceStorageHandle, { kind: "yjs" }>;
 
 function subscribeToColorScheme(onChange: () => void): () => void {
 	const observer = new MutationObserver(onChange);
@@ -82,13 +85,13 @@ function ExcalidrawState({
 }
 
 export function ExcalidrawView({
-	documentId,
 	reportReady,
+	storage,
 }: {
-	documentId: string;
 	reportReady?: () => void;
+	storage: YjsStorageHandle;
 }) {
-	const { error, isLoading, yDoc } = useCurrentProjectYjsDocument(documentId);
+	const { error, isLoading, yDoc } = useYjsStorage(storage);
 	const { canWriteContent } = useWorkspaceAccess();
 	const { locale } = useLocale();
 	const theme = useColorScheme();
@@ -110,7 +113,6 @@ export function ExcalidrawView({
 		<ViewReady reportReady={reportReady}>
 			<div className="excalidraw-shell" data-color-scheme={theme}>
 				<YjsExcalidraw
-					key={documentId}
 					locale={locale}
 					readOnly={!canWriteContent}
 					theme={theme}
@@ -134,8 +136,8 @@ function ExcalidrawElementsCount({ yDoc }: { yDoc: Doc }) {
 }
 
 function ExcalidrawStatusBar({ storage }: ResourceViewStatusProps) {
-	const documentId = storage.kind === "yjs" ? storage.documentId : undefined;
-	const { yDoc } = useCurrentProjectYjsDocument(documentId);
+	const content = storage.content;
+	const { yDoc } = useYjsStorage(content?.kind === "yjs" ? content : undefined);
 	if (!yDoc) {
 		return <span className="excalidraw-statusbar">Excalidraw</span>;
 	}
@@ -158,27 +160,38 @@ export const excalidrawResourceType = {
 	schema: {
 		currentVersion: 1,
 		id: EXCALIDRAW_SCHEMA_ID,
-		read: ({ document }: ResourcePayloadContext) => ({
-			assets: Object.fromEntries(document?.getMap("assets").entries() ?? []),
-			elements: document
-				? yjsToExcalidraw(document.getArray<YMap<unknown>>("elements"))
-				: [],
-		}),
+		read: ({ storage }: ResourcePayloadContext) => {
+			const content = storage.content;
+			const document = content?.kind === "yjs" ? content.document : undefined;
+			return {
+				assets: Object.fromEntries(document?.getMap("assets").entries() ?? []),
+				elements: document
+					? yjsToExcalidraw(document.getArray<YMap<unknown>>("elements"))
+					: [],
+			};
+		},
 		versions: { 1: excalidrawSceneSchema },
 	},
-	storage: { kind: "yjs" as const },
+	storage: { content: { kind: "yjs" as const } },
 };
 
 export const excalidrawView = {
 	icon: excalidrawExtensionIcon,
 	name: "Excalidraw",
-	renderer: ({ reportReady, storage }: ResourceViewProps) =>
-		storage.kind === "yjs" ? (
-			<ExcalidrawView documentId={storage.documentId} reportReady={reportReady} />
+	renderer: ({ reportReady, storage }: ResourceViewProps) => {
+		const content = storage.content;
+		return content?.kind === "yjs" ? (
+			<ExcalidrawView
+				key={content.storageId}
+				reportReady={reportReady}
+				storage={content}
+			/>
 		) : (
-			<ExcalidrawState title="Document ID not provided" />
-		),
+			<ExcalidrawState title="Drawing storage not provided" />
+		);
+	},
 	statusBar: ExcalidrawStatusBar,
+	storageRequirements: { content: "yjs" as const },
 	target: {
 		kind: "resource" as const,
 		resourceTypeIds: [EXCALIDRAW_EXTENSION_ID],
