@@ -29,16 +29,24 @@ export const miniAppResourceType = {
 		read: () => ({}),
 		versions: { 1: miniAppMetadataSchema },
 	},
-	storage: { kind: "file" as const },
+	storage: { content: { kind: "file" as const } },
 };
 
 export const miniAppView = {
 	icon: AppWindowIcon,
 	name: "Mini App",
-	renderer: ({ reportReady, resource }: ResourceViewProps) => (
-		<MiniAppViewer resourceId={resource.resourceId} reportReady={reportReady} />
-	),
+	renderer: ({ reportReady, resource, storage }: ResourceViewProps) => {
+		const content = storage.content;
+		return content?.kind === "file" ? (
+			<MiniAppViewer
+				resourceId={resource.resourceId}
+				reportReady={reportReady}
+				storage={content}
+			/>
+		) : null;
+	},
 	rendererSandbox: "local-srcdoc" as const,
+	storageRequirements: { content: "file" as const },
 	target: {
 		kind: "resource" as const,
 		resourceTypeIds: [MINI_APP_EXTENSION_ID],
@@ -54,7 +62,9 @@ export const miniAppCommands = {
 			id: "lunaris.mini-app.download-source",
 			labelKey: "miniAppExtension.miniApp.downloadSource",
 			onExecute: (context: ResourceCommandContext) => {
-				void context.fileStorage.download(context.resourceId).catch(() => false);
+				const content = context.storage.content;
+				if (content?.kind !== "file") return;
+				void context.downloadFile(content).catch(() => false);
 			},
 		},
 	],

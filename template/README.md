@@ -35,8 +35,8 @@ manifest.json
     "latestVersion": "1.0.0",
     "versions": [{
       "version": "1.0.0",
-      "api": "^0.6.0",
-      "runtime": { "kind": "iframe", "protocol": 4 },
+      "api": "^0.7.0",
+      "runtime": { "kind": "iframe", "protocol": 5 },
       "status": "active",
       "descriptor": {
         "url": "https://raw.githubusercontent.com/example/extensions/0123456789abcdef0123456789abcdef01234567/artifacts/com.example.extension/1.0.0/release.json",
@@ -54,11 +54,11 @@ Keep one root `marketplace.json`; place each extension in `extensions/<name>/`. 
 versions must be unique across the index. Store published builds under
 `artifacts/<extension-id>/<version>/`.
 
-## Resource view status bars
+## Resource views and status bars
 
-SDK 0.5 status content belongs to the resource view that owns it. Add one `statusBar`
-renderer to each resource view that needs status content; standalone views cannot
-provide one. The host displays only the active view's renderer.
+SDK 0.7 resource views declare the named storage slots they consume. Use
+`storageRequirements: {}` when a view needs no durable storage. Status content belongs
+to the resource view that owns it; standalone views cannot provide a `statusBar`.
 
 ```tsx
 import type { ResourceViewStatusProps } from "@lunarisapp/plugin-sdk";
@@ -71,6 +71,7 @@ contributions.view({
   name: "Document",
   renderer: DocumentView,
   statusBar: DocumentStatus,
+  storageRequirements: {},
   target: { kind: "resource", resourceTypeIds: ["com.example.document"] },
   viewId: "com.example.document",
 });

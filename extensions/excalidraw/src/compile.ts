@@ -27,12 +27,15 @@ function measureImage(dataUrl: string): Promise<{ height: number; width: number 
 }
 
 export async function getExcalidrawCompileContent(
-	documentId: string,
+	resourceId: string,
 	context: PluginCompileContext,
 ): Promise<CompileContent> {
+	const resource = await context.getProjectResource(resourceId);
+	const content = resource?.storage.content;
+	if (content?.kind !== "yjs") return { sections: [], title: "" };
 	const scene = await withYjsDoc(
 		context,
-		documentId,
+		content,
 		(doc) => ({
 			elements: yjsToExcalidraw(doc.getArray<YMap<unknown>>("elements")),
 			files: yjsAssetsToFiles(doc.getMap("assets")),

@@ -1,4 +1,5 @@
 import {
+	type ResourceStorageHandle,
 	ViewReady,
 	useFileStorage,
 	useProjectResourceName,
@@ -9,6 +10,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMiniAppTranslation } from "./locale";
 import { buildMiniAppDocument } from "./mini-app-document";
 import { MiniAppOnboarding } from "./mini-app-onboarding";
+
+type FileStorageHandle = Extract<ResourceStorageHandle, { kind: "file" }>;
 
 export { buildMiniAppDocument, MINI_APP_CSP } from "./mini-app-document";
 export {
@@ -113,14 +116,16 @@ function MiniAppError({
 export function MiniAppViewer({
 	resourceId,
 	reportReady,
+	storage,
 }: {
 	resourceId?: string;
 	reportReady?: () => void;
+	storage: FileStorageHandle;
 }) {
 	const t = useMiniAppTranslation();
 	const { canWriteContent } = useWorkspaceAccess();
 	const fileStorage = useFileStorage();
-	const { file, metadata, objectUrl } = useStoredFile(resourceId ?? "");
+	const { file, metadata, objectUrl } = useStoredFile(storage);
 	const resourceName = useProjectResourceName({ resourceId });
 	const source = useMiniAppSource(file?.id ?? null, objectUrl);
 	const sandboxDocument = useMemo(
@@ -137,7 +142,7 @@ export function MiniAppViewer({
 				<MiniAppOnboarding
 					canUpload={canWriteContent}
 					fileStorage={fileStorage}
-					resourceId={resourceId}
+					storage={storage}
 					t={t}
 				/>
 			</ViewReady>

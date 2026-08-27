@@ -19,7 +19,8 @@ const { downloadMock, uploadMock } = vi.hoisted(() => ({
 
 let canWriteContent = true;
 let locale = "en";
-let observedResourceId = "";
+let observedStorageId = "";
+const FILE_STORAGE = { kind: "file", storageId: "file-storage-1" } as const;
 let storedFileState: {
 	file: null | {
 		hasSynced: boolean;
@@ -41,8 +42,8 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 	useFileStorage: () => ({ download: downloadMock, upload: uploadMock }),
 	useLocale: () => ({ locale }),
 	useProjectResourceName: () => "Budget",
-	useStoredFile: (resourceId: string) => {
-		observedResourceId = resourceId;
+	useStoredFile: (storage: { storageId: string }) => {
+		observedStorageId = storage.storageId;
 		return storedFileState;
 	},
 	useWorkspaceAccess: () => ({ canWriteContent }),
@@ -77,14 +78,14 @@ describe("Mini Apps extension", () => {
 		vi.clearAllMocks();
 		canWriteContent = true;
 		locale = "en";
-		observedResourceId = "";
+		observedStorageId = "";
 		storedFileState = { file: null, metadata: null, objectUrl: null };
 		uploadMock.mockResolvedValue({ fileId: "att_1" });
 	});
 
 	it("registers a file resource type and compatible sandboxed view", () => {
 		expect(extension.manifest).toMatchObject({
-			api: "^0.6.0",
+			api: "^0.7.0",
 			id: "lunaris.mini-app",
 			version: "0.0.1",
 		});
@@ -92,10 +93,11 @@ describe("Mini Apps extension", () => {
 			defaultViewId: "lunaris.mini-app",
 			name: "Mini App",
 			resourceTypeId: "lunaris.mini-app",
-			storage: { kind: "file" },
+			storage: { content: { kind: "file" } },
 		});
 		expect(miniAppView).toMatchObject({
 			rendererSandbox: "local-srcdoc",
+			storageRequirements: { content: "file" },
 			target: { kind: "resource", resourceTypeIds: ["lunaris.mini-app"] },
 			viewId: miniAppResourceType.defaultViewId,
 		});
@@ -124,25 +126,23 @@ describe("Mini Apps extension", () => {
 				{miniAppView.renderer({
 					params: {},
 					resource: {
-						documentId: null,
 						parentId: null,
 						resourceId: "resource_1",
 						resourceTypeId: "lunaris.mini-app",
 						schemaId: MINI_APP_SCHEMA_ID,
 						schemaVersion: 1,
-						storageKind: "file",
 					},
-					storage: { kind: "file", resourceId: "resource_1" },
+					storage: { content: FILE_STORAGE },
 				})}
 			</>,
 		);
 
-		expect(observedResourceId).toBe("resource_1");
+		expect(observedStorageId).toBe("file-storage-1");
 		expect(screen.getByRole("heading", { name: "Bring your Mini App to life" })).toBeTruthy();
 	});
 
 	it("shows onboarding and uploads one valid HTML file", async () => {
-		render(<MiniAppViewer resourceId="resource_1" />);
+		render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 
 		expect(
 			screen.getByRole("heading", { name: "Bring your Mini App to life" }),
@@ -162,13 +162,13 @@ describe("Mini Apps extension", () => {
 
 		await waitFor(() => expect(uploadMock).toHaveBeenCalledTimes(1));
 		const call = uploadMock.mock.calls[0]?.[0];
-		expect(call.resourceId).toBe("resource_1");
+		expect(call.storage).toEqual(FILE_STORAGE);
 		expect(call.file.name).toBe("report.htm");
 		expect(call.file.type).toBe("text/html");
 	});
 
 	it("does nothing when the picker is cancelled", () => {
-		render(<MiniAppViewer resourceId="resource_1" />);
+		render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 		fireEvent.change(screen.getByLabelText("Choose app"), {
 			target: { files: [] },
 		});
@@ -177,7 +177,7 @@ describe("Mini Apps extension", () => {
 
 	it("disables upload without write permission", () => {
 		canWriteContent = false;
-		render(<MiniAppViewer resourceId="resource_1" />);
+		render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 
 		expect(
 			(screen.getByRole("button", { name: "Choose app" }) as HTMLButtonElement)
@@ -189,7 +189,7 @@ describe("Mini Apps extension", () => {
 	});
 
 	it("shows localized validation and upload failures inline", async () => {
-		render(<MiniAppViewer resourceId="resource_1" />);
+		render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 		const input = screen.getByLabelText("Choose app");
 
 		fireEvent.change(input, {
@@ -227,7 +227,7 @@ describe("Mini Apps extension", () => {
 				resolveUpload = () => resolve({ fileId: "att_1" });
 			}),
 		);
-		render(<MiniAppViewer resourceId="resource_1" />);
+		render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 		fireEvent.change(screen.getByLabelText("Choose app"), {
 			target: { files: [new File(["ok"], "app.html", { type: "text/html" })] },
 		});
@@ -254,7 +254,7 @@ describe("Mini Apps extension", () => {
 			"fetch",
 			vi.fn(() => Promise.resolve(new Response("<button>Run</button>"))),
 		);
-		const view = render(<MiniAppViewer resourceId="resource_1" />);
+		const view = render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 		expect(screen.getByRole("button", { name: "Choose app" })).not.toBeNull();
 
 		storedFileState = {
@@ -267,7 +267,7 @@ describe("Mini Apps extension", () => {
 			metadata: { filename: "app.html" },
 			objectUrl: "blob:app",
 		};
-		view.rerender(<MiniAppViewer resourceId="resource_1" />);
+		view.rerender(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 
 		expect(await screen.findByTitle("Budget Mini App")).not.toBeNull();
 		expect(screen.queryByRole("button", { name: "Choose app" })).toBeNull();
@@ -293,7 +293,7 @@ describe("Mini Apps extension", () => {
 			),
 		);
 
-		render(<MiniAppViewer resourceId="resource_1" />);
+		render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 		const frame = (await screen.findByTitle(
 			"Budget Mini App",
 		)) as HTMLIFrameElement;
@@ -322,11 +322,11 @@ describe("Mini Apps extension", () => {
 		);
 		vi.stubGlobal("fetch", fetchMock);
 
-		const view = render(<MiniAppViewer resourceId="resource_1" />);
+		const view = render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 		const frame = await screen.findByTitle("Budget Mini App");
 
 		storedFileState = { ...storedFileState, objectUrl: "blob:second" };
-		view.rerender(<MiniAppViewer resourceId="resource_1" />);
+		view.rerender(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 
 		expect(await screen.findByTitle("Budget Mini App")).toBe(frame);
 		expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -422,14 +422,14 @@ describe("Mini Apps extension", () => {
 				metadata: { filename: "app.html" },
 				objectUrl: null,
 			};
-			render(<MiniAppViewer resourceId="resource_1" />);
+			render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 			expect(screen.getByRole("alert").textContent).toContain(title);
 		},
 	);
 
 	it("uses bundled view translations", () => {
 		locale = "de-DE";
-		render(<MiniAppViewer resourceId="resource_1" />);
+		render(<MiniAppViewer resourceId="resource_1" storage={FILE_STORAGE} />);
 		expect(
 			screen.getByRole("heading", {
 				name: "Erwecken Sie Ihre Mini-App zum Leben",
@@ -441,15 +441,16 @@ describe("Mini Apps extension", () => {
 		downloadMock.mockResolvedValue(true);
 		miniAppCommands.commands[0]?.onExecute({
 			compileContext: {} as never,
-			documentId: null,
-			fileStorage: { download: downloadMock },
+			downloadFile: downloadMock,
 			openView: vi.fn(),
 			resourceId: "resource_1",
 			resourceName: "Budget",
 			resourceTypeId: "lunaris.mini-app",
+			storage: { content: FILE_STORAGE },
+			waitForYjsPersistence: vi.fn(),
 		});
 
-		await waitFor(() => expect(downloadMock).toHaveBeenCalledWith("resource_1"));
+		await waitFor(() => expect(downloadMock).toHaveBeenCalledWith(FILE_STORAGE));
 		expect(miniAppCommands.id).toBe("lunaris.mini-app.commands");
 		expect(miniAppCommands.commands).toHaveLength(1);
 	});

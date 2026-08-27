@@ -5,7 +5,7 @@
     "": {
       "name": "@lunarisapp/extension-registry-tools",
       "dependencies": {
-        "@lunarisapp/plugin-sdk": "0.6.0",
+        "@lunarisapp/plugin-sdk": "0.7.0",
         "semver": "^7.7.4",
       },
       "devDependencies": {
@@ -38,7 +38,7 @@
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.5.7", "", { "os": "win32", "cpu": "x64" }, "sha512-V+0wu/nrj2S+MhP4EQ0uHNolP0IALEsz45pg0WoKkHfDeh0+ItHwP/p7bX5RPoMOl9NkpHYWdYPhIcy2mACHvQ=="],
 
-    "@lunarisapp/plugin-sdk": ["@lunarisapp/plugin-sdk@0.6.0", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "semver": "^7.8.5", "zod": "^4.4.3" }, "peerDependencies": { "react": "^19.2.8", "vite": "^8.2.0", "yjs": "^13.6.32" }, "optionalPeers": ["vite"] }, "sha512-cV5/qGnk6eBlIiW3hrb/iWiskdjZnUxvfqSMCOgRLG5PN7BDv4mqyPyMz4Lzm4kjJk/lH/skYBekRThox7rMhQ=="],
+    "@lunarisapp/plugin-sdk": ["@lunarisapp/plugin-sdk@0.7.0", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "semver": "^7.8.5", "zod": "^4.4.3" }, "peerDependencies": { "react": "^19.2.8", "vite": "^8.2.0", "yjs": "^13.6.32" }, "optionalPeers": ["vite"] }, "sha512-TvjZIKvBF7HYqt3eZcA9AscIJPAiSqfOpBLJB2Jym4yiB0JU5y5wG/MNmFRS6VUiiYtNRzAY8KmXSl5kv3dquw=="],
 
     "@oxc-project/types": ["@oxc-project/types@0.143.0", "", {}, "sha512-u6JZdLBTLotrNC9Vd6vPssINdzcCzleKAH6EJKImQb7GtYvX5keN2dxkoK44stCc4tffE6QQRtZTXVSzsLUlWA=="],
 

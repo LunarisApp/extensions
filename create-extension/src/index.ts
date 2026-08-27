@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
 import { realpathSync } from "node:fs";
-import { cp, lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { copyTemplateFiles } from "./template-files.js";
 
-const VERSION = "0.4.0";
+const VERSION = "0.4.1";
 const EXTENSION_ID_PATTERN = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
 const MAX_EXTENSION_ID_LENGTH = 50;
 
@@ -156,13 +157,7 @@ async function copyTemplate(templateDirectory: string, targetDirectory: string):
     await mkdir(targetDirectory, { recursive: true });
   }
 
-  for (const entry of await readdir(templateDirectory)) {
-    await cp(join(templateDirectory, entry), join(targetDirectory, entry), {
-      errorOnExist: true,
-      force: false,
-      recursive: true,
-    });
-  }
+  await copyTemplateFiles(templateDirectory, targetDirectory);
 }
 
 async function readJson(path: string): Promise<JsonObject> {

@@ -23,11 +23,13 @@ npx @lunarisapp/create-extension my-extension \
 
 Run `npx @lunarisapp/create-extension --help` for all options.
 
-Generated extensions target `@lunarisapp/plugin-sdk` `0.6.0`. The starter
+Generated extensions target `@lunarisapp/plugin-sdk` `0.7.0`. The starter
 keeps `manifest.json` to identity, API compatibility, and permissions, then
 registers an explicitly launchable standalone view during activation.
-Resource extensions can provide active-view status content through the resource view's
-`statusBar` renderer; status bars are not available on standalone views.
+Resource extensions declare named storage slots on their resource types and matching
+`storageRequirements` on each resource view. They can provide active-view status
+content through the resource view's `statusBar` renderer; status bars are not available
+on standalone views.
 
 Publish through your own public marketplace by adding a root `marketplace.json`.
 GitHub repositories should commit `release.json` and executable assets, then reference

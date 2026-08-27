@@ -1,4 +1,4 @@
-import type { useFileStorage } from "@lunarisapp/plugin-sdk";
+import type { ResourceStorageHandle, useFileStorage } from "@lunarisapp/plugin-sdk";
 import { useRef, useState } from "react";
 import type { useMiniAppTranslation } from "./locale";
 
@@ -7,6 +7,7 @@ export const MINI_APP_MAX_BYTES = 5 * 1024 * 1024;
 
 type Translate = ReturnType<typeof useMiniAppTranslation>;
 type FileStorage = ReturnType<typeof useFileStorage>;
+type FileStorageHandle = Extract<ResourceStorageHandle, { kind: "file" }>;
 
 function MiniAppArtwork() {
 	return (
@@ -56,12 +57,12 @@ function validateHtmlFile(file: File, t: Translate): string | null {
 export function MiniAppOnboarding({
 	canUpload,
 	fileStorage,
-	resourceId,
+	storage,
 	t,
 }: {
 	canUpload: boolean;
 	fileStorage: FileStorage;
-	resourceId: string;
+	storage: FileStorageHandle;
 	t: Translate;
 }) {
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -76,7 +77,7 @@ export function MiniAppOnboarding({
 
 		setIsUploading(true);
 		try {
-			await fileStorage.upload({ file: normalizeHtmlFile(file), resourceId });
+			await fileStorage.upload({ file: normalizeHtmlFile(file), storage });
 		} catch {
 			setError(t("uploadFailed"));
 		} finally {

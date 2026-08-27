@@ -39,7 +39,6 @@ const MENU_MARGIN = 8;
 const MENU_WIDTH = 218;
 
 interface DossierResourceTarget {
-  documentId: string | null;
   name: string;
   resourceId: string;
   schemaVersion: number;
@@ -50,7 +49,6 @@ export function openDossierResource(
   resource: DossierResourceTarget,
 ) {
   navigation.openResource({
-    documentId: resource.documentId,
     resourceId: resource.resourceId,
     resourceTypeId: CONTENT_TYPE_ID,
     schemaVersion: resource.schemaVersion,
@@ -207,7 +205,6 @@ export function AdminDashboard() {
   const handleDossier = async () => {
     if (existingDossier) {
       openDossierResource(navigation, {
-        documentId: existingDossier.documentId,
         name: existingDossier.name ?? "Customer dossier",
         resourceId: existingDossier.resourceId,
         schemaVersion: existingDossier.schemaVersion,

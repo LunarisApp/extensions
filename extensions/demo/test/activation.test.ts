@@ -36,29 +36,33 @@ describe("Demo extension activation", () => {
       hierarchy: { userCreatable: true, visible: true },
       resourceTypeId: "lunaris.demo.customer-dossier",
       schema: { currentVersion: 1, id: DOSSIER_SCHEMA_ID },
-      storage: { kind: "yjs" },
+      storage: { content: { kind: "yjs" } },
     });
     expect(dossierView).toMatchObject({
       statusBar: expect.any(Function),
+      storageRequirements: { content: "yjs" },
       target: {
         kind: "resource",
         resourceTypeIds: ["lunaris.demo.customer-dossier"],
       },
       viewId: dossierResourceType.defaultViewId,
     });
-    expect(extension.manifest.api).toBe("^0.6.0");
+    expect(extension.manifest.api).toBe("^0.7.0");
     expect(extension.manifest.version).toBe("0.0.1");
   });
 
   test("creates and opens dossier resources through the host APIs", async () => {
     const createResource = (input: unknown) => Promise.resolve({
-      documentId: "document-1",
       name: "Alder & Finch Labs — Customer dossier",
       resourceId: "resource-1",
+      storage: { content: { kind: "yjs", storageId: "storage-1" } },
       input,
     });
     const created = await createDossierResource({ createResource } as never);
-    expect(created).toMatchObject({ documentId: "document-1", resourceId: "resource-1" });
+    expect(created).toMatchObject({
+      resourceId: "resource-1",
+      storage: { content: { kind: "yjs", storageId: "storage-1" } },
+    });
     expect((created as typeof created & { input: unknown }).input).toEqual({
       name: "Alder & Finch Labs — Customer dossier",
       parentId: "__root__",
@@ -69,14 +73,12 @@ describe("Demo extension activation", () => {
     openDossierResource(
       { openResource: (input) => { opened = input; } },
       {
-        documentId: "document-1",
         name: "Customer dossier",
         resourceId: "resource-1",
         schemaVersion: 1,
       },
     );
     expect(opened).toEqual({
-      documentId: "document-1",
       resourceId: "resource-1",
       resourceTypeId: "lunaris.demo.customer-dossier",
       schemaVersion: 1,
@@ -86,9 +88,8 @@ describe("Demo extension activation", () => {
 
   test("preserves the existing Yjs map and serialized dossier payload", async () => {
     const document = new Doc();
-    dossierResourceType.storage.initialize(document, {
+    dossierResourceType.storage.content.initialize(document, {
       createdAt: "2026-08-25T00:00:00.000Z",
-      documentId: "document-1",
       parentId: null,
       resourceId: "resource-1",
       userId: null,
@@ -96,9 +97,8 @@ describe("Demo extension activation", () => {
     const stored = document.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY);
     expect(stored).toBe(JSON.stringify(DEFAULT_DOSSIER));
     const payload = await dossierResourceType.schema.read({
-      document,
-      documentId: "document-1",
       resourceId: "resource-1",
+      storage: { content: { document, kind: "yjs" } },
     });
     expect(dossierResourceType.schema.versions[1]?.["~standard"].validate(payload)).toMatchObject({
       value: DEFAULT_DOSSIER,
@@ -107,8 +107,11 @@ describe("Demo extension activation", () => {
     const updateBase64 = btoa(
       String.fromCharCode(...encodeStateAsUpdateV2(document)),
     );
-    const compiled = await dossierRepresentation.getContent("document-1", {
-      getYjsDocumentUpdates: () => Promise.resolve([{ updateBase64 }]),
+    const compiled = await dossierRepresentation.getContent("resource-1", {
+      getProjectResource: () => Promise.resolve({
+        storage: { content: { kind: "yjs", storageId: "storage-1" } },
+      }),
+      getYjsStorageUpdates: () => Promise.resolve([{ updateBase64 }]),
     } as never);
     expect(compiled.title).toBe("Alder & Finch Labs — Customer dossier");
     expect(compiled.sections.some((section) => section.type === "group")).toBe(true);
