@@ -37,6 +37,12 @@
       "latestVersion": "0.0.1",
       "name": "Excalidraw",
       "repository": "https://github.com/LunarisApp/extensions",
+      "screenshots": [
+        {
+          "alt": "Excalidraw drawing canvas in Lunaris",
+          "url": "https://raw.githubusercontent.com/LunarisApp/extensions/main/extensions/excalidraw/screenshot.png"
+        }
+      ],
       "versions": [
         {
           "api": "^0.8.0",
