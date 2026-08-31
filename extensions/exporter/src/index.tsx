@@ -15,7 +15,7 @@ import {
   useWorkspaceAccess,
   useWorkspaceNavigation,
 } from "@lunarisapp/plugin-sdk";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import * as z from "zod";
 import manifest from "../manifest.json";
 import {
@@ -239,7 +239,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
               const selectedCount = item.documentIds.filter((id) => selectedSet.has(id)).length;
               const checkboxId = `exporter-folder-${item.id}`;
               return (
-                <label className="exporter-item exporter-folder" htmlFor={checkboxId} key={item.id} style={{ paddingLeft: `${item.depth * 18 + 12}px` }}>
+                <label className="exporter-item exporter-folder" htmlFor={checkboxId} key={item.id} style={{ "--exporter-depth": item.depth } as CSSProperties}>
                   <SelectionCheckbox
                     checked={selectedCount === item.documentIds.length}
                     disabled={!canWriteContent}
@@ -249,7 +249,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
                     onChange={() => void saveSelection(toggleSelectedIds(selectedIds, item.documentIds, defaultOrder))}
                   />
                   <span aria-hidden="true">▸</span>
-                  <strong>{item.name || "Untitled folder"}</strong>
+                  <strong className="exporter-item-name">{item.name || "Untitled folder"}</strong>
                   <small>{item.documentIds.length} {item.documentIds.length === 1 ? "document" : "documents"}</small>
                 </label>
               );
@@ -257,7 +257,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
             const resourceId = item.resource.resourceId;
             const checkboxId = `exporter-document-${resourceId}`;
             return (
-              <label className="exporter-item" htmlFor={checkboxId} key={resourceId} style={{ paddingLeft: `${item.depth * 18 + 12}px` }}>
+              <label className="exporter-item" htmlFor={checkboxId} key={resourceId} style={{ "--exporter-depth": item.depth } as CSSProperties}>
                 <SelectionCheckbox
                   checked={selectedSet.has(resourceId)}
                   disabled={!canWriteContent}
@@ -273,37 +273,39 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
         </div>
       </section>
 
-      {selectedResources.length > 0 ? (
-        <details className="exporter-panel">
-          <summary className="exporter-panel-summary">
-            <span>
-              <strong>Document order</strong>
-              <small>{selectedResources.length} selected</small>
-            </span>
-          </summary>
-          <ol className="exporter-order-list">
-            {selectedResources.map((resource, index) => (
-              <li key={resource.resourceId}>
-                <span className="exporter-order-number">{index + 1}</span>
-                <span className="exporter-item-name">{resource.name || "Untitled"}</span>
-                <div className="exporter-order-actions">
-                  <button aria-label={`Open ${resource.name || "Untitled"}`} className="exporter-icon-button" onClick={() => openResource({
-                    resourceId: resource.resourceId,
-                    resourceTypeId: resource.resourceTypeId,
-                    schemaVersion: resource.schemaVersion,
-                    title: resource.name || "Untitled",
-                  })} title="Open source" type="button"><ActionIcon name="open" /></button>
-                  <button aria-label={`Move ${resource.name || "Untitled"} up`} className="exporter-icon-button" disabled={!canWriteContent || index === 0} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, -1))} title="Move up" type="button"><ActionIcon name="up" /></button>
-                  <button aria-label={`Move ${resource.name || "Untitled"} down`} className="exporter-icon-button" disabled={!canWriteContent || index === selectedResources.length - 1} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, 1))} title="Move down" type="button"><ActionIcon name="down" /></button>
-                  <button aria-label={`Remove ${resource.name || "Untitled"}`} className="exporter-icon-button" disabled={!canWriteContent} onClick={() => void saveSelection(selectedIds.filter((id) => id !== resource.resourceId))} title="Remove" type="button"><ActionIcon name="remove" /></button>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </details>
-      ) : null}
+      <div className="exporter-options">
+        {selectedResources.length > 0 ? (
+          <details className="exporter-panel">
+            <summary className="exporter-panel-summary">
+              <span>
+                <strong>Document order</strong>
+                <small>{selectedResources.length} selected</small>
+              </span>
+            </summary>
+            <ol className="exporter-order-list">
+              {selectedResources.map((resource, index) => (
+                <li key={resource.resourceId}>
+                  <span className="exporter-order-number">{index + 1}</span>
+                  <span className="exporter-item-name">{resource.name || "Untitled"}</span>
+                  <div className="exporter-order-actions">
+                    <button aria-label={`Open ${resource.name || "Untitled"}`} className="exporter-icon-button" onClick={() => openResource({
+                      resourceId: resource.resourceId,
+                      resourceTypeId: resource.resourceTypeId,
+                      schemaVersion: resource.schemaVersion,
+                      title: resource.name || "Untitled",
+                    })} title="Open source" type="button"><ActionIcon name="open" /></button>
+                    <button aria-label={`Move ${resource.name || "Untitled"} up`} className="exporter-icon-button" disabled={!canWriteContent || index === 0} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, -1))} title="Move up" type="button"><ActionIcon name="up" /></button>
+                    <button aria-label={`Move ${resource.name || "Untitled"} down`} className="exporter-icon-button" disabled={!canWriteContent || index === selectedResources.length - 1} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, 1))} title="Move down" type="button"><ActionIcon name="down" /></button>
+                    <button aria-label={`Remove ${resource.name || "Untitled"}`} className="exporter-icon-button" disabled={!canWriteContent} onClick={() => void saveSelection(selectedIds.filter((id) => id !== resource.resourceId))} title="Remove" type="button"><ActionIcon name="remove" /></button>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </details>
+        ) : null}
 
-      <StyleSettings disabled={!canWriteContent} onChange={(next) => void saveTheme(next)} theme={theme} />
+        <StyleSettings disabled={!canWriteContent} onChange={(next) => void saveTheme(next)} theme={theme} />
+      </div>
 
       {error ? <p className="exporter-message exporter-error" role="alert">{error}</p> : null}
       {notice ? <p className="exporter-message exporter-success" role="status">{notice}</p> : null}
