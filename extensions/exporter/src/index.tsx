@@ -15,7 +15,15 @@ import {
   useWorkspaceAccess,
   useWorkspaceNavigation,
 } from "@lunarisapp/plugin-sdk";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type KeyboardEvent,
+} from "react";
 import * as z from "zod";
 import manifest from "../manifest.json";
 import {
@@ -34,6 +42,7 @@ import {
   moveSelectedId,
   normalizeSelectedIds,
   orderedDocumentIds,
+  reorderSelectedId,
   toggleSelectedIds,
 } from "./selection";
 import { StyleSettings } from "./style-settings";
@@ -92,7 +101,7 @@ function SelectionCheckbox({
   return <input aria-label={label} checked={checked} disabled={disabled} id={id} onChange={onChange} ref={ref} type="checkbox" />;
 }
 
-function ActionIcon({ name }: { name: "down" | "open" | "remove" | "up" }) {
+function ActionIcon({ name }: { name: "open" | "remove" }) {
   if (name === "open") {
     return (
       <svg aria-hidden="true" viewBox="0 0 20 20">
@@ -103,9 +112,22 @@ function ActionIcon({ name }: { name: "down" | "open" | "remove" | "up" }) {
   if (name === "remove") {
     return <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8" /></svg>;
   }
-  const path = name === "up" ? "m6 11 4-4 4 4" : "m6 9 4 4 4-4";
-  return <svg aria-hidden="true" viewBox="0 0 20 20"><path d={path} /></svg>;
 }
+
+function DragIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20">
+      <circle cx="7" cy="5" r="1" />
+      <circle cx="13" cy="5" r="1" />
+      <circle cx="7" cy="10" r="1" />
+      <circle cx="13" cy="10" r="1" />
+      <circle cx="7" cy="15" r="1" />
+      <circle cx="13" cy="15" r="1" />
+    </svg>
+  );
+}
+
+type ExporterTab = "appearance" | "documents" | "order";
 
 function FolderIcon() {
   return (
@@ -129,6 +151,10 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
+  const [activeTab, setActiveTab] = useState<ExporterTab>("documents");
+  const [draggedId, setDraggedId] = useState<string>();
+  const [dropTarget, setDropTarget] = useState<{ id: string; placement: "after" | "before" }>();
+  const [orderAnnouncement, setOrderAnnouncement] = useState("");
 
   const byType = useMemo(
     () => new Map(representations.flatMap((entry) =>
@@ -228,6 +254,64 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
 
   const allSelected = defaultOrder.length > 0 && defaultOrder.every((id) => selectedSet.has(id));
 
+  const tabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const tabs = [...(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]") ?? [])];
+    const current = tabs.indexOf(event.currentTarget);
+    const keyTarget = event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? tabs.length - 1
+        : event.key === "ArrowLeft"
+          ? (current - 1 + tabs.length) % tabs.length
+          : event.key === "ArrowRight"
+            ? (current + 1) % tabs.length
+            : -1;
+    if (keyTarget < 0) return;
+    event.preventDefault();
+    tabs[keyTarget]?.focus();
+    tabs[keyTarget]?.click();
+  };
+
+  const moveByKeyboard = (resourceId: string, offset: -1 | 1) => {
+    const next = moveSelectedId(selectedIds, resourceId, offset);
+    if (next === selectedIds) return;
+    const resource = resources.get(resourceId);
+    const position = next.indexOf(resourceId) + 1;
+    void saveSelection(next);
+    setOrderAnnouncement(`${resource?.name || "Untitled"} moved to position ${position} of ${next.length}.`);
+  };
+
+  const dragOver = (event: DragEvent<HTMLLIElement>, targetId: string) => {
+    if (!draggedId || draggedId === targetId) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    const bounds = event.currentTarget.getBoundingClientRect();
+    setDropTarget({
+      id: targetId,
+      placement: event.clientY < bounds.top + bounds.height / 2 ? "before" : "after",
+    });
+  };
+
+  const drop = (event: DragEvent<HTMLLIElement>, targetId: string) => {
+    event.preventDefault();
+    if (!draggedId) return;
+    const placement = dropTarget?.id === targetId ? dropTarget.placement : "before";
+    const next = reorderSelectedId(selectedIds, draggedId, targetId, placement);
+    const resource = resources.get(draggedId);
+    if (next !== selectedIds) {
+      void saveSelection(next);
+      setOrderAnnouncement(`${resource?.name || "Untitled"} moved to position ${next.indexOf(draggedId) + 1} of ${next.length}.`);
+    }
+    setDraggedId(undefined);
+    setDropTarget(undefined);
+  };
+
+  const tabs: Array<{ id: ExporterTab; label: string }> = [
+    { id: "documents", label: "Documents" },
+    { id: "order", label: "Order" },
+    { id: "appearance", label: "Appearance" },
+  ];
+
   return (
     <main className="exporter-root">
       <header className="exporter-header">
@@ -238,86 +322,157 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
         {!canWriteContent ? <span className="exporter-badge">Read only</span> : null}
       </header>
 
-      <section aria-labelledby="exporter-sources-title" className="exporter-section">
-        <div className="exporter-section-header">
-          <h2 id="exporter-sources-title">Documents</h2>
-          <div className="exporter-inline-actions">
-            <button className="exporter-text-button" disabled={!canEditSettings || allSelected} onClick={() => void saveSelection(defaultOrder)} type="button">Select all</button>
-            <button className="exporter-text-button" disabled={!canEditSettings || selectedIds.length === 0} onClick={() => void saveSelection([])} type="button">Clear</button>
+      <nav aria-label="Exporter sections" className="exporter-tabs" role="tablist">
+        {tabs.map((tab) => (
+          <button
+            aria-controls={`exporter-panel-${tab.id}`}
+            aria-selected={activeTab === tab.id}
+            className="exporter-tab"
+            id={`exporter-tab-${tab.id}`}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            onKeyDown={tabKeyDown}
+            role="tab"
+            tabIndex={activeTab === tab.id ? 0 : -1}
+            type="button"
+          >
+            {tab.label}
+            {tab.id === "order" ? <span className="exporter-tab-count">{selectedIds.length}</span> : null}
+          </button>
+        ))}
+      </nav>
+
+      <div className="exporter-workspace">
+        <section aria-labelledby="exporter-tab-documents" className="exporter-tab-panel" hidden={activeTab !== "documents"} id="exporter-panel-documents" role="tabpanel">
+          <div className="exporter-panel-intro">
+            <div>
+              <h2>Choose documents</h2>
+              <p className="exporter-muted">Select the project content to include in the PDF.</p>
+            </div>
+            <div className="exporter-inline-actions">
+              <button className="exporter-text-button" disabled={!canEditSettings || allSelected} onClick={() => void saveSelection(defaultOrder)} type="button">Select all</button>
+              <button className="exporter-text-button" disabled={!canEditSettings || selectedIds.length === 0} onClick={() => void saveSelection([])} type="button">Clear</button>
+            </div>
           </div>
-        </div>
-        <div aria-busy={loading} className="exporter-list">
-          {loading ? <p className="exporter-item exporter-muted">Loading settings…</p> : items.length ? items.map((item) => {
-            if (item.type === "folder") {
-              const selectedCount = item.documentIds.filter((id) => selectedSet.has(id)).length;
-              const checkboxId = `exporter-folder-${item.id}`;
+          <div aria-busy={loading} className="exporter-list">
+            {loading ? <p className="exporter-item exporter-muted">Loading settings…</p> : items.length ? items.map((item) => {
+              if (item.type === "folder") {
+                const selectedCount = item.documentIds.filter((id) => selectedSet.has(id)).length;
+                const checkboxId = `exporter-folder-${item.id}`;
+                return (
+                  <label className="exporter-item exporter-folder" htmlFor={checkboxId} key={item.id} style={{ "--exporter-depth": item.depth } as CSSProperties}>
+                    <SelectionCheckbox
+                      checked={selectedCount === item.documentIds.length}
+                      disabled={!canEditSettings}
+                      indeterminate={selectedCount > 0 && selectedCount < item.documentIds.length}
+                      id={checkboxId}
+                      label={`Include folder ${item.name || "Untitled folder"}`}
+                      onChange={() => void saveSelection(toggleSelectedIds(selectedIds, item.documentIds, defaultOrder))}
+                    />
+                    <FolderIcon />
+                    <strong className="exporter-item-name">{item.name || "Untitled folder"}</strong>
+                    <small>{item.documentIds.length} {item.documentIds.length === 1 ? "document" : "documents"}</small>
+                  </label>
+                );
+              }
+              const resourceId = item.resource.resourceId;
+              const checkboxId = `exporter-document-${resourceId}`;
               return (
-                <label className="exporter-item exporter-folder" htmlFor={checkboxId} key={item.id} style={{ "--exporter-depth": item.depth } as CSSProperties}>
+                <label className="exporter-item" htmlFor={checkboxId} key={resourceId} style={{ "--exporter-depth": item.depth } as CSSProperties}>
                   <SelectionCheckbox
-                    checked={selectedCount === item.documentIds.length}
+                    checked={selectedSet.has(resourceId)}
                     disabled={!canEditSettings}
-                    indeterminate={selectedCount > 0 && selectedCount < item.documentIds.length}
                     id={checkboxId}
-                    label={`Include folder ${item.name || "Untitled folder"}`}
-                    onChange={() => void saveSelection(toggleSelectedIds(selectedIds, item.documentIds, defaultOrder))}
+                    label={`Include ${item.resource.name || "Untitled"}`}
+                    onChange={() => void saveSelection(toggleSelectedIds(selectedIds, [resourceId], defaultOrder))}
                   />
-                  <FolderIcon />
-                  <strong className="exporter-item-name">{item.name || "Untitled folder"}</strong>
-                  <small>{item.documentIds.length} {item.documentIds.length === 1 ? "document" : "documents"}</small>
+                  <span className="exporter-item-name">{item.resource.name || "Untitled"}</span>
+                  <small>{item.label}</small>
                 </label>
               );
-            }
-            const resourceId = item.resource.resourceId;
-            const checkboxId = `exporter-document-${resourceId}`;
-            return (
-              <label className="exporter-item" htmlFor={checkboxId} key={resourceId} style={{ "--exporter-depth": item.depth } as CSSProperties}>
-                <SelectionCheckbox
-                  checked={selectedSet.has(resourceId)}
-                  disabled={!canEditSettings}
-                  id={checkboxId}
-                  label={`Include ${item.resource.name || "Untitled"}`}
-                  onChange={() => void saveSelection(toggleSelectedIds(selectedIds, [resourceId], defaultOrder))}
-                />
-                <span className="exporter-item-name">{item.resource.name || "Untitled"}</span>
-                <small>{item.label}</small>
-              </label>
-            );
-          }) : <p className="exporter-item exporter-muted">No installed extension contributes exportable content.</p>}
-        </div>
-      </section>
+            }) : <p className="exporter-item exporter-muted">No installed extension contributes exportable content.</p>}
+          </div>
+        </section>
 
-      <div className="exporter-options">
-        {selectedResources.length > 0 ? (
-          <details className="exporter-panel">
-            <summary className="exporter-panel-summary">
-              <span>
-                <strong>Document order</strong>
-                <small>{selectedResources.length} selected</small>
-              </span>
-            </summary>
-            <ol className="exporter-order-list" role="list">
-              {selectedResources.map((resource, index) => (
-                <li key={resource.resourceId}>
-                  <span aria-hidden="true" className="exporter-order-number">{index + 1}</span>
-                  <span className="exporter-item-name">{resource.name || "Untitled"}</span>
-                  <div className="exporter-order-actions">
-                    <button aria-label={`Open ${resource.name || "Untitled"}`} className="exporter-icon-button" onClick={() => openResource({
-                      resourceId: resource.resourceId,
-                      resourceTypeId: resource.resourceTypeId,
-                      schemaVersion: resource.schemaVersion,
-                      title: resource.name || "Untitled",
-                    })} title="Open source" type="button"><ActionIcon name="open" /></button>
-                    <button aria-label={`Move ${resource.name || "Untitled"} up`} className="exporter-icon-button" disabled={!canEditSettings || index === 0} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, -1))} title="Move up" type="button"><ActionIcon name="up" /></button>
-                    <button aria-label={`Move ${resource.name || "Untitled"} down`} className="exporter-icon-button" disabled={!canEditSettings || index === selectedResources.length - 1} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, 1))} title="Move down" type="button"><ActionIcon name="down" /></button>
-                    <button aria-label={`Remove ${resource.name || "Untitled"}`} className="exporter-icon-button" disabled={!canEditSettings} onClick={() => void saveSelection(selectedIds.filter((id) => id !== resource.resourceId))} title="Remove" type="button"><ActionIcon name="remove" /></button>
-                  </div>
-                </li>
-              ))}
+        <section aria-labelledby="exporter-tab-order" className="exporter-tab-panel" hidden={activeTab !== "order"} id="exporter-panel-order" role="tabpanel">
+          <div className="exporter-panel-intro">
+            <div>
+              <h2>Arrange document order</h2>
+              <p className="exporter-muted" id="exporter-order-help">Drag each handle to reorder. With a handle focused, use the up and down arrow keys.</p>
+            </div>
+          </div>
+          {selectedResources.length > 0 ? (
+            <ol aria-describedby="exporter-order-help" className="exporter-order-list">
+              {selectedResources.map((resource, index) => {
+                const isDropTarget = dropTarget?.id === resource.resourceId;
+                const rowClassName = [
+                  draggedId === resource.resourceId ? "is-dragging" : "",
+                  isDropTarget ? `is-drop-${dropTarget.placement}` : "",
+                ].filter(Boolean).join(" ");
+                return (
+                  <li
+                    className={rowClassName}
+                    key={resource.resourceId}
+                    onDragOver={(event) => dragOver(event, resource.resourceId)}
+                    onDrop={(event) => drop(event, resource.resourceId)}
+                  >
+                    <span
+                      aria-label={`Reorder ${resource.name || "Untitled"}, position ${index + 1} of ${selectedResources.length}`}
+                      className="exporter-drag-handle"
+                      draggable={canEditSettings}
+                      onDragEnd={() => {
+                        setDraggedId(undefined);
+                        setDropTarget(undefined);
+                      }}
+                      onDragStart={(event) => {
+                        setDraggedId(resource.resourceId);
+                        event.dataTransfer.effectAllowed = "move";
+                        event.dataTransfer.setData("text/plain", resource.resourceId);
+                      }}
+                      onKeyDown={(event) => {
+                        if (!canEditSettings || (event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
+                        event.preventDefault();
+                        moveByKeyboard(resource.resourceId, event.key === "ArrowUp" ? -1 : 1);
+                      }}
+                      role="button"
+                      tabIndex={canEditSettings ? 0 : -1}
+                    >
+                      <DragIcon />
+                    </span>
+                    <span aria-hidden="true" className="exporter-order-number">{index + 1}</span>
+                    <span className="exporter-item-name">{resource.name || "Untitled"}</span>
+                    <div className="exporter-order-actions">
+                      <button aria-label={`Open ${resource.name || "Untitled"}`} className="exporter-icon-button" onClick={() => openResource({
+                        resourceId: resource.resourceId,
+                        resourceTypeId: resource.resourceTypeId,
+                        schemaVersion: resource.schemaVersion,
+                        title: resource.name || "Untitled",
+                      })} title="Open source" type="button"><ActionIcon name="open" /></button>
+                      <button aria-label={`Remove ${resource.name || "Untitled"}`} className="exporter-icon-button" disabled={!canEditSettings} onClick={() => void saveSelection(selectedIds.filter((id) => id !== resource.resourceId))} title="Remove" type="button"><ActionIcon name="remove" /></button>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
-          </details>
-        ) : null}
+          ) : (
+            <div className="exporter-empty">
+              <h3>No documents selected</h3>
+              <p className="exporter-muted">Choose documents first, then return here to arrange them.</p>
+              <button className="exporter-text-button" onClick={() => setActiveTab("documents")} type="button">Choose documents</button>
+            </div>
+          )}
+          <p aria-live="polite" className="exporter-visually-hidden">{orderAnnouncement}</p>
+        </section>
 
-        <StyleSettings disabled={!canEditSettings} onChange={(next) => void saveTheme(next)} theme={theme} />
+        <section aria-labelledby="exporter-tab-appearance" className="exporter-tab-panel" hidden={activeTab !== "appearance"} id="exporter-panel-appearance" role="tabpanel">
+          <div className="exporter-panel-intro">
+            <div>
+              <h2>Style the PDF</h2>
+              <p className="exporter-muted">Set page, typography, spacing, and color options.</p>
+            </div>
+          </div>
+          <StyleSettings disabled={!canEditSettings} onChange={(next) => void saveTheme(next)} theme={theme} />
+        </section>
       </div>
 
       {error ? <p className="exporter-message exporter-error" role="alert">{error}</p> : null}
