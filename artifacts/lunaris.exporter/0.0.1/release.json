@@ -11,6 +11,7 @@
     "optionalDependencies": {},
     "permissions": [
       "content.read",
+      "content.write",
       "downloads.write"
     ],
     "version": "0.0.1"
@@ -21,9 +22,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 3690635,
+    "bytes": 3689322,
     "resource": "text/javascript",
-    "sha256": "2a4bca3768de5d6c71021a02526924906736a732747706fe950b579b791deb52",
+    "sha256": "05ac06daf313b55a65730930cd557d40606c686238d71412e0237b1f2dbfc33a",
     "url": "./main.js"
   },
   "status": "active",
