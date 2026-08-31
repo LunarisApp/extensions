@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import {
   detectPdfThemePreset,
   PDF_THEME_PRESETS,
@@ -12,7 +12,16 @@ interface StyleSettingsProps {
   theme: PdfTheme;
 }
 
+type SettingsSectionId = "colors" | "page" | "spacing" | "typography";
+
+const PRESETS: Array<{ id: PdfThemePreset; label: string }> = [
+  { id: "default", label: "Default" },
+  { id: "compact", label: "Compact" },
+  { id: "academic", label: "Academic" },
+];
+
 export function StyleSettings({ disabled, onChange, theme }: StyleSettingsProps) {
+  const [activeSection, setActiveSection] = useState<SettingsSectionId | undefined>("page");
   const update = <Section extends keyof PdfTheme>(
     section: Section,
     value: PdfTheme[Section],
@@ -25,31 +34,46 @@ export function StyleSettings({ disabled, onChange, theme }: StyleSettingsProps)
   ) => update(section, { ...theme[section], [key]: value });
 
   const preset = detectPdfThemePreset(theme);
-  const setPreset = (value: string) => {
-    if (value === "custom") return;
-    const next = PDF_THEME_PRESETS[value as PdfThemePreset];
+  const setPreset = (value: PdfThemePreset) => {
+    const next = PDF_THEME_PRESETS[value];
     if (next) onChange(structuredClone(next));
+  };
+  const toggleSection = (section: SettingsSectionId) => {
+    setActiveSection((current) => current === section ? undefined : section);
   };
 
   return (
-    <fieldset aria-label="PDF appearance" className="exporter-settings" disabled={disabled}>
-      <div className="exporter-settings-toolbar">
-        <Setting label="Preset">
-          <select aria-label="Preset" onChange={(event) => setPreset(event.target.value)} value={preset}>
-            <option value="default">Default</option>
-            <option value="compact">Compact</option>
-            <option value="academic">Academic</option>
-            <option disabled value="custom">Custom</option>
-          </select>
-        </Setting>
-        <button className="exporter-button exporter-button-secondary" onClick={() => onChange(structuredClone(PDF_THEME_PRESETS.default))} type="button">
-          Reset style
-        </button>
+    <div aria-label="PDF appearance" className="exporter-settings" role="group">
+      <div className="exporter-preset-setting">
+        <div className="exporter-preset-heading">
+          <span>Style preset</span>
+          {preset === "custom" ? <span className="exporter-preset-status">Custom</span> : null}
+        </div>
+        <div aria-label="Style preset" className="exporter-preset-options" role="group">
+          {PRESETS.map(({ id, label }) => (
+            <button
+              aria-pressed={preset === id}
+              className="exporter-preset-option"
+              disabled={disabled}
+              key={id}
+              onClick={() => setPreset(id)}
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="exporter-settings-groups">
-        <div className="exporter-settings-group">
-          <h3>Page</h3>
+        <SettingsSection
+          expanded={activeSection === "page"}
+          fieldsDisabled={disabled}
+          id="page"
+          label="Page"
+          onToggle={() => toggleSection("page")}
+          summary={`${theme.page.pageSize.toUpperCase()} · ${theme.page.orientation === "portrait" ? "Portrait" : "Landscape"}`}
+        >
           <div className="exporter-settings-grid">
             <Setting label="Size">
               <select
@@ -72,59 +96,121 @@ export function StyleSettings({ disabled, onChange, theme }: StyleSettingsProps)
               </select>
             </Setting>
           </div>
+          <SettingsSubheading label="Margins" unit="pt" />
           <div className="exporter-settings-grid">
-            <NumberSetting label="Top margin" max={100} min={18} onChange={(value) => updateObject("page", "marginTop", value)} value={theme.page.marginTop} />
-            <NumberSetting label="Bottom margin" max={100} min={18} onChange={(value) => updateObject("page", "marginBottom", value)} value={theme.page.marginBottom} />
-            <NumberSetting label="Left margin" max={100} min={18} onChange={(value) => updateObject("page", "marginLeft", value)} value={theme.page.marginLeft} />
-            <NumberSetting label="Right margin" max={100} min={18} onChange={(value) => updateObject("page", "marginRight", value)} value={theme.page.marginRight} />
+            <NumberSetting label="Top" max={100} min={18} onChange={(value) => updateObject("page", "marginTop", value)} unit="pt" value={theme.page.marginTop} />
+            <NumberSetting label="Bottom" max={100} min={18} onChange={(value) => updateObject("page", "marginBottom", value)} unit="pt" value={theme.page.marginBottom} />
+            <NumberSetting label="Left" max={100} min={18} onChange={(value) => updateObject("page", "marginLeft", value)} unit="pt" value={theme.page.marginLeft} />
+            <NumberSetting label="Right" max={100} min={18} onChange={(value) => updateObject("page", "marginRight", value)} unit="pt" value={theme.page.marginRight} />
           </div>
           <label className="exporter-switch">
-            <input checked={theme.pageNumbers} onChange={(event) => update("pageNumbers", event.target.checked)} type="checkbox" />
-            Page numbers
+            <input checked={theme.pageNumbers} onChange={(event) => update("pageNumbers", event.target.checked)} role="switch" type="checkbox" />
+            <span aria-hidden="true" className="exporter-switch-track"><span /></span>
+            <span>Page numbers</span>
           </label>
-        </div>
+        </SettingsSection>
 
-        <div className="exporter-settings-group">
-          <h3>Typography</h3>
+        <SettingsSection
+          expanded={activeSection === "typography"}
+          fieldsDisabled={disabled}
+          id="typography"
+          label="Typography"
+          onToggle={() => toggleSection("typography")}
+          summary={`${theme.fontSize.body} pt body · ${theme.lineHeight.body}×`}
+        >
+          <SettingsSubheading label="Text sizes" unit="pt" />
           <div className="exporter-settings-grid">
-            <NumberSetting label="Title" max={48} min={6} onChange={(value) => updateObject("fontSize", "title", value)} value={theme.fontSize.title} />
-            <NumberSetting label="Heading 1" max={48} min={6} onChange={(value) => updateObject("fontSize", "heading1", value)} value={theme.fontSize.heading1} />
-            <NumberSetting label="Heading 2" max={48} min={6} onChange={(value) => updateObject("fontSize", "heading2", value)} value={theme.fontSize.heading2} />
-            <NumberSetting label="Heading 3" max={48} min={6} onChange={(value) => updateObject("fontSize", "heading3", value)} value={theme.fontSize.heading3} />
-            <NumberSetting label="Body" max={48} min={6} onChange={(value) => updateObject("fontSize", "body", value)} value={theme.fontSize.body} />
-            <NumberSetting label="Code" max={48} min={6} onChange={(value) => updateObject("fontSize", "code", value)} value={theme.fontSize.code} />
-            <NumberSetting label="Body line height" max={3} min={1} onChange={(value) => updateObject("lineHeight", "body", value)} step={0.1} value={theme.lineHeight.body} />
-            <NumberSetting label="Heading line height" max={3} min={1} onChange={(value) => updateObject("lineHeight", "heading", value)} step={0.1} value={theme.lineHeight.heading} />
+            <NumberSetting label="Title" max={48} min={6} onChange={(value) => updateObject("fontSize", "title", value)} unit="pt" value={theme.fontSize.title} />
+            <NumberSetting label="Heading 1" max={48} min={6} onChange={(value) => updateObject("fontSize", "heading1", value)} unit="pt" value={theme.fontSize.heading1} />
+            <NumberSetting label="Heading 2" max={48} min={6} onChange={(value) => updateObject("fontSize", "heading2", value)} unit="pt" value={theme.fontSize.heading2} />
+            <NumberSetting label="Heading 3" max={48} min={6} onChange={(value) => updateObject("fontSize", "heading3", value)} unit="pt" value={theme.fontSize.heading3} />
+            <NumberSetting label="Body" max={48} min={6} onChange={(value) => updateObject("fontSize", "body", value)} unit="pt" value={theme.fontSize.body} />
+            <NumberSetting label="Code" max={48} min={6} onChange={(value) => updateObject("fontSize", "code", value)} unit="pt" value={theme.fontSize.code} />
           </div>
-        </div>
-
-        <div className="exporter-settings-group">
-          <h3>Spacing</h3>
+          <SettingsSubheading label="Line height" />
           <div className="exporter-settings-grid">
-            <NumberSetting label="Paragraph gap" max={40} min={0} onChange={(value) => updateObject("spacing", "paragraphGap", value)} value={theme.spacing.paragraphGap} />
-            <NumberSetting label="Heading gap" max={40} min={0} onChange={(value) => updateObject("spacing", "headingGap", value)} value={theme.spacing.headingGap} />
-            <NumberSetting label="List indent" max={40} min={0} onChange={(value) => updateObject("spacing", "listIndent", value)} value={theme.spacing.listIndent} />
-            <NumberSetting label="Code padding" max={40} min={0} onChange={(value) => updateObject("spacing", "codeBlockPadding", value)} value={theme.spacing.codeBlockPadding} />
+            <NumberSetting label="Body" max={3} min={1} onChange={(value) => updateObject("lineHeight", "body", value)} step={0.1} unit="×" value={theme.lineHeight.body} />
+            <NumberSetting label="Headings" max={3} min={1} onChange={(value) => updateObject("lineHeight", "heading", value)} step={0.1} unit="×" value={theme.lineHeight.heading} />
           </div>
-        </div>
+        </SettingsSection>
 
-        <div className="exporter-settings-group">
-          <h3>Colors</h3>
+        <SettingsSection
+          expanded={activeSection === "spacing"}
+          fieldsDisabled={disabled}
+          id="spacing"
+          label="Spacing"
+          onToggle={() => toggleSection("spacing")}
+          summary={`${theme.spacing.paragraphGap} pt paragraph gap`}
+        >
           <div className="exporter-settings-grid">
+            <NumberSetting label="Paragraph gap" max={40} min={0} onChange={(value) => updateObject("spacing", "paragraphGap", value)} unit="pt" value={theme.spacing.paragraphGap} />
+            <NumberSetting label="Heading gap" max={40} min={0} onChange={(value) => updateObject("spacing", "headingGap", value)} unit="pt" value={theme.spacing.headingGap} />
+            <NumberSetting label="List indent" max={40} min={0} onChange={(value) => updateObject("spacing", "listIndent", value)} unit="pt" value={theme.spacing.listIndent} />
+            <NumberSetting label="Code padding" max={40} min={0} onChange={(value) => updateObject("spacing", "codeBlockPadding", value)} unit="pt" value={theme.spacing.codeBlockPadding} />
+          </div>
+        </SettingsSection>
+
+        <SettingsSection
+          expanded={activeSection === "colors"}
+          fieldsDisabled={disabled}
+          id="colors"
+          label="Colors"
+          onToggle={() => toggleSection("colors")}
+          summary={<ColorSummary theme={theme} />}
+        >
+          <div className="exporter-color-grid">
             <ColorSetting label="Text" onChange={(value) => updateObject("colors", "text", value)} value={theme.colors.text} />
             <ColorSetting label="Headings" onChange={(value) => updateObject("colors", "heading", value)} value={theme.colors.heading} />
             <ColorSetting label="Links" onChange={(value) => updateObject("colors", "link", value)} value={theme.colors.link} />
             <ColorSetting label="Code background" onChange={(value) => updateObject("colors", "codeBackground", value)} value={theme.colors.codeBackground} />
             <ColorSetting label="Table borders" onChange={(value) => updateObject("colors", "tableBorder", value)} value={theme.colors.tableBorder} />
           </div>
-        </div>
+        </SettingsSection>
       </div>
-    </fieldset>
+    </div>
   );
 }
 
+function SettingsSection({
+  children,
+  expanded,
+  fieldsDisabled,
+  id,
+  label,
+  onToggle,
+  summary,
+}: {
+  children: ReactNode;
+  expanded: boolean;
+  fieldsDisabled: boolean;
+  id: SettingsSectionId;
+  label: string;
+  onToggle: () => void;
+  summary: ReactNode;
+}) {
+  const panelId = `exporter-settings-${id}-${useId()}`;
+  return (
+    <section className="exporter-settings-group">
+      <h3>
+        <button aria-controls={panelId} aria-expanded={expanded} className="exporter-settings-section-toggle" onClick={onToggle} type="button">
+          <span className="exporter-settings-section-title">{label}</span>
+          <span className="exporter-settings-section-summary">{summary}</span>
+          <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m6.5 8 3.5 3.5L13.5 8" /></svg>
+        </button>
+      </h3>
+      <fieldset aria-label={`${label} settings`} className="exporter-settings-section-content" disabled={fieldsDisabled} hidden={!expanded} id={panelId}>
+        {children}
+      </fieldset>
+    </section>
+  );
+}
+
+function SettingsSubheading({ label, unit }: { label: string; unit?: string }) {
+  return <div className="exporter-settings-subheading"><span>{label}</span>{unit ? <span>{unit}</span> : null}</div>;
+}
+
 function Setting({ children, label }: { children: ReactNode; label: string }) {
-  return <div className="exporter-setting"><span>{label}</span>{children}</div>;
+  return <label className="exporter-setting"><span>{label}</span>{children}</label>;
 }
 
 function NumberSetting({
@@ -133,6 +219,7 @@ function NumberSetting({
   min,
   onChange,
   step = 1,
+  unit,
   value,
 }: {
   label: string;
@@ -140,19 +227,23 @@ function NumberSetting({
   min: number;
   onChange: (value: number) => void;
   step?: number;
+  unit?: string;
   value: number;
 }) {
   return (
     <Setting label={label}>
-      <input
-        aria-label={label}
-        max={max}
-        min={min}
-        onChange={(event) => onChange(Number(event.target.value))}
-        step={step}
-        type="number"
-        value={value}
-      />
+      <span className="exporter-number-input">
+        <input
+          aria-label={label}
+          max={max}
+          min={min}
+          onChange={(event) => onChange(Number(event.target.value))}
+          step={step}
+          type="number"
+          value={value}
+        />
+        {unit ? <span aria-hidden="true">{unit}</span> : null}
+      </span>
     </Setting>
   );
 }
@@ -165,5 +256,15 @@ function ColorSetting({ label, onChange, value }: { label: string; onChange: (va
         <code>{value}</code>
       </span>
     </Setting>
+  );
+}
+
+function ColorSummary({ theme }: { theme: PdfTheme }) {
+  return (
+    <span aria-label="Current color palette" className="exporter-color-summary">
+      {[theme.colors.text, theme.colors.heading, theme.colors.link].map((color, index) => (
+        <span aria-hidden="true" key={`${color}-${index}`} style={{ backgroundColor: color }} />
+      ))}
+    </span>
   );
 }
