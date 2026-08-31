@@ -3,7 +3,7 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-08-31T12:59:44.792Z",
+  "generatedAt": "2026-08-31T16:17:32.273Z",
   "extensions": [
     {
       "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
@@ -71,9 +71,9 @@
         {
           "api": "^0.9.0",
           "descriptor": {
-            "bytes": 910,
-            "sha256": "fe7dfbe3c734ead824ec4eac9a682e8fc55a0de74a32d6abb766697186972b57",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/f5e6b73c43453e78e743028fcd6a3d51ab79e003/artifacts/lunaris.exporter/0.0.1/release.json"
+            "bytes": 911,
+            "sha256": "96c279dd148c3576482102969d9dcaf70da46487baaf2d53322b83e84bae04e7",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/823e9d6a26429a372039986ee5414448f497cdc0/artifacts/lunaris.exporter/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
