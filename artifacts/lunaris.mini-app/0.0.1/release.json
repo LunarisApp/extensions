@@ -1,5 +1,5 @@
 {
-  "api": "^0.8.0",
+  "api": "^0.9.0",
   "icon": {
     "bytes": 7157,
     "resource": "image/png",
@@ -7,13 +7,14 @@
     "url": "./icon.png"
   },
   "manifest": {
-    "api": "^0.8.0",
+    "api": "^0.9.0",
     "conflicts": {},
     "dependencies": {},
     "description": "Run interactive, self-contained HTML apps in your project",
     "developer": "Lunaris",
     "id": "lunaris.mini-app",
     "name": "Mini Apps",
+    "optionalDependencies": {},
     "permissions": [
       "content.read",
       "files.read",
@@ -24,12 +25,12 @@
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
     "kind": "iframe",
-    "protocol": 5
+    "protocol": 6
   },
   "script": {
-    "bytes": 379199,
+    "bytes": 384209,
     "resource": "text/javascript",
-    "sha256": "cfdcbb929dc89e967ae0ba2db1cedaf02b889ee0ad800780e73a588f4e70221f",
+    "sha256": "dfe9e74e9e1d727195c77b906d726a7a9e979875a1a6f56acb6228dd48a0721d",
     "url": "./main.js"
   },
   "status": "active",

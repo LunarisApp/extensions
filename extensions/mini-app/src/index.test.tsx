@@ -90,7 +90,7 @@ describe("Mini Apps extension", () => {
 
 	it("registers a file resource type and compatible sandboxed view", () => {
 		expect(extension.manifest).toMatchObject({
-			api: "^0.8.0",
+			api: "^0.9.0",
 			id: "lunaris.mini-app",
 			version: "0.0.1",
 		});
@@ -446,7 +446,7 @@ describe("Mini Apps extension", () => {
 	it("offers the resource-scoped source download command", async () => {
 		downloadMock.mockResolvedValue(true);
 		miniAppCommands.commands[0]?.onExecute({
-			compileContext: {} as never,
+			resourceReadContext: {} as never,
 			downloadFile: downloadMock,
 			openView: vi.fn(),
 			resourceId: "resource_1",

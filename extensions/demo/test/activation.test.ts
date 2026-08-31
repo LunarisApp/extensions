@@ -1,9 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { Doc, encodeStateAsUpdateV2 } from "yjs";
+import { Doc } from "yjs";
 import extension, {
   DOSSIER_SCHEMA_ID,
   DOSSIER_VIEW_ID,
-  dossierRepresentation,
   dossierResourceType,
   dossierView,
 } from "../src/index";
@@ -13,14 +12,12 @@ import { DEFAULT_DOSSIER, DOSSIER_MAP_NAME, DOSSIER_RECORD_KEY } from "../src/do
 describe("Demo extension activation", () => {
   test("registers namespaced resource/view contributions synchronously", () => {
     const registrations = {
-      representation: [] as unknown[],
       resourceType: [] as unknown[],
       view: [] as unknown[],
     };
 
     const result = extension.activate({
       contributions: {
-        representation: (value: unknown) => registrations.representation.push(value),
         resourceType: (value: unknown) => registrations.resourceType.push(value),
         view: (value: unknown) => registrations.view.push(value),
       },
@@ -28,7 +25,6 @@ describe("Demo extension activation", () => {
 
     expect(result).toBeUndefined();
     expect(registrations.resourceType).toEqual([dossierResourceType]);
-    expect(registrations.representation).toEqual([dossierRepresentation]);
     expect(registrations.view).toHaveLength(2);
     expect(registrations.view).toContain(dossierView);
     expect(dossierResourceType).toMatchObject({
@@ -47,7 +43,7 @@ describe("Demo extension activation", () => {
       },
       viewId: dossierResourceType.defaultViewId,
     });
-    expect(extension.manifest.api).toBe("^0.8.0");
+    expect(extension.manifest.api).toBe("^0.9.0");
     expect(extension.manifest.version).toBe("0.0.1");
   });
 
@@ -104,16 +100,5 @@ describe("Demo extension activation", () => {
       value: DEFAULT_DOSSIER,
     });
 
-    const updateBase64 = btoa(
-      String.fromCharCode(...encodeStateAsUpdateV2(document)),
-    );
-    const compiled = await dossierRepresentation.getContent("resource-1", {
-      getProjectResource: () => Promise.resolve({
-        storage: { content: { kind: "yjs", storageId: "storage-1" } },
-      }),
-      getYjsStorageUpdates: () => Promise.resolve([{ updateBase64 }]),
-    } as never);
-    expect(compiled.title).toBe("Alder & Finch Labs — Customer dossier");
-    expect(compiled.sections.some((section) => section.type === "group")).toBe(true);
   });
 });

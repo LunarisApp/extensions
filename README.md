@@ -44,7 +44,7 @@ commit-pinned GitHub artifacts, and generic static hosting.
 ## Plugin SDK compatibility
 
 Curated extension sources and the starter target Plugin SDK 0.8 and iframe sandbox
-protocol 5. Published artifacts remain immutable unless an explicitly authorized
+protocol 6. Published artifacts remain immutable unless an explicitly authorized
 replacement uses the registry overwrite workflow. Excalidraw also contributes a
 host-managed local search indexer for live canvas
 text and named frames. Index storage, lifecycle, ranking, and search UI remain host-owned.

@@ -1,0 +1,10 @@
+{
+  "id": "lunaris.exporter",
+  "name": "Exporter",
+  "description": "Export project content to PDF",
+  "developer": "Lunaris",
+  "version": "0.0.1",
+  "api": "^0.9.0",
+  "optionalDependencies": {},
+  "permissions": ["content.read", "downloads.write"]
+}

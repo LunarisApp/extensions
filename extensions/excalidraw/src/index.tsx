@@ -17,7 +17,10 @@ import { yjsToExcalidraw } from "y-excalidraw";
 import type { Doc, Map as YMap } from "yjs";
 import { z } from "zod";
 import manifest from "../manifest.json";
-import { getExcalidrawCompileContent } from "./compile";
+import {
+	excalidrawExporterRepresentation,
+	excalidrawExporterRepresentations,
+} from "./exporter-integration";
 import { EXCALIDRAW_EXTENSION_ID } from "./constants";
 import { ExcalidrawSkeleton } from "./excalidraw-skeleton";
 import { excalidrawExtensionIcon } from "./icon";
@@ -200,19 +203,12 @@ export const excalidrawView = {
 	viewId: EXCALIDRAW_EXTENSION_ID,
 };
 
-export const excalidrawRepresentation = {
-	getContent: getExcalidrawCompileContent,
-	id: "lunaris.excalidraw.compile",
-	mediaType: "application/vnd.lunaris.compile+json" as const,
-	resourceTypeIds: [EXCALIDRAW_EXTENSION_ID],
-};
-
 export const excalidrawExtension = definePlugin({
 	manifest,
-	activate({ contributions }) {
+	activate({ contributions, slots }) {
 		contributions.resourceType(excalidrawResourceType);
 		contributions.view(excalidrawView);
-		contributions.representation(excalidrawRepresentation);
+		slots.contribute(excalidrawExporterRepresentations, excalidrawExporterRepresentation);
 		contributions.searchIndexer(excalidrawSearchIndexer);
 		contributions.locales({ de, en, es, fr, "pt-BR": ptBR });
 	},

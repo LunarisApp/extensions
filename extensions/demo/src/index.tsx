@@ -7,7 +7,6 @@ FORM: User-pinned Account ledger direction; Impeccable seed cb5fe784; approved c
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
 */
 import {
-  buildDossierCompileContent,
   DEFAULT_DOSSIER,
   DOSSIER_MAP_NAME,
   DOSSIER_RECORD_KEY,
@@ -15,11 +14,9 @@ import {
   parseDossierRecord,
 } from "./domain";
 import {
-  type PluginCompileContext,
   type ResourcePayloadContext,
   type ResourceViewStatusProps,
   definePlugin,
-  withYjsDoc,
 } from "@lunarisapp/plugin-sdk";
 import { DashboardSquare01Icon, File02Icon } from "@lunarisapp/ui/icons";
 import type { Doc } from "yjs";
@@ -30,31 +27,6 @@ import "./styles.css";
 
 export const DOSSIER_SCHEMA_ID = "lunaris.demo.customer-dossier.document";
 export const DOSSIER_VIEW_ID = "lunaris.demo.customer-dossier";
-
-export const dossierRepresentation = {
-  getContent: async (resourceId: string, context: PluginCompileContext) => {
-    const resource = await context.getProjectResource(resourceId);
-    const content = resource?.storage.content;
-    if (content?.kind !== "yjs") return buildDossierCompileContent(DEFAULT_DOSSIER);
-    return withYjsDoc(
-      context,
-      content,
-      (document) => {
-        const raw = document.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY);
-        if (!raw) return buildDossierCompileContent(DEFAULT_DOSSIER);
-        try {
-          return buildDossierCompileContent(parseDossierRecord(JSON.parse(raw)));
-        } catch {
-          return buildDossierCompileContent(DEFAULT_DOSSIER);
-        }
-      },
-      buildDossierCompileContent(DEFAULT_DOSSIER),
-    );
-  },
-  id: "lunaris.demo.customer-dossier.compile",
-  mediaType: "application/vnd.lunaris.compile+json" as const,
-  resourceTypeIds: ["lunaris.demo.customer-dossier"],
-};
 
 export const dossierResourceType = {
   defaultViewId: DOSSIER_VIEW_ID,
@@ -113,6 +85,5 @@ export default definePlugin({
     });
     contributions.resourceType(dossierResourceType);
     contributions.view(dossierView);
-    contributions.representation(dossierRepresentation);
   },
 });

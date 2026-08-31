@@ -4,6 +4,7 @@
 	"description": "Collaborative drawing with Excalidraw",
 	"developer": "Lunaris",
 	"version": "0.0.1",
-	"api": "^0.8.0",
+	"api": "^0.9.0",
+	"optionalDependencies": { "lunaris.exporter": "^0.0.1" },
 	"permissions": ["content.read", "content.write"]
 }
