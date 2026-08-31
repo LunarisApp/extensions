@@ -16,6 +16,7 @@ import {
   useWorkspaceNavigation,
 } from "@lunarisapp/plugin-sdk";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -128,11 +129,21 @@ function DragIcon() {
 }
 
 type ExporterTab = "appearance" | "documents" | "order";
+type PreviewStatus = "empty" | "error" | "loading" | "ready" | "refreshing";
 
 function FolderIcon() {
   return (
     <svg aria-hidden="true" className="exporter-folder-icon" viewBox="0 0 20 20">
       <path d="M2.75 6.75c0-.97.78-1.75 1.75-1.75h3l1.5 2h6.5c.97 0 1.75.78 1.75 1.75v5.5c0 .97-.78 1.75-1.75 1.75h-11c-.97 0-1.75-.78-1.75-1.75v-7.5Z" />
+    </svg>
+  );
+}
+
+function PreviewDocumentIcon() {
+  return (
+    <svg aria-hidden="true" className="exporter-preview-document-icon" viewBox="0 0 48 48">
+      <path d="M12.5 5.5h15l8 8v29h-23z" />
+      <path d="M27.5 5.5v8h8M18 23h12M18 29h12M18 35h8" />
     </svg>
   );
 }
@@ -155,6 +166,13 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   const [draggedId, setDraggedId] = useState<string>();
   const [dropTarget, setDropTarget] = useState<{ id: string; placement: "after" | "before" }>();
   const [orderAnnouncement, setOrderAnnouncement] = useState("");
+  const [previewError, setPreviewError] = useState<string>();
+  const [previewFailedCount, setPreviewFailedCount] = useState(0);
+  const [previewRetry, setPreviewRetry] = useState(0);
+  const [previewStatus, setPreviewStatus] = useState<PreviewStatus>("loading");
+  const [previewUrl, setPreviewUrl] = useState<string>();
+  const previewRequestRef = useRef(0);
+  const previewUrlRef = useRef<string | undefined>(undefined);
 
   const byType = useMemo(
     () => new Map(representations.flatMap((entry) =>
@@ -209,34 +227,81 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
     }
   };
 
+  const buildPdf = useCallback(async () => {
+    let failedCount = 0;
+    const documents: ExportDocumentV1[] = [];
+    for (const resourceId of selectedIds) {
+      const resource = resources.get(resourceId);
+      const representation = resource ? byType.get(resource.resourceTypeId) : undefined;
+      if (!resource || !representation) continue;
+      try {
+        const document = await representation.invoke(
+          await snapshotResource(resourceContext, resourceId),
+        );
+        assertExportDocumentV1(document);
+        documents.push(document);
+      } catch {
+        failedCount += 1;
+        documents.push({
+          blocks: [{ children: [{ text: "This source could not be read." }], type: "paragraph" }],
+          title: resource.name || "Untitled",
+          version: 1,
+        });
+      }
+    }
+    return { data: await renderPdf(documents, theme), failedCount };
+  }, [byType, resourceContext, resources, selectedIds, theme]);
+
+  useEffect(() => {
+    const request = ++previewRequestRef.current;
+    if (loading) {
+      setPreviewStatus(previewUrlRef.current ? "refreshing" : "loading");
+      return;
+    }
+    if (selectedIds.length === 0) {
+      const previousUrl = previewUrlRef.current;
+      previewUrlRef.current = undefined;
+      setPreviewUrl(undefined);
+      if (previousUrl) URL.revokeObjectURL(previousUrl);
+      setPreviewError(undefined);
+      setPreviewFailedCount(0);
+      setPreviewStatus("empty");
+      return;
+    }
+
+    setPreviewStatus(previewUrlRef.current ? "refreshing" : "loading");
+    setPreviewError(undefined);
+    const timer = window.setTimeout(() => {
+      void buildPdf().then(({ data, failedCount }) => {
+        if (request !== previewRequestRef.current) return;
+        const nextUrl = URL.createObjectURL(new Blob([data], { type: "application/pdf" }));
+        const previousUrl = previewUrlRef.current;
+        previewUrlRef.current = nextUrl;
+        setPreviewUrl(nextUrl);
+        if (previousUrl) URL.revokeObjectURL(previousUrl);
+        setPreviewFailedCount(failedCount);
+        setPreviewStatus("ready");
+      }).catch((reason) => {
+        if (request !== previewRequestRef.current) return;
+        setPreviewError(reason instanceof Error ? reason.message : "The PDF preview could not be rendered.");
+        setPreviewStatus("error");
+      });
+    }, 320);
+
+    return () => window.clearTimeout(timer);
+  }, [buildPdf, loading, previewRetry, selectedIds.length]);
+
+  useEffect(() => () => {
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+  }, []);
+
   const exportPdf = async () => {
     if (loading || working || selectedIds.length === 0) return;
     setWorking(true);
     setError(undefined);
     setNotice(undefined);
-    let failedCount = 0;
     try {
-      const documents: ExportDocumentV1[] = [];
-      for (const resourceId of selectedIds) {
-        const resource = resources.get(resourceId);
-        const representation = resource ? byType.get(resource.resourceTypeId) : undefined;
-        if (!resource || !representation) continue;
-        try {
-          const document = await representation.invoke(
-            await snapshotResource(resourceContext, resourceId),
-          );
-          assertExportDocumentV1(document);
-          documents.push(document);
-        } catch {
-          failedCount += 1;
-          documents.push({
-            blocks: [{ children: [{ text: "This source could not be read." }], type: "paragraph" }],
-            title: resource.name || "Untitled",
-            version: 1,
-          });
-        }
-      }
-      const data = await renderPdf(documents, theme);
+      const { data, failedCount } = await buildPdf();
       await downloads.save({
         data,
         mimeType: "application/pdf",
@@ -321,29 +386,68 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
         </div>
         {!canWriteContent ? <span className="exporter-badge">Read only</span> : null}
       </header>
+      <div className="exporter-layout">
+        <section aria-label="PDF preview" className="exporter-preview-pane">
+          <div aria-busy={previewStatus === "loading" || previewStatus === "refreshing"} className="exporter-preview-stage">
+            {previewUrl ? (
+              <iframe
+                className="exporter-preview-frame"
+                src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                title="PDF preview"
+              />
+            ) : null}
+            {previewStatus === "loading" ? (
+              <div className="exporter-preview-state" role="status">
+                <span aria-hidden="true" className="exporter-spinner" />
+                <strong>Rendering preview</strong>
+                <span>Preparing the selected documents.</span>
+              </div>
+            ) : null}
+            {previewStatus === "empty" ? (
+              <div className="exporter-preview-state">
+                <PreviewDocumentIcon />
+                <strong>Your PDF will appear here</strong>
+                <span>Choose one or more documents in the sidebar to begin.</span>
+              </div>
+            ) : null}
+            {previewStatus === "error" ? (
+              <div className={previewUrl ? "exporter-preview-alert" : "exporter-preview-state"} role="alert">
+                <strong>Preview unavailable</strong>
+                <span>{previewError}</span>
+                <button className="exporter-text-button" onClick={() => setPreviewRetry((value) => value + 1)} type="button">Try again</button>
+              </div>
+            ) : null}
+          </div>
+          {previewFailedCount > 0 && previewStatus === "ready" ? (
+            <p className="exporter-preview-warning" role="status">
+              {previewFailedCount} {previewFailedCount === 1 ? "document could" : "documents could"} not be read and {previewFailedCount === 1 ? "is" : "are"} shown as an error notice.
+            </p>
+          ) : null}
+        </section>
 
-      <nav aria-label="Exporter sections" className="exporter-tabs" role="tablist">
-        {tabs.map((tab) => (
-          <button
-            aria-controls={`exporter-panel-${tab.id}`}
-            aria-selected={activeTab === tab.id}
-            className="exporter-tab"
-            id={`exporter-tab-${tab.id}`}
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            onKeyDown={tabKeyDown}
-            role="tab"
-            tabIndex={activeTab === tab.id ? 0 : -1}
-            type="button"
-          >
-            {tab.label}
-            {tab.id === "order" ? <span className="exporter-tab-count">{selectedIds.length}</span> : null}
-          </button>
-        ))}
-      </nav>
+        <aside aria-label="PDF settings" className="exporter-inspector">
+          <nav aria-label="Exporter settings" className="exporter-tabs" role="tablist">
+            {tabs.map((tab) => (
+              <button
+                aria-controls={`exporter-panel-${tab.id}`}
+                aria-selected={activeTab === tab.id}
+                className="exporter-tab"
+                id={`exporter-tab-${tab.id}`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                onKeyDown={tabKeyDown}
+                role="tab"
+                tabIndex={activeTab === tab.id ? 0 : -1}
+                type="button"
+              >
+                {tab.label}
+                {tab.id === "order" ? <span className="exporter-tab-count">{selectedIds.length}</span> : null}
+              </button>
+            ))}
+          </nav>
 
-      <div className="exporter-workspace">
-        <section aria-labelledby="exporter-tab-documents" className="exporter-tab-panel" hidden={activeTab !== "documents"} id="exporter-panel-documents" role="tabpanel">
+          <div className="exporter-workspace">
+            <section aria-labelledby="exporter-tab-documents" className="exporter-tab-panel" hidden={activeTab !== "documents"} id="exporter-panel-documents" role="tabpanel">
           <div className="exporter-panel-intro">
             <div>
               <h2>Choose documents</h2>
@@ -392,9 +496,9 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
               );
             }) : <p className="exporter-item exporter-muted">No installed extension contributes exportable content.</p>}
           </div>
-        </section>
+            </section>
 
-        <section aria-labelledby="exporter-tab-order" className="exporter-tab-panel" hidden={activeTab !== "order"} id="exporter-panel-order" role="tabpanel">
+            <section aria-labelledby="exporter-tab-order" className="exporter-tab-panel" hidden={activeTab !== "order"} id="exporter-panel-order" role="tabpanel">
           <div className="exporter-panel-intro">
             <div>
               <h2>Arrange document order</h2>
@@ -462,9 +566,9 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
             </div>
           )}
           <p aria-live="polite" className="exporter-visually-hidden">{orderAnnouncement}</p>
-        </section>
+            </section>
 
-        <section aria-labelledby="exporter-tab-appearance" className="exporter-tab-panel" hidden={activeTab !== "appearance"} id="exporter-panel-appearance" role="tabpanel">
+            <section aria-labelledby="exporter-tab-appearance" className="exporter-tab-panel" hidden={activeTab !== "appearance"} id="exporter-panel-appearance" role="tabpanel">
           <div className="exporter-panel-intro">
             <div>
               <h2>Style the PDF</h2>
@@ -472,16 +576,18 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
             </div>
           </div>
           <StyleSettings disabled={!canEditSettings} onChange={(next) => void saveTheme(next)} theme={theme} />
-        </section>
-      </div>
+            </section>
+          </div>
 
-      {error ? <p className="exporter-message exporter-error" role="alert">{error}</p> : null}
-      {notice ? <p className="exporter-message exporter-success" role="status">{notice}</p> : null}
-      <div className="exporter-actions">
-        <span className="exporter-muted">{selectedIds.length} {selectedIds.length === 1 ? "document" : "documents"}</span>
-        <button aria-busy={working} className="exporter-button" disabled={loading || working || selectedIds.length === 0} onClick={() => void exportPdf()} type="button">
-          {working ? "Exporting…" : "Export PDF"}
-        </button>
+          {error ? <p className="exporter-message exporter-error" role="alert">{error}</p> : null}
+          {notice ? <p className="exporter-message exporter-success" role="status">{notice}</p> : null}
+          <div className="exporter-actions">
+            <span className="exporter-muted">{selectedIds.length} {selectedIds.length === 1 ? "document" : "documents"}</span>
+            <button aria-busy={working} className="exporter-button" disabled={loading || working || selectedIds.length === 0} onClick={() => void exportPdf()} type="button">
+              {working ? "Exporting…" : "Export PDF"}
+            </button>
+          </div>
+        </aside>
       </div>
     </main>
   );

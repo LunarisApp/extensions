@@ -22,16 +22,16 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 5870035,
+    "bytes": 5875086,
     "resource": "text/javascript",
-    "sha256": "a5869dc3c01b7c01da65b655e87ae3ace373a2f4923ce197c07ecdfbabef00b8",
+    "sha256": "cdaaa1f5f90ed6ff645f4205dfa5e81d732d1d1822eed0f33d091c3e46f7f529",
     "url": "./main.js"
   },
   "status": "active",
   "style": {
-    "bytes": 11421,
+    "bytes": 17739,
     "resource": "text/css",
-    "sha256": "da2ce30dbbdcb75b5be0ac587ff8682edb385fdeb3d1ea1cbc25b466e904681f",
+    "sha256": "33b8216e1457ff3dce17c897e06ee3107e839807131e9b300ed4c56db5b379ed",
     "url": "./styles.css"
   }
 }
