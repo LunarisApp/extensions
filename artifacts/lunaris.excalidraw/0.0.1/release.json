@@ -1,19 +1,22 @@
 {
-  "api": "^0.8.0",
+  "api": "^0.9.0",
   "icon": {
-    "bytes": 18265,
+    "bytes": 14181,
     "resource": "image/png",
-    "sha256": "581b7d7ecdc537b4748ea93dae4382bbb4c8ffe5084eb9ad5e771141f42ca51b",
+    "sha256": "40f955dbeb4125982753cf96be436b79a19741ecfe2e774bef2d613c4e38d068",
     "url": "./icon.png"
   },
   "manifest": {
-    "api": "^0.8.0",
+    "api": "^0.9.0",
     "conflicts": {},
     "dependencies": {},
     "description": "Collaborative drawing with Excalidraw",
     "developer": "Lunaris",
     "id": "lunaris.excalidraw",
     "name": "Excalidraw",
+    "optionalDependencies": {
+      "lunaris.exporter": "^0.0.1"
+    },
     "permissions": [
       "content.read",
       "content.write"
@@ -23,12 +26,12 @@
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
     "kind": "iframe",
-    "protocol": 5
+    "protocol": 6
   },
   "script": {
-    "bytes": 8026451,
+    "bytes": 8116424,
     "resource": "text/javascript",
-    "sha256": "a9b6061d25f228f4b8e12ae126ec0edc5ce36c5678884e5a9ab2da5c9a1c2f46",
+    "sha256": "4c65f0b40dc1d5f072468e4a055ac1b083416fdb7e00da804239c9e39009b040",
     "url": "./main.js"
   },
   "status": "active",

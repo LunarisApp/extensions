@@ -54,7 +54,7 @@ function descriptor(version: string) {
       version,
     },
     repository: "https://github.com/example/extensions",
-    runtime: { kind: "iframe", protocol: 5 },
+    runtime: { kind: "iframe", protocol: 6 },
     status: "active",
   };
 }

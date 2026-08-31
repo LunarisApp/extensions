@@ -3,7 +3,8 @@
   "name": "Mini Apps",
   "developer": "Lunaris",
   "version": "0.0.1",
-  "api": "^0.8.0",
+  "api": "^0.9.0",
+  "optionalDependencies": {},
   "description": "Run interactive, self-contained HTML apps in your project",
   "permissions": ["content.read", "files.read", "files.write"]
 }

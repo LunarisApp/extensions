@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 import type { PluginResource } from "@lunarisapp/plugin-sdk";
 import {
   applyAccountAction,
-  buildDossierCompileContent,
   CONTENT_TYPE_ID,
   createOperationEntry,
   customerDossierSchema,
@@ -110,15 +109,6 @@ describe("customer dossier helpers", () => {
   test("validates the existing version-1 logical payload", () => {
     expect(customerDossierSchema.safeParse(DEFAULT_DOSSIER).success).toBe(true);
     expect(customerDossierSchema.safeParse({ ...DEFAULT_DOSSIER, risks: "high" }).success).toBe(false);
-  });
-
-  test("compiles the persisted sample into portable sections", () => {
-    const compiled = buildDossierCompileContent(DEFAULT_DOSSIER);
-    expect(compiled.title).toBe("Alder & Finch Labs — Customer dossier");
-    expect(compiled.sections.some((section) => section.type === "key-value")).toBe(false);
-    expect(compiled.sections.some((section) => section.type === "group")).toBe(true);
-    expect(compiled.sections.filter((section) => section.type === "table")).toHaveLength(1);
-    expect(compiled.sections.filter((section) => section.type === "list")).toHaveLength(2);
   });
 
   test("normalizes malformed persisted dossier fields", () => {

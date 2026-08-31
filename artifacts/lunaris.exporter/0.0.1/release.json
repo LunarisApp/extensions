@@ -4,14 +4,14 @@
     "api": "^0.9.0",
     "conflicts": {},
     "dependencies": {},
-    "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
+    "description": "Export project content to PDF",
     "developer": "Lunaris",
-    "id": "lunaris.demo",
-    "name": "Demo",
+    "id": "lunaris.exporter",
+    "name": "Exporter",
     "optionalDependencies": {},
     "permissions": [
       "content.read",
-      "content.write"
+      "downloads.write"
     ],
     "version": "0.0.1"
   },
@@ -21,16 +21,16 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 432494,
+    "bytes": 3690635,
     "resource": "text/javascript",
-    "sha256": "13045e326b7e3727ce0a8403d5765ec242e532dd6527e1315440188a3a6ebcce",
+    "sha256": "2a4bca3768de5d6c71021a02526924906736a732747706fe950b579b791deb52",
     "url": "./main.js"
   },
   "status": "active",
   "style": {
-    "bytes": 19292,
+    "bytes": 913,
     "resource": "text/css",
-    "sha256": "ccaa7b7e4a41f0e3384cc9543c28f95120332f8fc47a627d73cdd07af8691413",
+    "sha256": "50cf3700aa927578e8647cdb11a0487582907c452b1fd7ca74afb4ec27056dbe",
     "url": "./styles.css"
   }
 }

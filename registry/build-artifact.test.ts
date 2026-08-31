@@ -18,7 +18,7 @@ async function fixture() {
     path.join(dist, "manifest.json"),
     `${JSON.stringify(
       {
-        api: "^0.8.0",
+        api: "^0.9.0",
         description: "A test extension",
         developer: "Test Publisher",
         id: "test.extension",
@@ -92,7 +92,7 @@ describe("build-artifact", () => {
       url: "./main.js",
     });
     expect(descriptor.style.url).toBe("./styles.css");
-    expect(descriptor.api).toBe("^0.8.0");
+    expect(descriptor.api).toBe("^0.9.0");
     expect(descriptor.runtime).toEqual({
       kind: "iframe",
       protocol: PLUGIN_SANDBOX_PROTOCOL_VERSION,
