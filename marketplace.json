@@ -3,7 +3,7 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-08-31T18:33:16.561Z",
+  "generatedAt": "2026-08-31T19:08:15.601Z",
   "extensions": [
     {
       "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
@@ -87,7 +87,7 @@
     {
       "description": "Run interactive, self-contained HTML apps in your project",
       "developer": "Lunaris",
-      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/a9b67c1f2fd7c36b691e200bb63f33096ce94506/artifacts/lunaris.mini-app/0.0.1/icon.png",
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/d1fc8f99416ce37782ff170167f452dac064842d/artifacts/lunaris.mini-app/0.0.1/icon.png",
       "id": "lunaris.mini-app",
       "latestVersion": "0.0.1",
       "name": "Mini Apps",
@@ -97,8 +97,8 @@
           "api": "^0.9.0",
           "descriptor": {
             "bytes": 1083,
-            "sha256": "f7c34a0440b917ea7805b839adbbf603916f7772d4e7601f811feebceba10647",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/a9b67c1f2fd7c36b691e200bb63f33096ce94506/artifacts/lunaris.mini-app/0.0.1/release.json"
+            "sha256": "d2d81eee73bb8155b6ed6eca2c9e4ec3fced2cb9e53658770fe694cc9d365fdb",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/d1fc8f99416ce37782ff170167f452dac064842d/artifacts/lunaris.mini-app/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
