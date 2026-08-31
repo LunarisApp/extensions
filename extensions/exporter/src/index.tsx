@@ -92,6 +92,21 @@ function SelectionCheckbox({
   return <input aria-label={label} checked={checked} disabled={disabled} id={id} onChange={onChange} ref={ref} type="checkbox" />;
 }
 
+function ActionIcon({ name }: { name: "down" | "open" | "remove" | "up" }) {
+  if (name === "open") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 20 20">
+        <path d="M8 5H5.75A1.75 1.75 0 0 0 4 6.75v7.5C4 15.22 4.78 16 5.75 16h7.5A1.75 1.75 0 0 0 15 14.25V12M11 4h5v5M16 4l-7 7" />
+      </svg>
+    );
+  }
+  if (name === "remove") {
+    return <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8" /></svg>;
+  }
+  const path = name === "up" ? "m6 11 4-4 4 4" : "m6 9 4 4 4-4";
+  return <svg aria-hidden="true" viewBox="0 0 20 20"><path d={path} /></svg>;
+}
+
 function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   const { project } = useCurrentProject();
   const resources = useProjectResourcesMap();
@@ -204,21 +219,18 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
     <main className="exporter-root">
       <header className="exporter-header">
         <div>
-          <h1>Exporter</h1>
-          <p className="exporter-muted">Choose, order, and style project content for one PDF.</p>
+          <h1>Export PDF</h1>
+          <p className="exporter-muted">Build one PDF from project documents.</p>
         </div>
         {!canWriteContent ? <span className="exporter-badge">Read only</span> : null}
       </header>
 
       <section aria-labelledby="exporter-sources-title" className="exporter-section">
         <div className="exporter-section-header">
-          <div>
-            <h2 id="exporter-sources-title">Sources</h2>
-            <p className="exporter-muted">Folders follow project hierarchy. Folder checkboxes include all supported documents below them.</p>
-          </div>
+          <h2 id="exporter-sources-title">Documents</h2>
           <div className="exporter-inline-actions">
             <button className="exporter-text-button" disabled={!canWriteContent || allSelected} onClick={() => void saveSelection(defaultOrder)} type="button">Select all</button>
-            <button className="exporter-text-button" disabled={!canWriteContent || selectedIds.length === 0} onClick={() => void saveSelection([])} type="button">Deselect all</button>
+            <button className="exporter-text-button" disabled={!canWriteContent || selectedIds.length === 0} onClick={() => void saveSelection([])} type="button">Clear</button>
           </div>
         </div>
         <div className="exporter-list">
@@ -262,14 +274,13 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
       </section>
 
       {selectedResources.length > 0 ? (
-        <section aria-labelledby="exporter-order-title" className="exporter-section">
-          <div className="exporter-section-header">
-            <div>
-              <h2 id="exporter-order-title">PDF order</h2>
-              <p className="exporter-muted">Each source starts on a new page.</p>
-            </div>
-            <span className="exporter-count">{selectedResources.length}</span>
-          </div>
+        <details className="exporter-panel">
+          <summary className="exporter-panel-summary">
+            <span>
+              <strong>Document order</strong>
+              <small>{selectedResources.length} selected</small>
+            </span>
+          </summary>
           <ol className="exporter-order-list">
             {selectedResources.map((resource, index) => (
               <li key={resource.resourceId}>
@@ -281,15 +292,15 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
                     resourceTypeId: resource.resourceTypeId,
                     schemaVersion: resource.schemaVersion,
                     title: resource.name || "Untitled",
-                  })} title="Open source" type="button">↗</button>
-                  <button aria-label={`Move ${resource.name || "Untitled"} up`} className="exporter-icon-button" disabled={!canWriteContent || index === 0} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, -1))} title="Move up" type="button">↑</button>
-                  <button aria-label={`Move ${resource.name || "Untitled"} down`} className="exporter-icon-button" disabled={!canWriteContent || index === selectedResources.length - 1} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, 1))} title="Move down" type="button">↓</button>
-                  <button aria-label={`Remove ${resource.name || "Untitled"}`} className="exporter-icon-button" disabled={!canWriteContent} onClick={() => void saveSelection(selectedIds.filter((id) => id !== resource.resourceId))} title="Remove" type="button">×</button>
+                  })} title="Open source" type="button"><ActionIcon name="open" /></button>
+                  <button aria-label={`Move ${resource.name || "Untitled"} up`} className="exporter-icon-button" disabled={!canWriteContent || index === 0} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, -1))} title="Move up" type="button"><ActionIcon name="up" /></button>
+                  <button aria-label={`Move ${resource.name || "Untitled"} down`} className="exporter-icon-button" disabled={!canWriteContent || index === selectedResources.length - 1} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, 1))} title="Move down" type="button"><ActionIcon name="down" /></button>
+                  <button aria-label={`Remove ${resource.name || "Untitled"}`} className="exporter-icon-button" disabled={!canWriteContent} onClick={() => void saveSelection(selectedIds.filter((id) => id !== resource.resourceId))} title="Remove" type="button"><ActionIcon name="remove" /></button>
                 </div>
               </li>
             ))}
           </ol>
-        </section>
+        </details>
       ) : null}
 
       <StyleSettings disabled={!canWriteContent} onChange={(next) => void saveTheme(next)} theme={theme} />

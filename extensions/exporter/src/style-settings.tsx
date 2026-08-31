@@ -35,7 +35,7 @@ export function StyleSettings({ disabled, onChange, theme }: StyleSettingsProps)
     <details className="exporter-panel">
       <summary className="exporter-panel-summary">
         <span>
-          <strong>Style settings</strong>
+          <strong>Appearance</strong>
           <small>{preset === "custom" ? "Custom" : `${preset[0]?.toUpperCase()}${preset.slice(1)}`}</small>
         </span>
       </summary>
