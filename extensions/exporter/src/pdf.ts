@@ -1,6 +1,7 @@
-import unifontDataUrl from "@fontsource/unifont/files/unifont-latin-400-normal.woff2?inline";
+import unifontDataUrl from "@fontsource/unifont/files/unifont-latin-400-normal.woff?inline";
 import fontkit from "@pdf-lib/fontkit";
 import {
+  degrees,
   PDFDocument,
   rgb,
   type Color,
@@ -46,6 +47,24 @@ function toColor(value: string, fallback: string): Color {
     Number.parseInt(normalized.slice(3, 5), 16) / 255,
     Number.parseInt(normalized.slice(5, 7), 16) / 255,
   );
+}
+
+function relativeLuminance(value: string): number | null {
+  if (!/^#[0-9a-f]{6}$/i.test(value)) return null;
+  const channels = [1, 3, 5].map((offset) => {
+    const channel = Number.parseInt(value.slice(offset, offset + 2), 16) / 255;
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * (channels[0] ?? 0) + 0.7152 * (channels[1] ?? 0) + 0.0722 * (channels[2] ?? 0);
+}
+
+export function readableTextColor(value: string | undefined, fallback: string): string {
+  for (const candidate of [value, fallback, DEFAULT_PDF_THEME.colors.text]) {
+    if (!candidate) continue;
+    const luminance = relativeLuminance(candidate);
+    if (luminance !== null && 1.05 / (luminance + 0.05) >= 4.5) return candidate;
+  }
+  return DEFAULT_PDF_THEME.colors.text;
 }
 
 function wrapRuns(values: ExportText[], font: PDFFont, size: number, maximumWidth: number): TextRun[][] {
@@ -102,6 +121,9 @@ export async function renderPdf(
   const theme = mergePdfTheme(configuredTheme);
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
+  // fontkit can parse Unifont's WOFF2 source, but the resulting embedded font
+  // has invisible outlines in Quartz and Poppler. The WOFF build subsets into
+  // a valid PDF font across both renderers.
   const regular = await pdf.embedFont(decodeDataUrl(unifontDataUrl), { subset: true });
   const bold = regular;
   const mono = regular;
@@ -129,6 +151,7 @@ export async function renderPdf(
           marginTop: legacyMargin,
         };
     page = pdf.addPage(size);
+    page.setRotation(degrees(0));
     [width, height] = size;
     y = height - margins.marginTop;
   };
@@ -159,9 +182,12 @@ export async function renderPdf(
       let x = margins.marginLeft + indent;
       for (const run of line) {
         const runWidth = font.widthOfTextAtSize(run.text, size);
+        const fallbackColor = run.marks?.link
+          ? theme.colors.link
+          : options.color ?? theme.colors.text;
         const color = toColor(
-          run.marks?.color ?? (run.marks?.link ? theme.colors.link : options.color ?? theme.colors.text),
-          theme.colors.text,
+          readableTextColor(run.marks?.color, fallbackColor),
+          DEFAULT_PDF_THEME.colors.text,
         );
         if (run.marks?.code && run.text.trim()) {
           page.drawRectangle({
@@ -214,7 +240,7 @@ export async function renderPdf(
         y: y - rowHeight,
       });
       page.drawText(line.map((run) => run.text).join(""), {
-        color: toColor(theme.colors.text, DEFAULT_PDF_THEME.colors.text),
+        color: toColor(readableTextColor(theme.colors.text, DEFAULT_PDF_THEME.colors.text), DEFAULT_PDF_THEME.colors.text),
         font: mono,
         size,
         x: margins.marginLeft + indent + padding,
@@ -243,7 +269,7 @@ export async function renderPdf(
         page.drawRectangle({ borderColor, borderWidth: 0.7, height: rowHeight, width: columnWidth, x, y: y - rowHeight });
         for (const [lineIndex, line] of (wrapped[column] ?? []).entries()) {
           page.drawText(line.map((run) => run.text).join(""), {
-            color: toColor(theme.colors.text, DEFAULT_PDF_THEME.colors.text),
+            color: toColor(readableTextColor(theme.colors.text, DEFAULT_PDF_THEME.colors.text), DEFAULT_PDF_THEME.colors.text),
             font: regular,
             size,
             x: x + padding,
@@ -305,7 +331,7 @@ export async function renderPdf(
             const markerY = y;
             await drawBlocks(document, item.blocks, indent + theme.spacing.listIndent);
             markerPage.drawText(marker, {
-              color: toColor(theme.colors.text, DEFAULT_PDF_THEME.colors.text),
+              color: toColor(readableTextColor(theme.colors.text, DEFAULT_PDF_THEME.colors.text), DEFAULT_PDF_THEME.colors.text),
               font: regular,
               size: theme.fontSize.body,
               x: margins.marginLeft + indent,
@@ -373,7 +399,7 @@ export async function renderPdf(
       const label = `${index + 1} / ${pages.length}`;
       const size = 9;
       numberedPage.drawText(label, {
-        color: toColor(theme.colors.text, DEFAULT_PDF_THEME.colors.text),
+        color: toColor(readableTextColor(theme.colors.text, DEFAULT_PDF_THEME.colors.text), DEFAULT_PDF_THEME.colors.text),
         font: regular,
         size,
         x: (pageWidth - regular.widthOfTextAtSize(label, size)) / 2,

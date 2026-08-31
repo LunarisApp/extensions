@@ -32,14 +32,8 @@ export function StyleSettings({ disabled, onChange, theme }: StyleSettingsProps)
   };
 
   return (
-    <details className="exporter-panel">
-      <summary className="exporter-panel-summary">
-        <span>
-          <strong>Appearance</strong>
-          <small>{preset === "custom" ? "Custom" : `${preset[0]?.toUpperCase()}${preset.slice(1)}`}</small>
-        </span>
-      </summary>
-      <fieldset className="exporter-settings" disabled={disabled}>
+    <fieldset aria-label="PDF appearance" className="exporter-settings" disabled={disabled}>
+      <div className="exporter-settings-toolbar">
         <Setting label="Preset">
           <select aria-label="Preset" onChange={(event) => setPreset(event.target.value)} value={preset}>
             <option value="default">Default</option>
@@ -48,7 +42,12 @@ export function StyleSettings({ disabled, onChange, theme }: StyleSettingsProps)
             <option disabled value="custom">Custom</option>
           </select>
         </Setting>
+        <button className="exporter-button exporter-button-secondary" onClick={() => onChange(structuredClone(PDF_THEME_PRESETS.default))} type="button">
+          Reset style
+        </button>
+      </div>
 
+      <div className="exporter-settings-groups">
         <div className="exporter-settings-group">
           <h3>Page</h3>
           <div className="exporter-settings-grid">
@@ -119,11 +118,8 @@ export function StyleSettings({ disabled, onChange, theme }: StyleSettingsProps)
             <ColorSetting label="Table borders" onChange={(value) => updateObject("colors", "tableBorder", value)} value={theme.colors.tableBorder} />
           </div>
         </div>
-        <button className="exporter-button exporter-button-secondary" onClick={() => onChange(structuredClone(PDF_THEME_PRESETS.default))} type="button">
-          Reset style
-        </button>
-      </fieldset>
-    </details>
+      </div>
+    </fieldset>
   );
 }
 

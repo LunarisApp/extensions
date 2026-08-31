@@ -123,3 +123,20 @@ export function moveSelectedId(selectedIds: string[], resourceId: string, offset
   [next[index], next[nextIndex]] = [target, current];
   return next;
 }
+
+export function reorderSelectedId(
+  selectedIds: string[],
+  resourceId: string,
+  targetId: string,
+  placement: "after" | "before",
+): string[] {
+  const sourceIndex = selectedIds.indexOf(resourceId);
+  const targetIndex = selectedIds.indexOf(targetId);
+  if (sourceIndex < 0 || targetIndex < 0 || resourceId === targetId) return selectedIds;
+
+  const next = selectedIds.filter((id) => id !== resourceId);
+  const remainingTargetIndex = next.indexOf(targetId);
+  const insertionIndex = remainingTargetIndex + (placement === "after" ? 1 : 0);
+  next.splice(insertionIndex, 0, resourceId);
+  return next;
+}

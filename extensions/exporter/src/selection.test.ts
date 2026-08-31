@@ -9,6 +9,7 @@ import {
   moveSelectedId,
   normalizeSelectedIds,
   orderedDocumentIds,
+  reorderSelectedId,
   toggleSelectedIds,
 } from "./selection";
 
@@ -85,5 +86,11 @@ describe("exporter selection", () => {
     );
 
     expect(orderedDocumentIds(items)).toEqual(["board"]);
+  });
+
+  it("reorders a selected document around a drop target", () => {
+    expect(reorderSelectedId(["a", "b", "c", "d"], "a", "c", "after")).toEqual(["b", "c", "a", "d"]);
+    expect(reorderSelectedId(["a", "b", "c", "d"], "d", "b", "before")).toEqual(["a", "d", "b", "c"]);
+    expect(reorderSelectedId(["a", "b"], "a", "a", "before")).toEqual(["a", "b"]);
   });
 });

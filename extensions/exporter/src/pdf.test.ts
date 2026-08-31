@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
-import { renderPdf } from "./pdf";
+import { readableTextColor, renderPdf } from "./pdf";
 import { DEFAULT_PDF_THEME } from "./theme";
 
 describe("generic PDF renderer", () => {
@@ -49,5 +49,20 @@ describe("generic PDF renderer", () => {
 
     expect(document.getPageCount()).toBe(2);
     expect(document.getPage(0).getSize()).toEqual({ height: 612, width: 792 });
+    expect(document.getPages().every((page) => page.getRotation().angle === 0)).toBe(true);
+  }, 15_000);
+
+  it("replaces low-contrast rich-text colors on white pages", async () => {
+    const data = await renderPdf([{
+      blocks: [{ children: [{ marks: { color: "#ffffff" }, text: "Visible text" }], type: "paragraph" }],
+      title: "Contrast",
+      version: 1,
+    }], {
+      ...DEFAULT_PDF_THEME,
+      colors: { ...DEFAULT_PDF_THEME.colors, heading: "#ffffff", text: "#ffffff" },
+    });
+    expect(data.byteLength).toBeGreaterThan(500);
+    expect(readableTextColor("#ffffff", "#ffffff")).toBe(DEFAULT_PDF_THEME.colors.text);
+    expect(readableTextColor("#767676", "#ffffff")).toBe("#767676");
   }, 15_000);
 });
