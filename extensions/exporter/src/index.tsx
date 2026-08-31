@@ -15,7 +15,7 @@ import {
   useWorkspaceAccess,
   useWorkspaceNavigation,
 } from "@lunarisapp/plugin-sdk";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import * as z from "zod";
 import manifest from "../manifest.json";
 import {
@@ -92,6 +92,29 @@ function SelectionCheckbox({
   return <input aria-label={label} checked={checked} disabled={disabled} id={id} onChange={onChange} ref={ref} type="checkbox" />;
 }
 
+function ActionIcon({ name }: { name: "down" | "open" | "remove" | "up" }) {
+  if (name === "open") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 20 20">
+        <path d="M8 5H5.75A1.75 1.75 0 0 0 4 6.75v7.5C4 15.22 4.78 16 5.75 16h7.5A1.75 1.75 0 0 0 15 14.25V12M11 4h5v5M16 4l-7 7" />
+      </svg>
+    );
+  }
+  if (name === "remove") {
+    return <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m6 6 8 8M14 6l-8 8" /></svg>;
+  }
+  const path = name === "up" ? "m6 11 4-4 4 4" : "m6 9 4 4 4-4";
+  return <svg aria-hidden="true" viewBox="0 0 20 20"><path d={path} /></svg>;
+}
+
+function FolderIcon() {
+  return (
+    <svg aria-hidden="true" className="exporter-folder-icon" viewBox="0 0 20 20">
+      <path d="M2.75 6.75c0-.97.78-1.75 1.75-1.75h3l1.5 2h6.5c.97 0 1.75.78 1.75 1.75v5.5c0 .97-.78 1.75-1.75 1.75h-11c-.97 0-1.75-.78-1.75-1.75v-7.5Z" />
+    </svg>
+  );
+}
+
 function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   const { project } = useCurrentProject();
   const resources = useProjectResourcesMap();
@@ -135,27 +158,33 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
     return resource ? [resource] : [];
   });
   const theme = useMemo(() => mergePdfTheme(themeStorage.value), [themeStorage.value]);
+  const loading = selectedStorage.isLoading || themeStorage.isLoading;
+  const canEditSettings = canWriteContent && !loading && !working;
 
   const saveSelection = async (next: string[]) => {
+    if (!canEditSettings) return;
     setError(undefined);
+    setNotice(undefined);
     try {
       await selectedStorage.set(next);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Could not save selection");
+      setError(reason instanceof Error ? reason.message : "Could not save selection. Try again.");
     }
   };
 
   const saveTheme = async (next: PdfTheme) => {
+    if (!canEditSettings) return;
     setError(undefined);
+    setNotice(undefined);
     try {
       await themeStorage.set(next);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Could not save style settings");
+      setError(reason instanceof Error ? reason.message : "Could not save appearance settings. Try again.");
     }
   };
 
   const exportPdf = async () => {
-    if (working || selectedIds.length === 0) return;
+    if (loading || working || selectedIds.length === 0) return;
     setWorking(true);
     setError(undefined);
     setNotice(undefined);
@@ -191,53 +220,49 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
         ? `PDF saved. ${failedCount} ${failedCount === 1 ? "document was" : "documents were"} replaced with an error notice.`
         : "PDF saved.");
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Export failed");
+      setError(reason instanceof Error ? reason.message : "Export failed. Try again.");
     } finally {
       setWorking(false);
     }
   };
 
-  const loading = selectedStorage.isLoading || themeStorage.isLoading;
   const allSelected = defaultOrder.length > 0 && defaultOrder.every((id) => selectedSet.has(id));
 
   return (
     <main className="exporter-root">
       <header className="exporter-header">
         <div>
-          <h1>Exporter</h1>
-          <p className="exporter-muted">Choose, order, and style project content for one PDF.</p>
+          <h1>Export PDF</h1>
+          <p className="exporter-muted">Build one PDF from project documents.</p>
         </div>
         {!canWriteContent ? <span className="exporter-badge">Read only</span> : null}
       </header>
 
       <section aria-labelledby="exporter-sources-title" className="exporter-section">
         <div className="exporter-section-header">
-          <div>
-            <h2 id="exporter-sources-title">Sources</h2>
-            <p className="exporter-muted">Folders follow project hierarchy. Folder checkboxes include all supported documents below them.</p>
-          </div>
+          <h2 id="exporter-sources-title">Documents</h2>
           <div className="exporter-inline-actions">
-            <button className="exporter-text-button" disabled={!canWriteContent || allSelected} onClick={() => void saveSelection(defaultOrder)} type="button">Select all</button>
-            <button className="exporter-text-button" disabled={!canWriteContent || selectedIds.length === 0} onClick={() => void saveSelection([])} type="button">Deselect all</button>
+            <button className="exporter-text-button" disabled={!canEditSettings || allSelected} onClick={() => void saveSelection(defaultOrder)} type="button">Select all</button>
+            <button className="exporter-text-button" disabled={!canEditSettings || selectedIds.length === 0} onClick={() => void saveSelection([])} type="button">Clear</button>
           </div>
         </div>
-        <div className="exporter-list">
+        <div aria-busy={loading} className="exporter-list">
           {loading ? <p className="exporter-item exporter-muted">Loading settings…</p> : items.length ? items.map((item) => {
             if (item.type === "folder") {
               const selectedCount = item.documentIds.filter((id) => selectedSet.has(id)).length;
               const checkboxId = `exporter-folder-${item.id}`;
               return (
-                <label className="exporter-item exporter-folder" htmlFor={checkboxId} key={item.id} style={{ paddingLeft: `${item.depth * 18 + 12}px` }}>
+                <label className="exporter-item exporter-folder" htmlFor={checkboxId} key={item.id} style={{ "--exporter-depth": item.depth } as CSSProperties}>
                   <SelectionCheckbox
                     checked={selectedCount === item.documentIds.length}
-                    disabled={!canWriteContent}
+                    disabled={!canEditSettings}
                     indeterminate={selectedCount > 0 && selectedCount < item.documentIds.length}
                     id={checkboxId}
                     label={`Include folder ${item.name || "Untitled folder"}`}
                     onChange={() => void saveSelection(toggleSelectedIds(selectedIds, item.documentIds, defaultOrder))}
                   />
-                  <span aria-hidden="true">▸</span>
-                  <strong>{item.name || "Untitled folder"}</strong>
+                  <FolderIcon />
+                  <strong className="exporter-item-name">{item.name || "Untitled folder"}</strong>
                   <small>{item.documentIds.length} {item.documentIds.length === 1 ? "document" : "documents"}</small>
                 </label>
               );
@@ -245,10 +270,10 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
             const resourceId = item.resource.resourceId;
             const checkboxId = `exporter-document-${resourceId}`;
             return (
-              <label className="exporter-item" htmlFor={checkboxId} key={resourceId} style={{ paddingLeft: `${item.depth * 18 + 12}px` }}>
+              <label className="exporter-item" htmlFor={checkboxId} key={resourceId} style={{ "--exporter-depth": item.depth } as CSSProperties}>
                 <SelectionCheckbox
                   checked={selectedSet.has(resourceId)}
-                  disabled={!canWriteContent}
+                  disabled={!canEditSettings}
                   id={checkboxId}
                   label={`Include ${item.resource.name || "Untitled"}`}
                   onChange={() => void saveSelection(toggleSelectedIds(selectedIds, [resourceId], defaultOrder))}
@@ -261,44 +286,45 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
         </div>
       </section>
 
-      {selectedResources.length > 0 ? (
-        <section aria-labelledby="exporter-order-title" className="exporter-section">
-          <div className="exporter-section-header">
-            <div>
-              <h2 id="exporter-order-title">PDF order</h2>
-              <p className="exporter-muted">Each source starts on a new page.</p>
-            </div>
-            <span className="exporter-count">{selectedResources.length}</span>
-          </div>
-          <ol className="exporter-order-list">
-            {selectedResources.map((resource, index) => (
-              <li key={resource.resourceId}>
-                <span className="exporter-order-number">{index + 1}</span>
-                <span className="exporter-item-name">{resource.name || "Untitled"}</span>
-                <div className="exporter-order-actions">
-                  <button aria-label={`Open ${resource.name || "Untitled"}`} className="exporter-icon-button" onClick={() => openResource({
-                    resourceId: resource.resourceId,
-                    resourceTypeId: resource.resourceTypeId,
-                    schemaVersion: resource.schemaVersion,
-                    title: resource.name || "Untitled",
-                  })} title="Open source" type="button">↗</button>
-                  <button aria-label={`Move ${resource.name || "Untitled"} up`} className="exporter-icon-button" disabled={!canWriteContent || index === 0} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, -1))} title="Move up" type="button">↑</button>
-                  <button aria-label={`Move ${resource.name || "Untitled"} down`} className="exporter-icon-button" disabled={!canWriteContent || index === selectedResources.length - 1} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, 1))} title="Move down" type="button">↓</button>
-                  <button aria-label={`Remove ${resource.name || "Untitled"}`} className="exporter-icon-button" disabled={!canWriteContent} onClick={() => void saveSelection(selectedIds.filter((id) => id !== resource.resourceId))} title="Remove" type="button">×</button>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
+      <div className="exporter-options">
+        {selectedResources.length > 0 ? (
+          <details className="exporter-panel">
+            <summary className="exporter-panel-summary">
+              <span>
+                <strong>Document order</strong>
+                <small>{selectedResources.length} selected</small>
+              </span>
+            </summary>
+            <ol className="exporter-order-list" role="list">
+              {selectedResources.map((resource, index) => (
+                <li key={resource.resourceId}>
+                  <span aria-hidden="true" className="exporter-order-number">{index + 1}</span>
+                  <span className="exporter-item-name">{resource.name || "Untitled"}</span>
+                  <div className="exporter-order-actions">
+                    <button aria-label={`Open ${resource.name || "Untitled"}`} className="exporter-icon-button" onClick={() => openResource({
+                      resourceId: resource.resourceId,
+                      resourceTypeId: resource.resourceTypeId,
+                      schemaVersion: resource.schemaVersion,
+                      title: resource.name || "Untitled",
+                    })} title="Open source" type="button"><ActionIcon name="open" /></button>
+                    <button aria-label={`Move ${resource.name || "Untitled"} up`} className="exporter-icon-button" disabled={!canEditSettings || index === 0} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, -1))} title="Move up" type="button"><ActionIcon name="up" /></button>
+                    <button aria-label={`Move ${resource.name || "Untitled"} down`} className="exporter-icon-button" disabled={!canEditSettings || index === selectedResources.length - 1} onClick={() => void saveSelection(moveSelectedId(selectedIds, resource.resourceId, 1))} title="Move down" type="button"><ActionIcon name="down" /></button>
+                    <button aria-label={`Remove ${resource.name || "Untitled"}`} className="exporter-icon-button" disabled={!canEditSettings} onClick={() => void saveSelection(selectedIds.filter((id) => id !== resource.resourceId))} title="Remove" type="button"><ActionIcon name="remove" /></button>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </details>
+        ) : null}
 
-      <StyleSettings disabled={!canWriteContent} onChange={(next) => void saveTheme(next)} theme={theme} />
+        <StyleSettings disabled={!canEditSettings} onChange={(next) => void saveTheme(next)} theme={theme} />
+      </div>
 
       {error ? <p className="exporter-message exporter-error" role="alert">{error}</p> : null}
       {notice ? <p className="exporter-message exporter-success" role="status">{notice}</p> : null}
       <div className="exporter-actions">
         <span className="exporter-muted">{selectedIds.length} {selectedIds.length === 1 ? "document" : "documents"}</span>
-        <button className="exporter-button" disabled={working || selectedIds.length === 0} onClick={() => void exportPdf()} type="button">
+        <button aria-busy={working} className="exporter-button" disabled={loading || working || selectedIds.length === 0} onClick={() => void exportPdf()} type="button">
           {working ? "Exporting…" : "Export PDF"}
         </button>
       </div>
