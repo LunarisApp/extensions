@@ -22,9 +22,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 5876046,
+    "bytes": 5876077,
     "resource": "text/javascript",
-    "sha256": "07dcbc49dc4cf07af242caee23be3faf22c8746422eb2683cc233220be91012f",
+    "sha256": "983a9f729742bfea82c2d04aaee9c2a9bfc779bb4fa13a1f5f8034159e8abc68",
     "url": "./main.js"
   },
   "status": "active",
