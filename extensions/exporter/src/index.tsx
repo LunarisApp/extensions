@@ -107,6 +107,14 @@ function ActionIcon({ name }: { name: "down" | "open" | "remove" | "up" }) {
   return <svg aria-hidden="true" viewBox="0 0 20 20"><path d={path} /></svg>;
 }
 
+function FolderIcon() {
+  return (
+    <svg aria-hidden="true" className="exporter-folder-icon" viewBox="0 0 20 20">
+      <path d="M2.75 6.75c0-.97.78-1.75 1.75-1.75h3l1.5 2h6.5c.97 0 1.75.78 1.75 1.75v5.5c0 .97-.78 1.75-1.75 1.75h-11c-.97 0-1.75-.78-1.75-1.75v-7.5Z" />
+    </svg>
+  );
+}
+
 function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   const { project } = useCurrentProject();
   const resources = useProjectResourcesMap();
@@ -153,19 +161,21 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
 
   const saveSelection = async (next: string[]) => {
     setError(undefined);
+    setNotice(undefined);
     try {
       await selectedStorage.set(next);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Could not save selection");
+      setError(reason instanceof Error ? reason.message : "Could not save selection. Try again.");
     }
   };
 
   const saveTheme = async (next: PdfTheme) => {
     setError(undefined);
+    setNotice(undefined);
     try {
       await themeStorage.set(next);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Could not save style settings");
+      setError(reason instanceof Error ? reason.message : "Could not save appearance settings. Try again.");
     }
   };
 
@@ -206,7 +216,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
         ? `PDF saved. ${failedCount} ${failedCount === 1 ? "document was" : "documents were"} replaced with an error notice.`
         : "PDF saved.");
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Export failed");
+      setError(reason instanceof Error ? reason.message : "Export failed. Try again.");
     } finally {
       setWorking(false);
     }
@@ -233,7 +243,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
             <button className="exporter-text-button" disabled={!canWriteContent || selectedIds.length === 0} onClick={() => void saveSelection([])} type="button">Clear</button>
           </div>
         </div>
-        <div className="exporter-list">
+        <div aria-busy={loading} className="exporter-list">
           {loading ? <p className="exporter-item exporter-muted">Loading settings…</p> : items.length ? items.map((item) => {
             if (item.type === "folder") {
               const selectedCount = item.documentIds.filter((id) => selectedSet.has(id)).length;
@@ -248,7 +258,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
                     label={`Include folder ${item.name || "Untitled folder"}`}
                     onChange={() => void saveSelection(toggleSelectedIds(selectedIds, item.documentIds, defaultOrder))}
                   />
-                  <span aria-hidden="true">▸</span>
+                  <FolderIcon />
                   <strong className="exporter-item-name">{item.name || "Untitled folder"}</strong>
                   <small>{item.documentIds.length} {item.documentIds.length === 1 ? "document" : "documents"}</small>
                 </label>
@@ -311,7 +321,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
       {notice ? <p className="exporter-message exporter-success" role="status">{notice}</p> : null}
       <div className="exporter-actions">
         <span className="exporter-muted">{selectedIds.length} {selectedIds.length === 1 ? "document" : "documents"}</span>
-        <button className="exporter-button" disabled={working || selectedIds.length === 0} onClick={() => void exportPdf()} type="button">
+        <button aria-busy={working} className="exporter-button" disabled={working || selectedIds.length === 0} onClick={() => void exportPdf()} type="button">
           {working ? "Exporting…" : "Export PDF"}
         </button>
       </div>
