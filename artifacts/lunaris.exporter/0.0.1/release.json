@@ -4,7 +4,7 @@
     "api": "^0.9.0",
     "conflicts": {},
     "dependencies": {},
-    "description": "Export project content to PDF",
+    "description": "Choose, order, and style project content for PDF",
     "developer": "Lunaris",
     "id": "lunaris.exporter",
     "name": "Exporter",
@@ -22,16 +22,16 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 3689322,
+    "bytes": 3707535,
     "resource": "text/javascript",
-    "sha256": "05ac06daf313b55a65730930cd557d40606c686238d71412e0237b1f2dbfc33a",
+    "sha256": "d39e402313c573b1fe86620c388e0a53c2e27ecbf850a72320853514e64c9e64",
     "url": "./main.js"
   },
   "status": "active",
   "style": {
-    "bytes": 913,
+    "bytes": 5503,
     "resource": "text/css",
-    "sha256": "50cf3700aa927578e8647cdb11a0487582907c452b1fd7ca74afb4ec27056dbe",
+    "sha256": "8ca6283619e09c84b6f50cf64a62003a28fb6cba2901c95b0291682414b89bf8",
     "url": "./styles.css"
   }
 }
