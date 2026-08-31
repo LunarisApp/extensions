@@ -3,7 +3,7 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-08-31T11:42:28.557Z",
+  "generatedAt": "2026-08-31T12:19:38.503Z",
   "extensions": [
     {
       "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
@@ -61,7 +61,7 @@
       ]
     },
     {
-      "description": "Export project content to PDF",
+      "description": "Choose, order, and style project content for PDF",
       "developer": "Lunaris",
       "id": "lunaris.exporter",
       "latestVersion": "0.0.1",
@@ -71,9 +71,9 @@
         {
           "api": "^0.9.0",
           "descriptor": {
-            "bytes": 890,
-            "sha256": "88d2ebca0662b532bc8f1033a27743080586c6e23bc77d039b013ab357e26da4",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/2190ab9794d1c3a683fd08a4d3cb3af065d40c1f/artifacts/lunaris.exporter/0.0.1/release.json"
+            "bytes": 910,
+            "sha256": "2d867c6b190405cbbb76f06e69170ee15468bc50ca551ae52ff59ec871f85882",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/499e3a311adaada68858eed19f0a401cecbf60a7/artifacts/lunaris.exporter/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",

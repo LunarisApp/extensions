@@ -1,7 +1,7 @@
 {
   "id": "lunaris.exporter",
   "name": "Exporter",
-  "description": "Export project content to PDF",
+  "description": "Choose, order, and style project content for PDF",
   "developer": "Lunaris",
   "version": "0.0.1",
   "api": "^0.9.0",
