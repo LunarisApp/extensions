@@ -5,13 +5,13 @@
 	"type": "module",
 	"scripts": {
 		"build": "bunx --bun vite build",
-		"test": "vitest run",
+		"test": "bunx --bun vitest run",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@excalidraw/excalidraw": "^0.18.1",
 		"@lunarisapp/exporter": "^0.0.1",
-		"@lunarisapp/plugin-sdk": "^0.9.0",
+		"@lunarisapp/plugin-sdk": "^0.9.1",
 		"react": "^19.2.8",
 		"y-excalidraw": "^2.0.12",
 		"y-protocols": "^1.0.7",
