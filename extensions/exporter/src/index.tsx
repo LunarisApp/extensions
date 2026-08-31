@@ -627,6 +627,7 @@ export default definePlugin({
           </ViewReady>
         );
       },
+      rendererSandbox: "local-srcdoc",
       storageRequirements: { state: "key-value" },
       target: { kind: "resource", resourceTypeIds: [EXPORTER_EXTENSION_ID] },
       viewId: EXPORTER_EXTENSION_ID,
