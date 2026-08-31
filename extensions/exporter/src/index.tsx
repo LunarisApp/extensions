@@ -15,6 +15,7 @@ import {
   useWorkspaceAccess,
   useWorkspaceNavigation,
 } from "@lunarisapp/plugin-sdk";
+import { Pdf02Icon } from "@lunarisapp/ui/icons";
 import {
   useCallback,
   useEffect,
@@ -600,7 +601,7 @@ export default definePlugin({
     contributions.resourceType({
       defaultViewId: EXPORTER_EXTENSION_ID,
       hierarchy: { userCreatable: true, visible: true },
-      icon: exporterIcon,
+      icon: Pdf02Icon,
       name: "Exporter",
       resourceTypeId: EXPORTER_EXTENSION_ID,
       schema: {
