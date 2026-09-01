@@ -3,7 +3,7 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-09-01T08:23:34.540Z",
+  "generatedAt": "2026-09-01T21:14:23.779Z",
   "extensions": [
     {
       "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
@@ -11,7 +11,7 @@
       "id": "lunaris.demo",
       "latestVersion": "0.0.1",
       "name": "Demo",
-      "repository": "https://github.com/LunarisApp/extensions",
+      "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/demo",
       "screenshots": [
         {
           "alt": "Demo customer dossier in Lunaris",
@@ -42,7 +42,7 @@
       "id": "lunaris.excalidraw",
       "latestVersion": "0.0.1",
       "name": "Excalidraw",
-      "repository": "https://github.com/LunarisApp/extensions",
+      "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/excalidraw",
       "screenshots": [
         {
           "alt": "Excalidraw drawing canvas in Lunaris",
@@ -72,7 +72,7 @@
       "id": "lunaris.exporter",
       "latestVersion": "0.0.1",
       "name": "Exporter",
-      "repository": "https://github.com/LunarisApp/extensions",
+      "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/exporter",
       "versions": [
         {
           "api": "^0.9.0",
@@ -97,7 +97,7 @@
       "id": "lunaris.mini-app",
       "latestVersion": "0.0.1",
       "name": "Mini Apps",
-      "repository": "https://github.com/LunarisApp/extensions",
+      "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/mini-app",
       "versions": [
         {
           "api": "^0.9.0",
