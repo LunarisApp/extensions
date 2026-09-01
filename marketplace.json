@@ -12,6 +12,12 @@
       "latestVersion": "0.0.1",
       "name": "Demo",
       "repository": "https://github.com/LunarisApp/extensions",
+      "screenshots": [
+        {
+          "alt": "Demo customer dossier in Lunaris",
+          "url": "https://raw.githubusercontent.com/LunarisApp/extensions/main/extensions/demo/screenshot.png"
+        }
+      ],
       "versions": [
         {
           "api": "^0.9.0",
