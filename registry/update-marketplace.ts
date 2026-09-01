@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
+import type { Dirent } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -115,6 +116,40 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
   return fragments;
 }
 
+async function readCuratedSourceRoots(): Promise<Map<string, string>> {
+  const sourceRoots = new Map<string, string>();
+  const extensionsDirectory = path.join(root, "extensions");
+  let entries: Dirent[];
+  try {
+    entries = await readdir(extensionsDirectory, {
+      withFileTypes: true,
+    });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    return sourceRoots;
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const sourceRoot = `extensions/${entry.name}`;
+    const manifest = parseExtensionManifest(
+      JSON.parse(
+        await readFile(path.join(root, sourceRoot, "manifest.json"), "utf8"),
+      ),
+    );
+    if (sourceRoots.has(manifest.id)) {
+      throw new Error(`Duplicate curated extension ID: ${manifest.id}`);
+    }
+    sourceRoots.set(manifest.id, sourceRoot);
+  }
+  return sourceRoots;
+}
+
+function sourceRepository(repository: string, sourceRoot?: string): string {
+  if (!sourceRoot) return repository;
+  const encodedRoot = sourceRoot.split("/").map(encodeURIComponent).join("/");
+  return `${repository.replace(/\/$/, "")}/tree/main/${encodedRoot}`;
+}
+
 const marketplace = JSON.parse(await readFile(marketplacePath, "utf8")) as {
   enabled: boolean;
   generatedAt: string;
@@ -134,6 +169,7 @@ const marketplace = JSON.parse(await readFile(marketplacePath, "utf8")) as {
 };
 let changed = false;
 const policy = await readRegistryPolicy(root);
+const curatedSourceRoots = await readCuratedSourceRoots();
 const blockedVersions = new Set(policy.blockedVersions);
 if (marketplace.enabled !== policy.enabled) {
   marketplace.enabled = policy.enabled;
@@ -153,6 +189,10 @@ for (const fragment of await readFragments()) {
     status: "active" | "blocked";
   };
   const manifest = parseExtensionManifest(descriptor.manifest);
+  const repository = sourceRepository(
+    descriptor.repository,
+    curatedSourceRoots.get(manifest.id),
+  );
   const releaseKey = `${manifest.id}@${manifest.version}`;
   const version = {
     api: descriptor.api,
@@ -180,7 +220,7 @@ for (const fragment of await readFragments()) {
       id: manifest.id,
       latestVersion: manifest.version,
       name: manifest.name,
-      repository: descriptor.repository,
+      repository,
       versions: [],
     };
     marketplace.extensions.push(entry);
@@ -211,7 +251,7 @@ for (const fragment of await readFragments()) {
       description: manifest.description,
       developer: manifest.developer,
       name: manifest.name,
-      repository: descriptor.repository,
+      repository,
     };
     for (const [key, value] of Object.entries(metadata)) {
       if (entry[key] === value) continue;

@@ -169,6 +169,26 @@ describe("update-marketplace", () => {
     expect(unchanged.generatedAt).toBe(generatedAt);
   });
 
+  it("links curated extensions to their source folders", async () => {
+    const { fragments, root } = await fixture();
+    const sourceRoot = path.join(root, "extensions/test-source");
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "manifest.json"),
+      `${JSON.stringify(descriptor("1.0.0").manifest, null, 2)}\n`,
+    );
+    await writeFragment(fragments, "1.0.0");
+
+    await update(root, fragments);
+
+    const marketplace = JSON.parse(
+      await readFile(path.join(root, "marketplace.json"), "utf8"),
+    );
+    expect(marketplace.extensions[0].repository).toBe(
+      "https://github.com/example/extensions/tree/main/extensions/test-source",
+    );
+  });
+
   it("rejects policy entries for unpublished artifacts", async () => {
     const { fragments, root } = await fixture(["missing.extension@1.0.0"]);
     await writeFragment(fragments, "1.0.0");
