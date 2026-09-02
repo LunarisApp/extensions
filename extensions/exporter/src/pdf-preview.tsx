@@ -18,8 +18,10 @@ function createPageCanvas(
   const canvas = window.document.createElement("canvas");
   canvas.className = "exporter-preview-page";
   canvas.dataset.pageNumber = String(pageNumber);
+  canvas.height = 1;
   canvas.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
   canvas.style.width = `${viewport.width}px`;
+  canvas.width = 1;
   const container = window.document.createElement("div");
   container.className = "exporter-preview-page-container";
   container.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
@@ -48,6 +50,7 @@ export function PdfPreview({
     let document: PDFDocumentProxy | undefined;
     let loadingTask: PDFDocumentLoadingTask | undefined;
     let observer: IntersectionObserver | undefined;
+    let renderQueue = Promise.resolve();
     const renderTasks = new Set<RenderTask>();
     const renderedPages = new Set<number>();
 
@@ -134,9 +137,11 @@ export function PdfPreview({
           const canvas = entry.target.querySelector<HTMLCanvasElement>("canvas");
           const pageNumber = Number(canvas?.dataset.pageNumber);
           if (!canvas || !Number.isInteger(pageNumber)) continue;
-          void renderPage(pageNumber, canvas).catch((reason) => {
-            if (!cancelled) onErrorRef.current(reason);
-          });
+          renderQueue = renderQueue
+            .then(() => renderPage(pageNumber, canvas))
+            .catch((reason) => {
+              if (!cancelled) onErrorRef.current(reason);
+            });
         }
       }, { root: container.current, rootMargin: PRELOAD_MARGIN });
       for (const canvas of canvases.slice(1)) observer.observe(canvas.parentElement!);
