@@ -13,6 +13,12 @@
     "description": "Run interactive, self-contained HTML apps in your project",
     "developer": "Lunaris",
     "id": "lunaris.mini-app",
+    "keywords": [
+      "HTML",
+      "apps",
+      "interactive",
+      "sandbox"
+    ],
     "name": "Mini Apps",
     "optionalDependencies": {},
     "permissions": [
@@ -20,7 +26,8 @@
       "files.read",
       "files.write"
     ],
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "website": "https://lunaris.app"
   },
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
@@ -28,9 +35,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 397260,
+    "bytes": 398697,
     "resource": "text/javascript",
-    "sha256": "0ea474d8b6d0b441091b77824c9fe03bb2b1a5dbae7128b546af1ebfc86cfa93",
+    "sha256": "dbd145699b02608a69fecaa447deb96da4ad2a8cfa2e6ea4382f82da181e883d",
     "url": "./main.js"
   },
   "status": "active",

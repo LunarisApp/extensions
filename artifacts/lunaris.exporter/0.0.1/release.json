@@ -7,6 +7,12 @@
     "description": "Choose, order, and style project content for PDF",
     "developer": "Lunaris",
     "id": "lunaris.exporter",
+    "keywords": [
+      "PDF",
+      "export",
+      "documents",
+      "printing"
+    ],
     "name": "Exporter",
     "optionalDependencies": {},
     "permissions": [
@@ -14,7 +20,8 @@
       "content.write",
       "downloads.write"
     ],
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "website": "https://lunaris.app"
   },
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
@@ -22,9 +29,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 5876077,
+    "bytes": 5877542,
     "resource": "text/javascript",
-    "sha256": "983a9f729742bfea82c2d04aaee9c2a9bfc779bb4fa13a1f5f8034159e8abc68",
+    "sha256": "f3592a8d7f210006228046b92b75c8d2a31fe267b11a14db1549714cb9489fe2",
     "url": "./main.js"
   },
   "status": "active",

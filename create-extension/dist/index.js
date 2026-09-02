@@ -36,6 +36,7 @@ Options:
   --name <name>                Display name (default: title-cased slug)
   --developer <developer>      Developer or organization (default: Your Name)
   --description <description>  Extension description
+  --website <website>          Extension or developer HTTPS website
   -h, --help                   Show help
   -v, --version                Show version
 
@@ -45,7 +46,7 @@ Example:
 function parseArgs(args) {
   const options = { help: false, version: false };
   const positionals = [];
-  const valueOptions = new Set(["--description", "--developer", "--id", "--name"]);
+  const valueOptions = new Set(["--description", "--developer", "--id", "--name", "--website"]);
   for (let index = 0;index < args.length; index += 1) {
     const argument = args[index];
     if (!argument)
@@ -109,7 +110,25 @@ function resolveExtensionOptions(options) {
   const description = options.description?.trim() || `${name} extension for Lunaris`;
   if (!name || !developer || !description)
     throw new Error("Extension metadata must not be empty");
-  return { description, developer, directory, id, name, slug };
+  const website = options.website?.trim();
+  if (website) {
+    try {
+      if (new URL(website).protocol !== "https:")
+        throw new Error("not HTTPS");
+    } catch {
+      throw new Error("Extension website must be a valid HTTPS URL");
+    }
+  }
+  return {
+    description,
+    developer,
+    directory,
+    id,
+    keywords: slug.split("-").filter(Boolean).slice(0, 20),
+    name,
+    slug,
+    ...website ? { website } : {}
+  };
 }
 async function pathExists(path) {
   try {
@@ -167,6 +186,11 @@ async function scaffoldExtension(options, templateDirectory) {
   manifest.name = options.name;
   manifest.description = options.description;
   manifest.developer = options.developer;
+  manifest.keywords = options.keywords;
+  if (options.website)
+    manifest.website = options.website;
+  else
+    delete manifest.website;
   await writeJson(manifestPath, manifest);
   const packagePath = join2(options.directory, "package.json");
   const packageJson = await readJson(packagePath);

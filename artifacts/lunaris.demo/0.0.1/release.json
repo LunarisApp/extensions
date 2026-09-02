@@ -7,13 +7,21 @@
     "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
     "developer": "Lunaris",
     "id": "lunaris.demo",
+    "keywords": [
+      "demo",
+      "SaaS",
+      "operations",
+      "customers",
+      "dashboard"
+    ],
     "name": "Demo",
     "optionalDependencies": {},
     "permissions": [
       "content.read",
       "content.write"
     ],
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "website": "https://lunaris.app"
   },
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
@@ -21,9 +29,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 446133,
+    "bytes": 447599,
     "resource": "text/javascript",
-    "sha256": "060812c08ba94fcbf7b1878a798f1bbd046aba1e2f7fac0ba85c1e74472bf7c1",
+    "sha256": "ea6db7982a835e8260679a425e7ae5a361f5db532f81bc0435c4c2f69771be27",
     "url": "./main.js"
   },
   "status": "active",
