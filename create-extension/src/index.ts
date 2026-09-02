@@ -20,6 +20,7 @@ Options:
   --name <name>                Display name (default: title-cased slug)
   --developer <developer>      Developer or organization (default: Your Name)
   --description <description>  Extension description
+  --website <website>          Extension or developer HTTPS website
   -h, --help                   Show help
   -v, --version                Show version
 
@@ -35,6 +36,7 @@ interface CliOptions {
   id?: string;
   name?: string;
   version: boolean;
+  website?: string;
 }
 
 interface ExtensionOptions {
@@ -42,8 +44,10 @@ interface ExtensionOptions {
   developer: string;
   directory: string;
   id: string;
+  keywords: string[];
   name: string;
   slug: string;
+  website?: string;
 }
 
 type JsonObject = Record<string, unknown>;
@@ -51,7 +55,7 @@ type JsonObject = Record<string, unknown>;
 export function parseArgs(args: readonly string[]): CliOptions {
   const options: CliOptions = { help: false, version: false };
   const positionals: string[] = [];
-  const valueOptions = new Set(["--description", "--developer", "--id", "--name"]);
+  const valueOptions = new Set(["--description", "--developer", "--id", "--name", "--website"]);
 
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
@@ -79,7 +83,8 @@ export function parseArgs(args: readonly string[]): CliOptions {
         throw new Error(`${optionName} requires a value`);
       }
       if (inlineValue === undefined) index += 1;
-      options[optionName.slice(2) as "description" | "developer" | "id" | "name"] = value;
+      options[optionName.slice(2) as "description" | "developer" | "id" | "name" | "website"] =
+        value;
       continue;
     }
 
@@ -131,8 +136,25 @@ export function resolveExtensionOptions(options: CliOptions): ExtensionOptions {
   const developer = options.developer?.trim() || "Your Name";
   const description = options.description?.trim() || `${name} extension for Lunaris`;
   if (!name || !developer || !description) throw new Error("Extension metadata must not be empty");
+  const website = options.website?.trim();
+  if (website) {
+    try {
+      if (new URL(website).protocol !== "https:") throw new Error("not HTTPS");
+    } catch {
+      throw new Error("Extension website must be a valid HTTPS URL");
+    }
+  }
 
-  return { description, developer, directory, id, name, slug };
+  return {
+    description,
+    developer,
+    directory,
+    id,
+    keywords: slug.split("-").filter(Boolean).slice(0, 20),
+    name,
+    slug,
+    ...(website ? { website } : {}),
+  };
 }
 
 async function pathExists(path: string): Promise<boolean> {
@@ -199,6 +221,9 @@ export async function scaffoldExtension(
   manifest.name = options.name;
   manifest.description = options.description;
   manifest.developer = options.developer;
+  manifest.keywords = options.keywords;
+  if (options.website) manifest.website = options.website;
+  else delete manifest.website;
   await writeJson(manifestPath, manifest);
 
   const packagePath = join(options.directory, "package.json");

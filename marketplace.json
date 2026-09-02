@@ -8,7 +8,9 @@
     {
       "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
       "developer": "Lunaris",
+      "homepageUrl": "https://lunaris.app",
       "id": "lunaris.demo",
+      "keywords": ["demo", "SaaS", "operations", "customers", "dashboard"],
       "latestVersion": "0.0.1",
       "name": "Demo",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/demo",
@@ -38,8 +40,10 @@
     {
       "description": "Collaborative drawing with Excalidraw",
       "developer": "Lunaris",
+      "homepageUrl": "https://excalidraw.com",
       "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/00c1e7cef8ae5b77aeb14274e610818abc83f21c/artifacts/lunaris.excalidraw/0.0.1/icon.png",
       "id": "lunaris.excalidraw",
+      "keywords": ["drawing", "whiteboard", "diagrams", "collaboration"],
       "latestVersion": "0.0.1",
       "name": "Excalidraw",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/excalidraw",
@@ -69,7 +73,9 @@
     {
       "description": "Choose, order, and style project content for PDF",
       "developer": "Lunaris",
+      "homepageUrl": "https://lunaris.app",
       "id": "lunaris.exporter",
+      "keywords": ["PDF", "export", "documents", "printing"],
       "latestVersion": "0.0.1",
       "name": "Exporter",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/exporter",
@@ -93,8 +99,10 @@
     {
       "description": "Run interactive, self-contained HTML apps in your project",
       "developer": "Lunaris",
+      "homepageUrl": "https://lunaris.app",
       "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/26e0646fddd3cc94b816520b8328c1915f8356b2/artifacts/lunaris.mini-app/0.0.1/icon.png",
       "id": "lunaris.mini-app",
+      "keywords": ["HTML", "apps", "interactive", "sandbox"],
       "latestVersion": "0.0.1",
       "name": "Mini Apps",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/mini-app",

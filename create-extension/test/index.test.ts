@@ -23,7 +23,16 @@ afterEach(async () => {
 describe("parseArgs", () => {
   test("parses positional directory and metadata", () => {
     expect(
-      parseArgs(["notes", "--id=acme.notes", "--name", "Acme Notes", "--developer", "Acme"])
+      parseArgs([
+        "notes",
+        "--id=acme.notes",
+        "--name",
+        "Acme Notes",
+        "--developer",
+        "Acme",
+        "--website",
+        "https://acme.example/notes",
+      ])
     ).toEqual({
       developer: "Acme",
       directory: "notes",
@@ -31,6 +40,7 @@ describe("parseArgs", () => {
       id: "acme.notes",
       name: "Acme Notes",
       version: false,
+      website: "https://acme.example/notes",
     });
   });
 
@@ -45,12 +55,19 @@ describe("resolveExtensionOptions", () => {
     expect(options.id).toBe("my-cool-extension");
     expect(options.name).toBe("My Cool Extension");
     expect(options.description).toBe("My Cool Extension extension for Lunaris");
+    expect(options.keywords).toEqual(["my", "cool", "extension"]);
   });
 
   test("rejects invalid extension IDs", () => {
     expect(() => resolveExtensionOptions(parseArgs(["notes", "--id", "Bad_ID"]))).toThrow(
       "Extension ID must be"
     );
+  });
+
+  test("rejects non-HTTPS extension websites", () => {
+    expect(() =>
+      resolveExtensionOptions(parseArgs(["notes", "--website", "http://example.com"]))
+    ).toThrow("Extension website must be a valid HTTPS URL");
   });
 });
 
@@ -70,12 +87,14 @@ describe("scaffoldExtension", () => {
       api: "^0.9.0",
       developer: "Acme",
       id: "acme.notes",
+      keywords: ["acme", "notes"],
       name: "Acme Notes",
       permissions: [],
     });
     expect(manifest).not.toHaveProperty("sdk");
     expect(manifest).not.toHaveProperty("modifications");
     expect(manifest).not.toHaveProperty("contributions");
+    expect(manifest).not.toHaveProperty("website");
     expect(manifestText).toBe(`${JSON.stringify(manifest, null, 2)}\n`);
     const source = await readFile(join(target, "src/index.tsx"), "utf8");
     expect(source).toContain('viewId: "acme.notes"');

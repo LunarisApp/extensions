@@ -6,5 +6,7 @@
   "api": "^0.9.0",
   "optionalDependencies": {},
   "description": "Example externally loaded Lunaris extension",
+  "keywords": ["notes", "example"],
+  "website": "https://example.com",
   "permissions": []
 }

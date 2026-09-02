@@ -49,9 +49,11 @@ function descriptor(version: string) {
       description: `Release ${version}`,
       developer: "Test Publisher",
       id: "test.extension",
+      keywords: ["test", "extension"],
       name: "Test Extension",
       permissions: [],
       version,
+      website: "https://example.com/extensions/test",
     },
     repository: "https://github.com/example/extensions",
     runtime: { kind: "iframe", protocol: 6 },
@@ -148,6 +150,8 @@ describe("update-marketplace", () => {
     const entry = marketplace.extensions[0];
     expect(entry.latestVersion).toBe("1.0.0");
     expect(entry.description).toBe("Release 1.1.0");
+    expect(entry.homepageUrl).toBe("https://example.com/extensions/test");
+    expect(entry.keywords).toEqual(["test", "extension"]);
     expect(entry.iconUrl).toBe(
       "https://cdn.example/test.extension/1.1.0/icon.png",
     );

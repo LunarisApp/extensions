@@ -13,6 +13,12 @@
     "description": "Collaborative drawing with Excalidraw",
     "developer": "Lunaris",
     "id": "lunaris.excalidraw",
+    "keywords": [
+      "drawing",
+      "whiteboard",
+      "diagrams",
+      "collaboration"
+    ],
     "name": "Excalidraw",
     "optionalDependencies": {
       "lunaris.exporter": "^0.0.1"
@@ -21,7 +27,8 @@
       "content.read",
       "content.write"
     ],
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "website": "https://excalidraw.com"
   },
   "repository": "https://github.com/LunarisApp/extensions",
   "runtime": {
@@ -29,9 +36,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 8044523,
+    "bytes": 8045978,
     "resource": "text/javascript",
-    "sha256": "6c4aff45150b632522f6c41c6b906fb6ba1c27f966f01547bd3d2c31f4eed650",
+    "sha256": "18db3418ec026327af6bea4814faaef89c57e4fe4e91ea004e3642fbb306b258",
     "url": "./main.js"
   },
   "status": "active",

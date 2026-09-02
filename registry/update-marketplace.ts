@@ -214,10 +214,12 @@ for (const fragment of await readFragments()) {
     entry = {
       description: manifest.description,
       developer: manifest.developer,
+      ...(manifest.website ? { homepageUrl: manifest.website } : {}),
       ...(descriptor.icon
         ? { iconUrl: new URL(descriptor.icon.url, fragment.descriptorUrl).href }
         : {}),
       id: manifest.id,
+      ...(manifest.keywords ? { keywords: [...manifest.keywords] } : {}),
       latestVersion: manifest.version,
       name: manifest.name,
       repository,
@@ -250,11 +252,13 @@ for (const fragment of await readFragments()) {
     const metadata = {
       description: manifest.description,
       developer: manifest.developer,
+      ...(manifest.website ? { homepageUrl: manifest.website } : {}),
+      ...(manifest.keywords ? { keywords: [...manifest.keywords] } : {}),
       name: manifest.name,
       repository,
     };
     for (const [key, value] of Object.entries(metadata)) {
-      if (entry[key] === value) continue;
+      if (JSON.stringify(entry[key]) === JSON.stringify(value)) continue;
       entry[key] = value;
       changed = true;
     }
