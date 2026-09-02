@@ -40,7 +40,9 @@
 .exporter-layout { display: grid; flex: 1 1 auto; gap: var(--exporter-space-4); grid-template-columns: minmax(26rem, 1fr) minmax(22rem, 26rem); min-height: 0; }
 .exporter-preview-pane { display: flex; flex-direction: column; gap: var(--exporter-space-3); min-height: 0; min-width: 0; }
 .exporter-preview-stage { align-items: center; background: color-mix(in srgb, var(--foreground) 11%, var(--background)); border: 1px solid var(--border); border-radius: calc(var(--radius) + .2rem); display: flex; flex: 1 1 auto; justify-content: center; min-height: 0; overflow: hidden; position: relative; }
-.exporter-preview-frame { background: #525659; border: 0; height: 100%; inset: 0; min-height: 28rem; position: absolute; width: 100%; z-index: 0; }
+.exporter-preview-pages { align-items: center; background: #525659; display: flex; flex-direction: column; gap: var(--exporter-space-4); height: 100%; inset: 0; overflow: auto; padding: var(--exporter-space-4); position: absolute; width: 100%; z-index: 0; }
+.exporter-preview-page-container { background: white; box-shadow: 0 1px 5px rgb(0 0 0 / 35%); flex: 0 0 auto; line-height: 0; max-width: 100%; }
+.exporter-preview-page { height: auto; max-width: 100%; }
 .exporter-preview-state { align-items: center; color: var(--muted-foreground); display: flex; flex-direction: column; gap: var(--exporter-space-2); justify-content: center; max-width: 24rem; padding: var(--exporter-space-8); text-align: center; z-index: 1; }
 .exporter-preview-state strong { color: var(--foreground); font-size: .9rem; font-weight: 600; }
 .exporter-preview-state > span:not(.exporter-spinner) { font-size: .8rem; line-height: 1.5; }
@@ -180,7 +182,6 @@
 @container exporter (max-width: 38rem) {
   .exporter-preview-pane { flex-basis: 30rem; min-height: 30rem; }
   .exporter-preview-stage { min-height: 24rem; }
-  .exporter-preview-frame { min-height: 24rem; }
   .exporter-order-list li { display: grid; gap: var(--exporter-space-1) var(--exporter-space-2); grid-template-columns: auto auto minmax(0, 1fr) auto; padding-block: var(--exporter-space-2); }
   .exporter-order-actions { grid-column: 4; }
 }

@@ -8,13 +8,13 @@ describe("exporter manifest", () => {
     expect(manifest.permissions).toContain("content.write");
   });
 
-  it("opts into local embedded content for PDF previews", async () => {
+  it("keeps the default renderer sandbox for canvas PDF previews", async () => {
     const activation = await preparePluginActivation(plugin);
     try {
       const view = getViewContributions(activation).find(
         ({ viewId }) => viewId === manifest.id,
       );
-      expect(view?.rendererSandbox).toBe("local-srcdoc");
+      expect(view?.rendererSandbox).toBeUndefined();
     } finally {
       await activation.dispose();
     }

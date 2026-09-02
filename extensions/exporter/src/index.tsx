@@ -39,6 +39,7 @@ import {
 } from "./contract";
 import { exporterIcon } from "./icon";
 import { renderPdf } from "./pdf";
+import { PdfPreview } from "./pdf-preview";
 import {
   buildExportableItems,
   moveSelectedId,
@@ -171,9 +172,8 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   const [previewFailedCount, setPreviewFailedCount] = useState(0);
   const [previewRetry, setPreviewRetry] = useState(0);
   const [previewStatus, setPreviewStatus] = useState<PreviewStatus>("loading");
-  const [previewUrl, setPreviewUrl] = useState<string>();
+  const [previewData, setPreviewData] = useState<ArrayBuffer>();
   const previewRequestRef = useRef(0);
-  const previewUrlRef = useRef<string | undefined>(undefined);
 
   const byType = useMemo(
     () => new Map(representations.flatMap((entry) =>
@@ -256,32 +256,24 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   useEffect(() => {
     const request = ++previewRequestRef.current;
     if (loading) {
-      setPreviewStatus(previewUrlRef.current ? "refreshing" : "loading");
+      setPreviewStatus(previewData ? "refreshing" : "loading");
       return;
     }
     if (selectedIds.length === 0) {
-      const previousUrl = previewUrlRef.current;
-      previewUrlRef.current = undefined;
-      setPreviewUrl(undefined);
-      if (previousUrl) URL.revokeObjectURL(previousUrl);
+      setPreviewData(undefined);
       setPreviewError(undefined);
       setPreviewFailedCount(0);
       setPreviewStatus("empty");
       return;
     }
 
-    setPreviewStatus(previewUrlRef.current ? "refreshing" : "loading");
+    setPreviewStatus(previewData ? "refreshing" : "loading");
     setPreviewError(undefined);
     const timer = window.setTimeout(() => {
       void buildPdf().then(({ data, failedCount }) => {
         if (request !== previewRequestRef.current) return;
-        const nextUrl = URL.createObjectURL(new Blob([data], { type: "application/pdf" }));
-        const previousUrl = previewUrlRef.current;
-        previewUrlRef.current = nextUrl;
-        setPreviewUrl(nextUrl);
-        if (previousUrl) URL.revokeObjectURL(previousUrl);
+        setPreviewData(data);
         setPreviewFailedCount(failedCount);
-        setPreviewStatus("ready");
       }).catch((reason) => {
         if (request !== previewRequestRef.current) return;
         setPreviewError(reason instanceof Error ? reason.message : "The PDF preview could not be rendered.");
@@ -292,8 +284,10 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
     return () => window.clearTimeout(timer);
   }, [buildPdf, loading, previewRetry, selectedIds.length]);
 
-  useEffect(() => () => {
-    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+  const previewReady = useCallback(() => setPreviewStatus("ready"), []);
+  const previewRenderFailed = useCallback((reason: unknown) => {
+    setPreviewError(reason instanceof Error ? reason.message : "The PDF preview could not be rendered.");
+    setPreviewStatus("error");
   }, []);
 
   const exportPdf = async () => {
@@ -390,12 +384,8 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
       <div className="exporter-layout">
         <section aria-label="PDF preview" className="exporter-preview-pane">
           <div aria-busy={previewStatus === "loading" || previewStatus === "refreshing"} className="exporter-preview-stage">
-            {previewUrl ? (
-              <iframe
-                className="exporter-preview-frame"
-                src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                title="PDF preview"
-              />
+            {previewData ? (
+              <PdfPreview data={previewData} onError={previewRenderFailed} onReady={previewReady} />
             ) : null}
             {previewStatus === "loading" ? (
               <div className="exporter-preview-state" role="status">
@@ -412,7 +402,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
               </div>
             ) : null}
             {previewStatus === "error" ? (
-              <div className={previewUrl ? "exporter-preview-alert" : "exporter-preview-state"} role="alert">
+              <div className={previewData ? "exporter-preview-alert" : "exporter-preview-state"} role="alert">
                 <strong>Preview unavailable</strong>
                 <span>{previewError}</span>
                 <button className="exporter-text-button" onClick={() => setPreviewRetry((value) => value + 1)} type="button">Try again</button>
@@ -627,7 +617,6 @@ export default definePlugin({
           </ViewReady>
         );
       },
-      rendererSandbox: "local-srcdoc",
       storageRequirements: { state: "key-value" },
       target: { kind: "resource", resourceTypeIds: [EXPORTER_EXTENSION_ID] },
       viewId: EXPORTER_EXTENSION_ID,
