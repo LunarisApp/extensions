@@ -3,14 +3,20 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-09-01T21:14:23.779Z",
+  "generatedAt": "2026-09-02T06:07:14.595Z",
   "extensions": [
     {
       "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
       "developer": "Lunaris",
       "homepageUrl": "https://lunaris.app",
       "id": "lunaris.demo",
-      "keywords": ["demo", "SaaS", "operations", "customers", "dashboard"],
+      "keywords": [
+        "demo",
+        "SaaS",
+        "operations",
+        "customers",
+        "dashboard"
+      ],
       "latestVersion": "0.0.1",
       "name": "Demo",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/demo",
@@ -24,9 +30,9 @@
         {
           "api": "^0.9.0",
           "descriptor": {
-            "bytes": 912,
-            "sha256": "72785c8822b098ae68ca9fdc4372f1745b50ff28825c5118cf0b55f0151e7e15",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/26e0646fddd3cc94b816520b8328c1915f8356b2/artifacts/lunaris.demo/0.0.1/release.json"
+            "bytes": 1060,
+            "sha256": "b857ee02f6c3de0e21685e01d2f35fd79b8d04387f5aacef490236cb2547273c",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/0edfdaef8d8dadb923044ac3e872c2b928b9bf9c/artifacts/lunaris.demo/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
@@ -41,9 +47,14 @@
       "description": "Collaborative drawing with Excalidraw",
       "developer": "Lunaris",
       "homepageUrl": "https://excalidraw.com",
-      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/00c1e7cef8ae5b77aeb14274e610818abc83f21c/artifacts/lunaris.excalidraw/0.0.1/icon.png",
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/0edfdaef8d8dadb923044ac3e872c2b928b9bf9c/artifacts/lunaris.excalidraw/0.0.1/icon.png",
       "id": "lunaris.excalidraw",
-      "keywords": ["drawing", "whiteboard", "diagrams", "collaboration"],
+      "keywords": [
+        "drawing",
+        "whiteboard",
+        "diagrams",
+        "collaboration"
+      ],
       "latestVersion": "0.0.1",
       "name": "Excalidraw",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/excalidraw",
@@ -57,9 +68,9 @@
         {
           "api": "^0.9.0",
           "descriptor": {
-            "bytes": 1092,
-            "sha256": "2296bd1cb8dfdb5a80b83561cb37a308cf7531aaf6239fa1de45e69727aa79b9",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/00c1e7cef8ae5b77aeb14274e610818abc83f21c/artifacts/lunaris.excalidraw/0.0.1/release.json"
+            "bytes": 1235,
+            "sha256": "2751e81cf263fc48b4094b6645834464a1fa69b1128ec69a02131eae818663c7",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/0edfdaef8d8dadb923044ac3e872c2b928b9bf9c/artifacts/lunaris.excalidraw/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
@@ -75,7 +86,12 @@
       "developer": "Lunaris",
       "homepageUrl": "https://lunaris.app",
       "id": "lunaris.exporter",
-      "keywords": ["PDF", "export", "documents", "printing"],
+      "keywords": [
+        "PDF",
+        "export",
+        "documents",
+        "printing"
+      ],
       "latestVersion": "0.0.1",
       "name": "Exporter",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/exporter",
@@ -83,9 +99,9 @@
         {
           "api": "^0.9.0",
           "descriptor": {
-            "bytes": 911,
-            "sha256": "96915df93ac2b4b06c775de3c48cb21c329315621eb32195bca89eb3976fb749",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/7046027ee76f42d39453597079fb0f39d9fbec7a/artifacts/lunaris.exporter/0.0.1/release.json"
+            "bytes": 1039,
+            "sha256": "1ab789081be961378c71b7258bf6b048f7e907dff0136fe01e95511ed2640820",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/0edfdaef8d8dadb923044ac3e872c2b928b9bf9c/artifacts/lunaris.exporter/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
@@ -100,9 +116,14 @@
       "description": "Run interactive, self-contained HTML apps in your project",
       "developer": "Lunaris",
       "homepageUrl": "https://lunaris.app",
-      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/26e0646fddd3cc94b816520b8328c1915f8356b2/artifacts/lunaris.mini-app/0.0.1/icon.png",
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/0edfdaef8d8dadb923044ac3e872c2b928b9bf9c/artifacts/lunaris.mini-app/0.0.1/icon.png",
       "id": "lunaris.mini-app",
-      "keywords": ["HTML", "apps", "interactive", "sandbox"],
+      "keywords": [
+        "HTML",
+        "apps",
+        "interactive",
+        "sandbox"
+      ],
       "latestVersion": "0.0.1",
       "name": "Mini Apps",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/mini-app",
@@ -110,9 +131,9 @@
         {
           "api": "^0.9.0",
           "descriptor": {
-            "bytes": 1083,
-            "sha256": "f81d41c931226f5f927013b210719954a9b643f355785727c2014a357d4016ff",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/26e0646fddd3cc94b816520b8328c1915f8356b2/artifacts/lunaris.mini-app/0.0.1/release.json"
+            "bytes": 1211,
+            "sha256": "014b13ea7294c7586d2f2047591e0415cbe92a79b902a3abe48d8ea377a6c194",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/0edfdaef8d8dadb923044ac3e872c2b928b9bf9c/artifacts/lunaris.mini-app/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
