@@ -3,36 +3,30 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-09-03T06:38:50.523Z",
+  "generatedAt": "2026-09-03T08:10:57.702Z",
   "extensions": [
     {
-      "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
+      "description": "A generated project pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
       "developer": "Lunaris",
       "homepageUrl": "https://lunaris.app",
       "id": "lunaris.demo",
       "keywords": [
         "demo",
-        "SaaS",
-        "operations",
-        "customers",
-        "dashboard"
+        "dashboard",
+        "analytics",
+        "metrics",
+        "project"
       ],
       "latestVersion": "0.0.1",
-      "name": "Demo",
+      "name": "Northstar Pulse (Demo)",
       "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/demo",
-      "screenshots": [
-        {
-          "alt": "Demo customer dossier in Lunaris",
-          "url": "https://raw.githubusercontent.com/LunarisApp/extensions/main/extensions/demo/screenshot.webp"
-        }
-      ],
       "versions": [
         {
           "api": "^0.9.0",
           "descriptor": {
-            "bytes": 1233,
-            "sha256": "4bb498e2d6b07d697e9e8b722e944c249fae12f54cb6d23d935ce35db8e29661",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/52c0389ac022e8193ebcb7950b0ace817f6c7451/artifacts/lunaris.demo/0.0.1/release.json"
+            "bytes": 1251,
+            "sha256": "291409ecb8fa46a40e229355dbd18387de124031509326f4e2d226677a09e8d6",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/ddf5908e2b51fad47bff790c13ac3280168d08e0/artifacts/lunaris.demo/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
@@ -42,7 +36,7 @@
           "version": "0.0.1"
         }
       ],
-      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/52c0389ac022e8193ebcb7950b0ace817f6c7451/artifacts/lunaris.demo/0.0.1/icon.webp"
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/ddf5908e2b51fad47bff790c13ac3280168d08e0/artifacts/lunaris.demo/0.0.1/icon.webp"
     },
     {
       "description": "Collaborative drawing with Excalidraw",
