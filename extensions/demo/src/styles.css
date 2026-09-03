@@ -240,14 +240,13 @@ select {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.5;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
   vector-effect: non-scaling-stroke;
   animation: pulse-trace 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes pulse-trace {
-  from { stroke-dashoffset: 1; }
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
 }
 
 .pulse-chart-peak {

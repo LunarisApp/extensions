@@ -107,7 +107,7 @@ function ActivityChart({ snapshot }: { snapshot: PulseSnapshot }) {
             const gridY = plot.bottom - ratio * (plot.bottom - plot.top);
             return <line className="pulse-chart-grid" key={ratio} x1={plot.left} x2={plot.right} y1={gridY} y2={gridY} />;
           })}
-          <path className="pulse-chart-line" d={path} pathLength="1" />
+          <path className="pulse-chart-line" d={path} />
           {points.map((point) => (
             <g key={point.date}>
               {point.date === peak.date ? (
