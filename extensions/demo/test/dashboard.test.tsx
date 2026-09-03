@@ -13,6 +13,8 @@ describe("Northstar Pulse dashboard", () => {
     expect(markup).toContain("Overall progress");
     expect(markup).toContain("Active contributors");
     expect(markup).toContain("Completed tasks over seven days");
+    expect(markup).toContain("Weekly high");
+    expect(markup).toContain("blockers need a closer look");
     expect(markup).toContain("Work breakdown");
     expect(markup).toContain("At risk");
   });

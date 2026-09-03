@@ -90,7 +90,7 @@ components:
 
 Northstar Pulse is a host-native project instrument: compact, calm, and exact. It reads as one continuous ruled report rather than a collection of interchangeable dashboard cards. The Pulse Register structure, identified by seed `8d1308b2`, establishes a deliberate scan path from status to four headline measures, across a dominant seven-day activity line, and into the adjacent work breakdown.
 
-The system inherits the Lunaris theme and lets typography, tabular figures, and hairline rules carry the hierarchy. Synthetic-data language remains visible, status never relies on color alone, and the narrow layout preserves the same reading order by stacking instead of simplifying away information.
+The system inherits the Lunaris theme and lets typography, tabular figures, and hairline rules carry the hierarchy. Synthetic-data language remains visible, status never relies on color alone, and the narrow layout preserves the same reading order by stacking instead of simplifying away information. Delight comes from useful annotation: a status-specific pulse note and a double-ring weekly high make the frozen sample feel thoughtfully interpreted rather than merely plotted.
 
 **Key Characteristics:**
 
@@ -98,6 +98,7 @@ The system inherits the Lunaris theme and lets typography, tabular figures, and 
 - Dominant accessible seven-day line chart
 - Compact tabular measures and adjacent work breakdown
 - Restrained semantic status color
+- Data-derived status note and weekly-high annotation
 - Host-native theming with a narrow responsive stack
 
 ## Colors
@@ -178,6 +179,7 @@ Components feel like precise parts of one reporting instrument rather than indep
 
 - **Shape:** A compact outlined pill (`999px` radius, `27px` minimum height) with a `6px` circular dot.
 - **Color:** Text, outline, and dot share the appropriate semantic state color.
+- **Pulse note:** A concise data-derived sentence names the blocker or momentum condition directly beneath the mark.
 - **Accessibility:** The state is written explicitly as On track, At risk, or Off track; the dot is decorative.
 
 ### Metric Register
@@ -188,10 +190,12 @@ Components feel like precise parts of one reporting instrument rather than indep
 
 ### Activity Chart
 
-- **Structure:** A semantic SVG figure with a prominent seven-day line, four horizontal rules, hollow points, visible daily values, and date labels.
+- **Structure:** A semantic SVG figure with a prominent seven-day line, four horizontal rules, hollow points, visible daily values, date labels, and a double-ring weekly-high point.
+- **Readout:** The total is explicitly labeled “completed,” while the weekly-high value and date sit beside it as an interpretive annotation.
 - **Color:** Host graphite carries the line and points; muted text and hairline rules keep supporting marks subordinate.
+- **Motion:** On open, the line traces once in `640ms` with confident deceleration while all points and labels remain visible; reduced motion shows the completed line immediately.
 - **Accessibility:** The SVG has a title and generated description enumerating every date and completion value.
-- **Responsive behavior:** It remains the dominant visualization and becomes horizontally scrollable only in the narrowest panel.
+- **Responsive behavior:** It remains the dominant visualization; only the SVG drawing scrolls horizontally in the narrowest panel, keeping the chart heading and readout fixed and legible.
 
 ### Work Register
 

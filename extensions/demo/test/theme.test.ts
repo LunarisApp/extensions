@@ -14,5 +14,7 @@ describe("Northstar Pulse theme contract", () => {
     expect(styles).toContain("@media (max-width: 720px)");
     expect(styles).toContain("@media (max-width: 430px)");
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(styles).toContain("animation: pulse-trace 640ms cubic-bezier(0.16, 1, 0.3, 1) both");
+    expect(styles).toContain(".pulse-chart-line { animation: none; }");
   });
 });

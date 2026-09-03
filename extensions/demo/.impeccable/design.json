@@ -70,7 +70,8 @@
     },
     "shadows": [],
     "motion": [
-      { "name": "loading-spin", "value": "700ms linear infinite", "purpose": "Loading ring only; disabled when reduced motion is requested." }
+      { "name": "loading-spin", "value": "700ms linear infinite", "purpose": "Loading ring only; disabled when reduced motion is requested." },
+      { "name": "weekly-trace", "value": "640ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Trace the stored seven-day reading once on open; disabled when reduced motion is requested." }
     ],
     "breakpoints": [
       { "name": "stack", "value": "720px" },
@@ -82,9 +83,9 @@
       "name": "Status Mark",
       "kind": "chip",
       "refersTo": "status-at-risk",
-      "description": "An outlined dot-and-text mark that communicates project state without color alone.",
-      "html": "<span class=\"ds-status ds-status-at-risk\"><span aria-hidden=\"true\"></span>At risk</span>",
-      "css": ".ds-status{display:inline-flex;align-items:center;gap:7px;min-height:27px;padding:4px 9px;border:1px solid currentColor;border-radius:999px;font:650 .75rem/1 ui-sans-serif,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-status>span{width:6px;height:6px;border-radius:50%;background:currentColor}.ds-status-at-risk{color:color-mix(in srgb,#b86400 78%,var(--foreground,#1c1917))}"
+      "description": "An outlined dot-and-text mark paired with a concise data-derived pulse note.",
+      "html": "<div class=\"ds-status-readout\"><span class=\"ds-status ds-status-at-risk\"><span aria-hidden=\"true\"></span>At risk</span><strong>3 blockers need a closer look</strong></div>",
+      "css": ".ds-status-readout{display:grid;justify-items:end;gap:9px;color:var(--foreground,#1c1917);font:620 .75rem/1.35 ui-sans-serif,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-status{display:inline-flex;align-items:center;gap:7px;min-height:27px;padding:4px 9px;border:1px solid currentColor;border-radius:999px;font-weight:650;line-height:1}.ds-status>span{width:6px;height:6px;border-radius:50%;background:currentColor}.ds-status-at-risk{color:color-mix(in srgb,#b86400 78%,var(--foreground,#1c1917))}"
     },
     {
       "name": "Metric Register",
@@ -96,7 +97,7 @@
     {
       "name": "Seven-Day Activity Chart",
       "kind": "custom",
-      "description": "The dominant accessible visualization, with a semantic summary and every daily value shown.",
+      "description": "The dominant accessible visualization, with a labeled total, double-ring weekly high, semantic summary, and one purposeful trace on open.",
       "html": "<figure class=\"ds-chart\"><figcaption><span><strong>Task completions</strong><small>Daily output during this seven-day snapshot</small></span><b>34</b></figcaption><svg role=\"img\" aria-labelledby=\"ds-chart-title ds-chart-desc\" viewBox=\"0 0 420 150\"><title id=\"ds-chart-title\">Completed tasks over seven days</title><desc id=\"ds-chart-desc\">27 Aug: 2, 28 Aug: 5, 29 Aug: 3, 30 Aug: 6, 31 Aug: 4, 1 Sep: 7, 2 Sep: 7</desc><path class=\"ds-chart-grid\" d=\"M24 25H400M24 60H400M24 95H400M24 130H400\"/><path class=\"ds-chart-line\" d=\"M24 96L87 60L149 82L212 48L275 72L337 25L400 25\"/><g class=\"ds-chart-points\"><circle cx=\"24\" cy=\"96\" r=\"4\"/><circle cx=\"87\" cy=\"60\" r=\"4\"/><circle cx=\"149\" cy=\"82\" r=\"4\"/><circle cx=\"212\" cy=\"48\" r=\"4\"/><circle cx=\"275\" cy=\"72\" r=\"4\"/><circle cx=\"337\" cy=\"25\" r=\"4\"/><circle cx=\"400\" cy=\"25\" r=\"4\"/></g></svg></figure>",
       "css": ".ds-chart{margin:0;padding:24px 0 16px;color:var(--foreground,#1c1917);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-chart figcaption{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.ds-chart figcaption span{display:flex;flex-direction:column;gap:7px}.ds-chart figcaption strong{font-size:.875rem;font-weight:680}.ds-chart figcaption small{color:var(--muted-foreground,#6b6762);font-size:.78rem}.ds-chart figcaption b{font-size:1.35rem;font-variant-numeric:tabular-nums}.ds-chart svg{display:block;width:100%;height:auto;margin-top:15px}.ds-chart-grid{fill:none;stroke:var(--border,#dedbd7);stroke-width:1;vector-effect:non-scaling-stroke}.ds-chart-line{fill:none;stroke:var(--primary,#292524);stroke-linecap:round;stroke-linejoin:round;stroke-width:2.5;vector-effect:non-scaling-stroke}.ds-chart-points circle{fill:var(--background,#fff);stroke:var(--primary,#292524);stroke-width:2;vector-effect:non-scaling-stroke}"
     },
@@ -117,12 +118,13 @@
   ],
   "narrative": {
     "northStar": "The Pulse Register",
-    "overview": "Northstar Pulse is a host-native project instrument: compact, calm, and exact. It reads as one continuous ruled report rather than a collection of interchangeable dashboard cards. The Pulse Register structure, identified by seed 8d1308b2, establishes a deliberate scan path from status to four headline measures, across a dominant seven-day activity line, and into the adjacent work breakdown.\n\nThe system inherits the Lunaris theme and lets typography, tabular figures, and hairline rules carry the hierarchy. Synthetic-data language remains visible, status never relies on color alone, and the narrow layout preserves the same reading order by stacking instead of simplifying away information.",
+    "overview": "Northstar Pulse is a host-native project instrument: compact, calm, and exact. It reads as one continuous ruled report rather than a collection of interchangeable dashboard cards. The Pulse Register structure, identified by seed 8d1308b2, establishes a deliberate scan path from status to four headline measures, across a dominant seven-day activity line, and into the adjacent work breakdown.\n\nThe system inherits the Lunaris theme and lets typography, tabular figures, and hairline rules carry the hierarchy. Synthetic-data language remains visible, status never relies on color alone, and the narrow layout preserves the same reading order by stacking instead of simplifying away information. A data-derived pulse note and double-ring weekly high add useful personality, while the line traces once like an instrument completing its reading.",
     "keyCharacteristics": [
       "Continuous ruled report with no floating cards",
       "Dominant accessible seven-day line chart",
       "Compact tabular measures and adjacent work breakdown",
       "Restrained semantic status color",
+      "Data-derived status note and weekly-high annotation",
       "Host-native theming with a narrow responsive stack"
     ],
     "rules": [

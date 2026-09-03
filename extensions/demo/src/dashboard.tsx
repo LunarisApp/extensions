@@ -83,6 +83,9 @@ function ActivityChart({ snapshot }: { snapshot: PulseSnapshot }) {
   }));
   const path = points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`).join(" ");
   const summary = points.map((point) => `${formatDate(point.date)}: ${point.completedTasks}`).join(", ");
+  const peak = points.reduce((highest, point) =>
+    point.completedTasks > highest.completedTasks ? point : highest,
+  );
 
   return (
     <figure className="pulse-chart">
@@ -91,26 +94,49 @@ function ActivityChart({ snapshot }: { snapshot: PulseSnapshot }) {
           <h2>Task completions</h2>
           <p>Daily output during this seven-day snapshot</p>
         </div>
-        <strong>{snapshot.metrics.completedTasks}</strong>
+        <div className="pulse-chart-readout">
+          <strong>{snapshot.metrics.completedTasks}<span> completed</span></strong>
+          <span>Weekly high · {peak.completedTasks} on {formatDate(peak.date)}</span>
+        </div>
       </figcaption>
-      <svg aria-labelledby="pulse-chart-title pulse-chart-description" role="img" viewBox={`0 0 ${width} ${height}`}>
-        <title id="pulse-chart-title">Completed tasks over seven days</title>
-        <desc id="pulse-chart-description">{summary}</desc>
-        {[0, 0.33, 0.66, 1].map((ratio) => {
-          const gridY = plot.bottom - ratio * (plot.bottom - plot.top);
-          return <line className="pulse-chart-grid" key={ratio} x1={plot.left} x2={plot.right} y1={gridY} y2={gridY} />;
-        })}
-        <path className="pulse-chart-line" d={path} />
-        {points.map((point) => (
-          <g key={point.date}>
-            <circle className="pulse-chart-point" cx={point.x} cy={point.y} r="4" />
-            <text className="pulse-chart-value" textAnchor="middle" x={point.x} y={Math.max(14, point.y - 11)}>{point.completedTasks}</text>
-            <text className="pulse-chart-label" textAnchor="middle" x={point.x} y="220">{formatDate(point.date)}</text>
-          </g>
-        ))}
-      </svg>
+      <div className="pulse-chart-scroll">
+        <svg aria-labelledby="pulse-chart-title pulse-chart-description" role="img" viewBox={`0 0 ${width} ${height}`}>
+          <title id="pulse-chart-title">Completed tasks over seven days</title>
+          <desc id="pulse-chart-description">{summary}</desc>
+          {[0, 0.33, 0.66, 1].map((ratio) => {
+            const gridY = plot.bottom - ratio * (plot.bottom - plot.top);
+            return <line className="pulse-chart-grid" key={ratio} x1={plot.left} x2={plot.right} y1={gridY} y2={gridY} />;
+          })}
+          <path className="pulse-chart-line" d={path} pathLength="1" />
+          {points.map((point) => (
+            <g key={point.date}>
+              {point.date === peak.date ? (
+                <circle className="pulse-chart-peak" cx={point.x} cy={point.y} r="9" />
+              ) : null}
+              <circle className="pulse-chart-point" cx={point.x} cy={point.y} r="4" />
+              <text className="pulse-chart-value" textAnchor="middle" x={point.x} y={Math.max(14, point.y - 11)}>{point.completedTasks}</text>
+              <text className="pulse-chart-label" textAnchor="middle" x={point.x} y="220">{formatDate(point.date)}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
     </figure>
   );
+}
+
+function pulseNote(snapshot: PulseSnapshot) {
+  const blockers = snapshot.metrics.openBlockers;
+  if (snapshot.status === "off-track") {
+    return `${blockers} blockers are holding the week back`;
+  }
+  if (snapshot.status === "at-risk") {
+    return blockers >= 3
+      ? `${blockers} blockers need a closer look`
+      : `${snapshot.metrics.completionPercent}% complete, with momentum still building`;
+  }
+  return blockers === 0
+    ? `Clear runway across ${Object.values(snapshot.work).reduce((sum, value) => sum + value, 0)} tracked tasks`
+    : `${snapshot.metrics.completedTasks} tasks moved with ${blockers} blocker${blockers === 1 ? "" : "s"} open`;
 }
 
 const workLabels: Record<keyof PulseSnapshot["work"], string> = {
@@ -176,6 +202,7 @@ export function PulseDashboard({ snapshot }: { snapshot: PulseSnapshot }) {
             <span aria-hidden="true" />
             {statusLabels[snapshot.status]}
           </span>
+          <span className="pulse-status-note">{pulseNote(snapshot)}</span>
           <time dateTime={snapshot.generatedAt}>Generated {timestampFormatter.format(new Date(snapshot.generatedAt))} UTC</time>
         </div>
       </header>
