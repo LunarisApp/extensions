@@ -49,6 +49,30 @@ describe("Northstar Pulse generation", () => {
     expect(second).not.toEqual(first);
   });
 
+  test("rejects snapshots with contradictory derived values", () => {
+    const pulse = generatePulseSnapshot("2026-09-03T00:00:00.000Z", () => 0.5);
+    expect(pulseSnapshotSchema.safeParse({
+      ...pulse,
+      metrics: { ...pulse.metrics, completedTasks: pulse.metrics.completedTasks + 1 },
+    }).success).toBeFalse();
+    expect(pulseSnapshotSchema.safeParse({
+      ...pulse,
+      status: "on-track",
+    }).success).toBeFalse();
+  });
+
+  test("rejects invalid or unordered reporting dates", () => {
+    const pulse = generatePulseSnapshot("2026-09-03T00:00:00.000Z", () => 0.5);
+    const invalidDate = pulse.trend.map((point, index) =>
+      index === 2 ? { ...point, date: "2026-02-31" } : point,
+    );
+    const duplicateDate = pulse.trend.map((point, index) =>
+      index === 2 ? { ...point, date: pulse.trend[1]?.date } : point,
+    );
+    expect(pulseSnapshotSchema.safeParse({ ...pulse, trend: invalidDate }).success).toBeFalse();
+    expect(pulseSnapshotSchema.safeParse({ ...pulse, trend: duplicateDate }).success).toBeFalse();
+  });
+
   test("rejects an invalid creation timestamp", () => {
     expect(() => generatePulseSnapshot("not-a-date", () => 0.5)).toThrow(
       "Northstar Pulse requires a valid creation timestamp",

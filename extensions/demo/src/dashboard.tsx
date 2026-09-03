@@ -12,6 +12,7 @@ import {
   type ResourceViewProps,
   useKeyValue,
 } from "@lunarisapp/plugin-sdk";
+import { useId } from "react";
 import { PULSE_STORAGE_KEY, pulseSnapshotSchema, type PulseSnapshot, type PulseStatus } from "./domain";
 
 const statusLabels: Record<PulseStatus, string> = {
@@ -70,6 +71,9 @@ function PulseState({
 }
 
 function ActivityChart({ snapshot }: { snapshot: PulseSnapshot }) {
+  const chartId = useId();
+  const titleId = `${chartId}-title`;
+  const descriptionId = `${chartId}-description`;
   const width = 720;
   const height = 236;
   const plot = { bottom: 190, left: 42, right: 694, top: 22 };
@@ -100,9 +104,9 @@ function ActivityChart({ snapshot }: { snapshot: PulseSnapshot }) {
         </div>
       </figcaption>
       <div className="pulse-chart-scroll">
-        <svg aria-labelledby="pulse-chart-title pulse-chart-description" role="img" viewBox={`0 0 ${width} ${height}`}>
-          <title id="pulse-chart-title">Completed tasks over seven days</title>
-          <desc id="pulse-chart-description">{summary}</desc>
+        <svg aria-labelledby={`${titleId} ${descriptionId}`} role="img" viewBox={`0 0 ${width} ${height}`}>
+          <title id={titleId}>Completed tasks over seven days</title>
+          <desc id={descriptionId}>{summary}</desc>
           {[0, 0.33, 0.66, 1].map((ratio) => {
             const gridY = plot.bottom - ratio * (plot.bottom - plot.top);
             return <line className="pulse-chart-grid" key={ratio} x1={plot.left} x2={plot.right} y1={gridY} y2={gridY} />;
@@ -147,6 +151,7 @@ const workLabels: Record<keyof PulseSnapshot["work"], string> = {
 };
 
 function WorkBreakdown({ work }: { work: PulseSnapshot["work"] }) {
+  const headingId = useId();
   const entries = (Object.entries(work) as Array<[keyof typeof work, number]>).sort(
     ([left], [right]) => ["completed", "inProgress", "notStarted", "blocked"].indexOf(left)
       - ["completed", "inProgress", "notStarted", "blocked"].indexOf(right),
@@ -154,10 +159,10 @@ function WorkBreakdown({ work }: { work: PulseSnapshot["work"] }) {
   const total = entries.reduce((sum, [, value]) => sum + value, 0);
 
   return (
-    <section aria-labelledby="pulse-work-heading" className="pulse-work">
+    <section aria-labelledby={headingId} className="pulse-work">
       <header>
         <div>
-          <h2 id="pulse-work-heading">Work breakdown</h2>
+          <h2 id={headingId}>Work breakdown</h2>
           <p>{total} tracked tasks</p>
         </div>
       </header>

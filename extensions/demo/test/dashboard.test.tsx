@@ -19,6 +19,18 @@ describe("Northstar Pulse dashboard", () => {
     expect(markup).toContain("At risk");
   });
 
+  test("uses unique accessible chart labels for multiple resources", () => {
+    const markup = renderToStaticMarkup(<><PulseDashboard snapshot={snapshot} /><PulseDashboard snapshot={snapshot} /></>);
+    const titleIds = [...markup.matchAll(/<title id="([^"]+)"/g)].map((match) => match[1]);
+    const workIds = [...markup.matchAll(/<h2 id="([^"]+)">Work breakdown/g)].map((match) => match[1]);
+    expect(titleIds).toHaveLength(2);
+    expect(new Set(titleIds).size).toBe(2);
+    expect(workIds).toHaveLength(2);
+    expect(new Set(workIds).size).toBe(2);
+    for (const titleId of titleIds) expect(markup).toContain(`aria-labelledby="${titleId} `);
+    for (const workId of workIds) expect(markup).toContain(`aria-labelledby="${workId}"`);
+  });
+
   test("renders loading, missing, and invalid data states", () => {
     expect(renderToStaticMarkup(<PulseViewContent isLoading value={null} />)).toContain("Loading Northstar Pulse");
     expect(renderToStaticMarkup(<PulseViewContent isLoading={false} value={null} />)).toContain("Pulse data is missing");

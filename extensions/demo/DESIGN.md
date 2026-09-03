@@ -157,7 +157,7 @@ The palette is inherited graphite and paper, with green, amber, and red reserved
 
 The report is centered within a maximum width of `1180px` and uses fluid frame padding from `20px` to `44px`. At standard widths, the header and four-column metric register span the page. Below them, the activity chart is the dominant visualization at roughly two thirds of the lower grid while the work breakdown occupies the narrower adjacent column.
 
-At `720px` and below, the header stacks, the metric register becomes two columns, and the chart and work breakdown form one vertical sequence. At `430px` and below, metrics become a single column; the chart keeps a `520px` minimum drawing width and scrolls horizontally so all seven labeled points remain legible.
+At `720px` and below, the header stacks, the metric register becomes two columns, and the chart and work breakdown form one vertical sequence. At `430px` and below, the two-column metric register remains intact while the chart keeps a `520px` minimum drawing width and scrolls horizontally so all seven labeled points remain legible.
 
 ## Elevation & Depth
 
@@ -186,7 +186,7 @@ Components feel like precise parts of one reporting instrument rather than indep
 
 - **Structure:** Four definition-list cells with vertical rules and fluid internal spacing.
 - **Typography:** Quiet labels sit over large tabular values with strong scale contrast.
-- **Responsive behavior:** Four columns become two at `720px`, then one at `430px`.
+- **Responsive behavior:** Four columns become two at `720px` and remain two across the narrowest supported panel.
 
 ### Activity Chart
 
