@@ -1,5 +1,11 @@
 {
   "api": "^0.9.0",
+  "icon": {
+    "bytes": 4778,
+    "resource": "image/webp",
+    "sha256": "e119de653da5c9fc4c47978e139f271baa7135e7f62cc622357168517142ec4c",
+    "url": "./icon.webp"
+  },
   "manifest": {
     "api": "^0.9.0",
     "conflicts": {},

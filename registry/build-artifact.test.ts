@@ -7,6 +7,10 @@ import { PLUGIN_SANDBOX_PROTOCOL_VERSION } from "@lunarisapp/plugin-sdk";
 
 const temporaryDirectories: string[] = [];
 const script = path.join(import.meta.dir, "build-artifact.ts");
+const webpIcon = Buffer.from(
+  "UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v0gUAA=",
+  "base64",
+);
 
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "lunaris-artifact-"));
@@ -77,6 +81,7 @@ afterEach(async () => {
 describe("build-artifact", () => {
   it("writes relative, hash-pinned assets and verifies the build", async () => {
     const { artifacts, dist } = await fixture();
+    await writeFile(path.join(dist, "icon.webp"), webpIcon);
 
     expect((await build(dist, artifacts)).exitCode).toBe(0);
 
@@ -92,6 +97,15 @@ describe("build-artifact", () => {
       url: "./main.js",
     });
     expect(descriptor.style.url).toBe("./styles.css");
+    expect(descriptor.icon).toEqual({
+      bytes: webpIcon.byteLength,
+      resource: "image/webp",
+      sha256: createHash("sha256").update(webpIcon).digest("hex"),
+      url: "./icon.webp",
+    });
+    expect(await readFile(path.join(destination, "icon.webp"))).toEqual(
+      webpIcon,
+    );
     expect(descriptor.api).toBe("^0.9.0");
     expect(descriptor.runtime).toEqual({
       kind: "iframe",

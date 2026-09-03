@@ -24,7 +24,7 @@ npx @lunarisapp/create-extension my-extension \
 
 Run `npx @lunarisapp/create-extension --help` for all options.
 
-Generated extensions target `@lunarisapp/plugin-sdk` `^0.9.2`. The starter
+Generated extensions target `@lunarisapp/plugin-sdk` `^0.9.3`. The starter
 keeps `manifest.json` to identity, discovery metadata, API compatibility, and
 permissions, then registers an explicitly launchable standalone view during activation.
 Resource extensions declare named storage slots on their resource types and matching

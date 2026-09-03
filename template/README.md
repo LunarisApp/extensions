@@ -1,7 +1,7 @@
 # Example Lunaris extension marketplace
 
 Build the extension with `bun run typecheck && bun run build`. Publish `release.json`,
-`main.js`, optional `styles.css`, and optional `icon.png` at immutable public HTTPS
+`main.js`, optional `styles.css`, and optional `icon.<extension>` at immutable public HTTPS
 URLs. Each asset in `release.json` needs URL, byte length, media type, and SHA-256.
 Asset URLs may be relative to the descriptor.
 

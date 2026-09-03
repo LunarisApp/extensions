@@ -1,10 +1,10 @@
 {
   "api": "^0.9.0",
   "icon": {
-    "bytes": 7157,
-    "resource": "image/png",
-    "sha256": "60e049b0cac9b68ebe1e6014e0e90e9762a60f35b6c242cdbeb9c83dd8cf8d1d",
-    "url": "./icon.png"
+    "bytes": 5564,
+    "resource": "image/webp",
+    "sha256": "8a17231e0d06d1a3b9000647cacf9b878859ff22957a59557de1c7ac009e063a",
+    "url": "./icon.webp"
   },
   "manifest": {
     "api": "^0.9.0",
