@@ -1,89 +1,67 @@
-/*
-THESIS: Customer operations should read like a live account ledger, not a grid of dashboard cards.
-OWN-WORLD: Near-white and graphite ruled surfaces, cobalt focus, compact tabular data, and restrained health marks.
-STORY: Scan portfolio health, narrow the ledger, rehearse an admin action, then open a persistent sample dossier.
-FIRST VIEWPORT: A narrow command bar, continuous metric register, dominant customer table, and subordinate operations rail.
-FORM: User-pinned Account ledger direction; Impeccable seed cb5fe784; approved comp account-ledger-approved.png.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
-*/
 import {
-  DEFAULT_DOSSIER,
-  DOSSIER_MAP_NAME,
-  DOSSIER_RECORD_KEY,
-  customerDossierSchema,
-  parseDossierRecord,
-} from "./domain";
-import {
+  type IconSvgObject,
+  type JsonValue,
+  type ResourceInitializeContext,
   type ResourcePayloadContext,
-  type ResourceViewStatusProps,
   definePlugin,
 } from "@lunarisapp/plugin-sdk";
-import { DashboardSquare01Icon, File02Icon } from "@lunarisapp/ui/icons";
-import type { Doc } from "yjs";
 import manifest from "../manifest.json";
-import { AdminDashboard } from "./dashboard";
-import { CustomerDossierRenderer, DossierStatusBar } from "./dossier";
+import { NorthstarPulseRenderer } from "./dashboard";
+import { PULSE_STORAGE_KEY, generatePulseSnapshot, pulseSnapshotSchema } from "./domain";
 import "./styles.css";
 
-export const DOSSIER_SCHEMA_ID = "lunaris.demo.customer-dossier.document";
-export const DOSSIER_VIEW_ID = "lunaris.demo.customer-dossier";
+export const NORTHSTAR_PULSE_ID = "lunaris.demo.northstar-pulse";
+export const NORTHSTAR_PULSE_SCHEMA_ID = "lunaris.demo.northstar-pulse.data";
+export const NORTHSTAR_PULSE_VIEW_ID = NORTHSTAR_PULSE_ID;
 
-export const dossierResourceType = {
-  defaultViewId: DOSSIER_VIEW_ID,
+export const pulseIcon: IconSvgObject = [
+  ["path", { d: "M4 19V9m5 10V5m5 14v-7m5 7V3" }],
+  ["path", { d: "M3 21h18" }],
+];
+
+export const northstarPulseResourceType = {
+  defaultViewId: NORTHSTAR_PULSE_VIEW_ID,
   hierarchy: { userCreatable: true, visible: true },
-  icon: File02Icon,
-  name: "Customer dossier",
-  resourceTypeId: "lunaris.demo.customer-dossier",
+  icon: pulseIcon,
+  name: "Northstar Pulse",
+  resourceTypeId: NORTHSTAR_PULSE_ID,
   schema: {
     currentVersion: 1,
-    id: DOSSIER_SCHEMA_ID,
+    id: NORTHSTAR_PULSE_SCHEMA_ID,
     read: ({ storage }: ResourcePayloadContext) => {
-      const content = storage.content;
-      const raw = content?.kind === "yjs"
-        ? content.document.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY)
-        : undefined;
-      return raw ? JSON.parse(raw) : DEFAULT_DOSSIER;
+      const pulse = storage.pulse;
+      if (pulse?.kind !== "key-value") throw new Error("Northstar Pulse key-value storage is unavailable");
+      return pulse.values[PULSE_STORAGE_KEY];
     },
-    versions: { 1: customerDossierSchema },
+    versions: { 1: pulseSnapshotSchema },
   },
   storage: {
-    content: {
-      kind: "yjs" as const,
-      initialize: (document: Doc) => {
-        const map = document.getMap<string>(DOSSIER_MAP_NAME);
-        if (!map.has(DOSSIER_RECORD_KEY)) {
-          map.set(DOSSIER_RECORD_KEY, JSON.stringify(DEFAULT_DOSSIER));
-        }
-      },
+    pulse: {
+      initialize: ({ createdAt }: ResourceInitializeContext) => ({
+        [PULSE_STORAGE_KEY]: generatePulseSnapshot(createdAt) as unknown as JsonValue,
+      }),
+      kind: "key-value" as const,
     },
   },
 };
 
-export const dossierView = {
-  icon: File02Icon,
-  name: "Customer dossier",
-  renderer: CustomerDossierRenderer,
-  statusBar: (_props: ResourceViewStatusProps) => <DossierStatusBar />,
-  storageRequirements: { content: "yjs" as const },
+export const northstarPulseView = {
+  icon: pulseIcon,
+  name: "Northstar Pulse",
+  renderer: NorthstarPulseRenderer,
+  storageRequirements: { pulse: "key-value" as const },
   target: {
     kind: "resource" as const,
-    resourceTypeIds: ["lunaris.demo.customer-dossier"],
-    schemas: [{ id: DOSSIER_SCHEMA_ID, minimumVersion: 1, maximumVersion: 1 }],
+    resourceTypeIds: [NORTHSTAR_PULSE_ID],
+    schemas: [{ id: NORTHSTAR_PULSE_SCHEMA_ID, maximumVersion: 1, minimumVersion: 1 }],
   },
-  viewId: DOSSIER_VIEW_ID,
+  viewId: NORTHSTAR_PULSE_VIEW_ID,
 };
 
 export default definePlugin({
   manifest,
   activate({ contributions }) {
-    contributions.view({
-      icon: DashboardSquare01Icon,
-      name: "Demo",
-      renderer: AdminDashboard,
-      target: { kind: "standalone", launcher: { defaultPlacement: "primary" } },
-      viewId: "lunaris.demo",
-    });
-    contributions.resourceType(dossierResourceType);
-    contributions.view(dossierView);
+    contributions.resourceType(northstarPulseResourceType);
+    contributions.view(northstarPulseView);
   },
 });

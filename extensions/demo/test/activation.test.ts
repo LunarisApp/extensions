@@ -1,21 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { Doc } from "yjs";
 import extension, {
-  DOSSIER_SCHEMA_ID,
-  DOSSIER_VIEW_ID,
-  dossierResourceType,
-  dossierView,
+  NORTHSTAR_PULSE_ID,
+  NORTHSTAR_PULSE_SCHEMA_ID,
+  NORTHSTAR_PULSE_VIEW_ID,
+  northstarPulseResourceType,
+  northstarPulseView,
 } from "../src/index";
-import { createDossierResource, openDossierResource } from "../src/dashboard";
-import { DEFAULT_DOSSIER, DOSSIER_MAP_NAME, DOSSIER_RECORD_KEY } from "../src/domain";
+import { PULSE_STORAGE_KEY, pulseSnapshotSchema } from "../src/domain";
 
-describe("Demo extension activation", () => {
-  test("registers namespaced resource/view contributions synchronously", () => {
-    const registrations = {
-      resourceType: [] as unknown[],
-      view: [] as unknown[],
-    };
-
+describe("Northstar Pulse activation", () => {
+  test("registers one resource type and its compatible default view", () => {
+    const registrations = { resourceType: [] as unknown[], view: [] as unknown[] };
     const result = extension.activate({
       contributions: {
         resourceType: (value: unknown) => registrations.resourceType.push(value),
@@ -24,81 +19,54 @@ describe("Demo extension activation", () => {
     } as never);
 
     expect(result).toBeUndefined();
-    expect(registrations.resourceType).toEqual([dossierResourceType]);
-    expect(registrations.view).toHaveLength(2);
-    expect(registrations.view).toContain(dossierView);
-    expect(dossierResourceType).toMatchObject({
-      defaultViewId: DOSSIER_VIEW_ID,
+    expect(registrations.resourceType).toEqual([northstarPulseResourceType]);
+    expect(registrations.view).toEqual([northstarPulseView]);
+    expect(northstarPulseResourceType).toMatchObject({
+      defaultViewId: NORTHSTAR_PULSE_VIEW_ID,
       hierarchy: { userCreatable: true, visible: true },
-      resourceTypeId: "lunaris.demo.customer-dossier",
-      schema: { currentVersion: 1, id: DOSSIER_SCHEMA_ID },
-      storage: { content: { kind: "yjs" } },
+      resourceTypeId: NORTHSTAR_PULSE_ID,
+      schema: { currentVersion: 1, id: NORTHSTAR_PULSE_SCHEMA_ID },
+      storage: { pulse: { kind: "key-value" } },
     });
-    expect(dossierView).toMatchObject({
-      statusBar: expect.any(Function),
-      storageRequirements: { content: "yjs" },
+    expect(northstarPulseResourceType.schema.write).toBeUndefined();
+    expect(northstarPulseView).toMatchObject({
+      storageRequirements: { pulse: "key-value" },
       target: {
         kind: "resource",
-        resourceTypeIds: ["lunaris.demo.customer-dossier"],
+        resourceTypeIds: [NORTHSTAR_PULSE_ID],
+        schemas: [{ id: NORTHSTAR_PULSE_SCHEMA_ID, maximumVersion: 1, minimumVersion: 1 }],
       },
-      viewId: dossierResourceType.defaultViewId,
+      viewId: northstarPulseResourceType.defaultViewId,
     });
-    expect(extension.manifest.api).toBe("^0.9.0");
+    expect(extension.manifest.id).toBe("lunaris.demo");
+    expect(extension.manifest.name).toBe("Northstar Pulse (Demo)");
     expect(extension.manifest.version).toBe("0.0.1");
+    expect(extension.manifest.permissions).toEqual(["content.read"]);
   });
 
-  test("creates and opens dossier resources through the host APIs", async () => {
-    const createResource = (input: unknown) => Promise.resolve({
-      name: "Alder & Finch Labs — Customer dossier",
-      resourceId: "resource-1",
-      storage: { content: { kind: "yjs", storageId: "storage-1" } },
-      input,
-    });
-    const created = await createDossierResource({ createResource } as never);
-    expect(created).toMatchObject({
-      resourceId: "resource-1",
-      storage: { content: { kind: "yjs", storageId: "storage-1" } },
-    });
-    expect((created as typeof created & { input: unknown }).input).toEqual({
-      name: "Alder & Finch Labs — Customer dossier",
-      parentId: "__root__",
-      resourceTypeId: "lunaris.demo.customer-dossier",
-    });
-
-    let opened: unknown;
-    openDossierResource(
-      { openResource: (input) => { opened = input; } },
-      {
-        name: "Customer dossier",
-        resourceId: "resource-1",
-        schemaVersion: 1,
-      },
-    );
-    expect(opened).toEqual({
-      resourceId: "resource-1",
-      resourceTypeId: "lunaris.demo.customer-dossier",
-      schemaVersion: 1,
-      title: "Customer dossier",
-    });
-  });
-
-  test("preserves the existing Yjs map and serialized dossier payload", async () => {
-    const document = new Doc();
-    dossierResourceType.storage.content.initialize(document, {
-      createdAt: "2026-08-25T00:00:00.000Z",
+  test("initializes and resolves a schema-valid key-value snapshot", async () => {
+    const initialize = northstarPulseResourceType.storage.pulse.initialize;
+    expect(initialize).toBeFunction();
+    const values = await initialize?.({
+      createdAt: "2026-09-03T09:30:00.000Z",
       parentId: null,
-      resourceId: "resource-1",
+      resourceId: "pulse-1",
       userId: null,
     });
-    const stored = document.getMap<string>(DOSSIER_MAP_NAME).get(DOSSIER_RECORD_KEY);
-    expect(stored).toBe(JSON.stringify(DEFAULT_DOSSIER));
-    const payload = await dossierResourceType.schema.read({
-      resourceId: "resource-1",
-      storage: { content: { document, kind: "yjs" } },
-    });
-    expect(dossierResourceType.schema.versions[1]?.["~standard"].validate(payload)).toMatchObject({
-      value: DEFAULT_DOSSIER,
-    });
+    const stored = values?.[PULSE_STORAGE_KEY];
+    expect(pulseSnapshotSchema.safeParse(stored).success).toBeTrue();
 
+    const payload = await northstarPulseResourceType.schema.read({
+      resourceId: "pulse-1",
+      storage: { pulse: { kind: "key-value", values: values ?? {} } },
+    });
+    expect(payload).toBe(stored);
+  });
+
+  test("rejects resources without the declared key-value storage", () => {
+    expect(() => northstarPulseResourceType.schema.read({
+      resourceId: "pulse-1",
+      storage: {},
+    })).toThrow("Northstar Pulse key-value storage is unavailable");
   });
 });

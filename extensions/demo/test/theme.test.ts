@@ -2,21 +2,21 @@ import { describe, expect, test } from "bun:test";
 
 const styles = await Bun.file(new URL("../src/styles.css", import.meta.url)).text();
 
-describe("Lunaris theme contract", () => {
-  test("uses only CSS variables forwarded into the extension sandbox", () => {
-    expect(styles).toContain("--demo-bg: var(--background");
-    expect(styles).toContain("--demo-primary: var(--primary");
-    expect(styles).toContain("--demo-primary-ink: var(--primary-foreground");
-    expect(styles).not.toMatch(/var\(--(?:card|input|ring|destructive)[,)]/);
-  });
-
-  test("inherits the host color scheme for native controls", () => {
+describe("Northstar Pulse theme contract", () => {
+  test("uses the host theme variables with explicit fallbacks", () => {
+    expect(styles).toContain("--pulse-bg: var(--background");
+    expect(styles).toContain("--pulse-ink: var(--foreground");
+    expect(styles).toContain("--pulse-primary: var(--primary");
     expect(styles).not.toContain("color-scheme:");
   });
 
-  test("keeps the resource view status bar independent from component-scoped tokens", () => {
-    const statusBarStyles = styles.match(/\.dossier-statusbar\s*\{([^}]*)\}/)?.[1];
-    expect(statusBarStyles).toBeDefined();
-    expect(statusBarStyles).not.toContain("var(--demo-");
+  test("supports narrow panels and reduced motion", () => {
+    expect(styles).toContain("@media (max-width: 720px)");
+    expect(styles).toContain("@media (max-width: 430px)");
+    expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(styles).toContain("animation: pulse-trace 640ms cubic-bezier(0.16, 1, 0.3, 1) both");
+    expect(styles).toContain(".pulse-chart-line { animation: none; }");
+    expect(styles).toContain("min-height: 100dvh");
+    expect(styles).not.toContain(".pulse-metrics { grid-template-columns: minmax(0, 1fr); }");
   });
 });

@@ -1,303 +1,144 @@
-import type { PluginResource } from "@lunarisapp/plugin-sdk";
 import { z } from "zod";
-import { DEFAULT_DOSSIER, INITIAL_CUSTOMERS, INITIAL_OPERATIONS } from "./sample-data";
 
-export { DEFAULT_DOSSIER, INITIAL_CUSTOMERS, INITIAL_OPERATIONS };
+export const PULSE_STORAGE_KEY = "snapshot";
+export type PulseStatus = "at-risk" | "off-track" | "on-track";
 
-export const CONTENT_TYPE_ID = "lunaris.demo.customer-dossier";
-export const DOSSIER_MAP_NAME = "customer-dossier";
-export const DOSSIER_RECORD_KEY = "record";
-
-export type AccountHealth = "healthy" | "risk" | "watch";
-export type AccountStatus = "active" | "suspended" | "trial";
-export type CustomerPlan = "Enterprise" | "Scale" | "Starter";
-export type SortDirection = "asc" | "desc";
-export type SortField = "account" | "health" | "mrr" | "renewal";
-
-export interface CustomerAccount {
-  domain: string;
-  health: AccountHealth;
-  id: string;
-  initials: string;
-  lastActive: string;
-  mrr: number;
-  name: string;
-  openCases: number;
-  owner: string;
-  plan: CustomerPlan;
-  previousMrr: number;
-  renewalDate: string;
-  renewalDays: number;
-  seatsLimit: number;
-  seatsUsed: number;
-  status: AccountStatus;
-  trialDaysLeft?: number;
-}
-export interface AccountFilters {
-  health: "all" | AccountHealth;
-  search: string;
-  status: "all" | AccountStatus;
+function utcDate(value: Date) {
+  return value.toISOString().slice(0, 10);
 }
 
-export interface SortState {
-  direction: SortDirection;
-  field: SortField;
+function deriveStatus(completionPercent: number, blocked: number): PulseStatus {
+  if (blocked >= 6) return "off-track";
+  if (blocked >= 3 || completionPercent < 50) return "at-risk";
+  return "on-track";
 }
 
-export type AccountAction = "extend-trial" | "reset-2fa" | "toggle-suspension";
+const utcDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
-export interface OperationEntry {
-  actor: string;
-  id: string;
-  message: string;
-  time: string;
-  tone: "danger" | "neutral" | "positive" | "warning";
-}
+const pulseSnapshotShape = z.object({
+  generatedAt: z.string().datetime(),
+  metrics: z.object({
+    activeContributors: z.number().int().min(3).max(14),
+    completedTasks: z.number().int().min(14).max(98),
+    completionPercent: z.number().int().min(0).max(100),
+    openBlockers: z.number().int().min(0).max(8),
+  }).strict(),
+  reportingPeriod: z.object({
+    days: z.literal(7),
+    end: utcDateSchema,
+    start: utcDateSchema,
+  }).strict(),
+  status: z.enum(["on-track", "at-risk", "off-track"]),
+  trend: z.array(z.object({
+    completedTasks: z.number().int().min(2).max(14),
+    date: utcDateSchema,
+  }).strict()).length(7),
+  work: z.object({
+    blocked: z.number().int().min(0).max(8),
+    completed: z.number().int().min(14).max(98),
+    inProgress: z.number().int().min(3).max(18),
+    notStarted: z.number().int().min(5).max(30),
+  }).strict(),
+}).strict();
 
-export interface DossierRisk {
-  detail: string;
-  label: string;
-  severity: "medium" | "high";
-}
+export const pulseSnapshotSchema = pulseSnapshotShape.superRefine((snapshot, context) => {
+  const completed = snapshot.trend.reduce((total, point) => total + point.completedTasks, 0);
+  const totalWork = Object.values(snapshot.work).reduce((total, count) => total + count, 0);
+  const completionPercent = Math.round((snapshot.work.completed / totalWork) * 100);
+  const expectedStatus = deriveStatus(completionPercent, snapshot.work.blocked);
 
-export interface DossierStakeholder {
-  email: string;
-  name: string;
-  role: string;
-}
+  if (snapshot.metrics.completedTasks !== completed) {
+    context.addIssue({ code: "custom", message: "must equal the seven-day trend total", path: ["metrics", "completedTasks"] });
+  }
+  if (snapshot.work.completed !== completed) {
+    context.addIssue({ code: "custom", message: "must equal the seven-day trend total", path: ["work", "completed"] });
+  }
+  if (snapshot.metrics.openBlockers !== snapshot.work.blocked) {
+    context.addIssue({ code: "custom", message: "must equal blocked work", path: ["metrics", "openBlockers"] });
+  }
+  if (snapshot.metrics.completionPercent !== completionPercent) {
+    context.addIssue({ code: "custom", message: "must derive from the work breakdown", path: ["metrics", "completionPercent"] });
+  }
+  if (snapshot.status !== expectedStatus) {
+    context.addIssue({ code: "custom", message: "must derive from progress and blockers", path: ["status"] });
+  }
 
-export interface DossierTimelineEvent {
-  date: string;
-  detail: string;
-  title: string;
-}
+  const dates = snapshot.trend.map((point, index) => {
+    const date = new Date(`${point.date}T00:00:00.000Z`);
+    if (Number.isNaN(date.getTime()) || utcDate(date) !== point.date) {
+      context.addIssue({ code: "custom", message: "must be a valid UTC date", path: ["trend", index, "date"] });
+      return undefined;
+    }
+    return date;
+  });
+  if (dates.some((date) => date === undefined)) return;
 
-export interface CustomerDossier {
-  company: string;
-  domain: string;
-  health: AccountHealth;
-  mrr: number;
-  notes: string;
-  organizationId: string;
-  owner: string;
-  plan: CustomerPlan;
-  renewalDate: string;
-  risks: DossierRisk[];
-  seatsLimit: number;
-  seatsUsed: number;
-  stakeholders: DossierStakeholder[];
-  timeline: DossierTimelineEvent[];
-}
-
-export const customerDossierSchema = z.object({
-  company: z.string(),
-  domain: z.string(),
-  health: z.enum(["healthy", "risk", "watch"]),
-  mrr: z.number().finite().nonnegative(),
-  notes: z.string(),
-  organizationId: z.string(),
-  owner: z.string(),
-  plan: z.enum(["Enterprise", "Scale", "Starter"]),
-  renewalDate: z.string(),
-  risks: z.array(z.object({
-    detail: z.string(),
-    label: z.string(),
-    severity: z.enum(["medium", "high"]),
-  })),
-  seatsLimit: z.number().finite().positive(),
-  seatsUsed: z.number().finite().nonnegative(),
-  stakeholders: z.array(z.object({
-    email: z.string(),
-    name: z.string(),
-    role: z.string(),
-  })),
-  timeline: z.array(z.object({
-    date: z.string(),
-    detail: z.string(),
-    title: z.string(),
-  })),
+  for (let index = 1; index < dates.length; index += 1) {
+    if ((dates[index]?.getTime() ?? 0) - (dates[index - 1]?.getTime() ?? 0) !== 86_400_000) {
+      context.addIssue({ code: "custom", message: "dates must be consecutive and ascending", path: ["trend", index, "date"] });
+    }
+  }
+  if (snapshot.reportingPeriod.start !== snapshot.trend[0]?.date) {
+    context.addIssue({ code: "custom", message: "must equal the first trend date", path: ["reportingPeriod", "start"] });
+  }
+  if (snapshot.reportingPeriod.end !== snapshot.trend[6]?.date) {
+    context.addIssue({ code: "custom", message: "must equal the last trend date", path: ["reportingPeriod", "end"] });
+  }
+  if (snapshot.reportingPeriod.end !== utcDate(new Date(snapshot.generatedAt))) {
+    context.addIssue({ code: "custom", message: "must contain the generation date", path: ["reportingPeriod", "end"] });
+  }
 });
 
-export function filterCustomers(
-  customers: CustomerAccount[],
-  filters: AccountFilters,
-): CustomerAccount[] {
-  const query = filters.search.trim().toLocaleLowerCase();
-  return customers.filter((customer) => {
-    const matchesQuery =
-      query.length === 0 ||
-      customer.name.toLocaleLowerCase().includes(query) ||
-      customer.domain.toLocaleLowerCase().includes(query) ||
-      customer.id.toLocaleLowerCase().includes(query);
-    const matchesHealth = filters.health === "all" || customer.health === filters.health;
-    const matchesStatus = filters.status === "all" || customer.status === filters.status;
-    return matchesQuery && matchesHealth && matchesStatus;
-  });
+export type PulseSnapshot = z.infer<typeof pulseSnapshotSchema>;
+export type RandomSource = () => number;
+
+function randomInteger(random: RandomSource, minimum: number, maximum: number) {
+  const value = Math.min(0.9999999999999999, Math.max(0, random()));
+  return minimum + Math.floor(value * (maximum - minimum + 1));
 }
 
-const healthRank: Record<AccountHealth, number> = { healthy: 0, watch: 1, risk: 2 };
+export function generatePulseSnapshot(
+  createdAt: string,
+  random: RandomSource = Math.random,
+): PulseSnapshot {
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) {
+    throw new Error("Northstar Pulse requires a valid creation timestamp");
+  }
 
-export function sortCustomers(
-  customers: CustomerAccount[],
-  sort: SortState,
-): CustomerAccount[] {
-  const direction = sort.direction === "asc" ? 1 : -1;
-  return [...customers].sort((left, right) => {
-    if (sort.field === "account") return direction * left.name.localeCompare(right.name);
-    if (sort.field === "health") return direction * (healthRank[left.health] - healthRank[right.health]);
-    if (sort.field === "mrr") return direction * (left.mrr - right.mrr);
-    return direction * (left.renewalDays - right.renewalDays);
+  const trend = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(created);
+    date.setUTCDate(date.getUTCDate() - (6 - index));
+    return {
+      completedTasks: randomInteger(random, 2, 14),
+      date: utcDate(date),
+    };
   });
-}
-
-export function deriveMetrics(customers: CustomerAccount[]) {
-  const revenueAccounts = customers.filter((customer) => customer.status !== "suspended");
-  const currentMrr = revenueAccounts.reduce((sum, customer) => sum + customer.mrr, 0);
-  const previousMrr = revenueAccounts.reduce((sum, customer) => sum + customer.previousMrr, 0);
-  return {
-    accounts: customers.length,
-    atRisk: customers.filter((customer) => customer.health === "risk").length,
-    currentMrr,
-    netRevenueRetention: previousMrr === 0 ? 0 : (currentMrr / previousMrr) * 100,
-    openCases: customers.reduce((sum, customer) => sum + customer.openCases, 0),
+  const completed = trend.reduce((total, point) => total + point.completedTasks, 0);
+  const work = {
+    blocked: randomInteger(random, 0, 8),
+    completed,
+    inProgress: randomInteger(random, 3, 18),
+    notStarted: randomInteger(random, 5, 30),
   };
-}
+  const totalWork = Object.values(work).reduce((total, count) => total + count, 0);
+  const completionPercent = Math.round((completed / totalWork) * 100);
 
-export function applyAccountAction(
-  customers: CustomerAccount[],
-  customerId: string,
-  action: AccountAction,
-): CustomerAccount[] {
-  return customers.map((customer) => {
-    if (customer.id !== customerId) return customer;
-    if (action === "extend-trial" && customer.status === "trial") {
-      return {
-        ...customer,
-        renewalDays: customer.renewalDays + 7,
-        trialDaysLeft: (customer.trialDaysLeft ?? 0) + 7,
-      };
-    }
-    if (action === "toggle-suspension") {
-      return {
-        ...customer,
-        status: customer.status === "suspended" ? "active" : "suspended",
-      };
-    }
-    return customer;
+  return pulseSnapshotSchema.parse({
+    generatedAt: created.toISOString(),
+    metrics: {
+      activeContributors: randomInteger(random, 3, 14),
+      completedTasks: completed,
+      completionPercent,
+      openBlockers: work.blocked,
+    },
+    reportingPeriod: {
+      days: 7,
+      end: trend[6]?.date,
+      start: trend[0]?.date,
+    },
+    status: deriveStatus(completionPercent, work.blocked),
+    trend,
+    work,
   });
-}
-
-export function createOperationEntry(
-  message: string,
-  tone: OperationEntry["tone"] = "neutral",
-  now = new Date(),
-): OperationEntry {
-  return {
-    actor: "Demo operator",
-    id: `op-${now.getTime()}-${message}`,
-    message,
-    time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    tone,
-  };
-}
-
-export function findDossierResource(resources: Map<string, PluginResource>) {
-  return [...resources.values()].find(
-    (resource) => resource.resourceTypeId === CONTENT_TYPE_ID,
-  ) ?? null;
-}
-
-type UnknownRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): UnknownRecord | null {
-  return value !== null && typeof value === "object" ? value as UnknownRecord : null;
-}
-
-function readText(source: UnknownRecord, key: keyof CustomerDossier, fallback: string) {
-  const value = source[key];
-  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
-}
-
-function readNumber(
-  source: UnknownRecord,
-  key: keyof CustomerDossier,
-  fallback: number,
-  minimum = 0,
-) {
-  const value = source[key];
-  return typeof value === "number" && Number.isFinite(value)
-    ? Math.max(minimum, value)
-    : fallback;
-}
-
-function readEnum<const Value extends string>(
-  value: unknown,
-  allowed: readonly Value[],
-  fallback: Value,
-): Value {
-  return typeof value === "string" && allowed.includes(value as Value)
-    ? value as Value
-    : fallback;
-}
-
-function readList<Item>(
-  value: unknown,
-  fallback: Item[],
-  parse: (record: UnknownRecord) => Item | null,
-): Item[] {
-  if (!Array.isArray(value)) return fallback;
-  return value.flatMap((candidate) => {
-    const record = asRecord(candidate);
-    if (!record) return [];
-    const item = parse(record);
-    return item ? [item] : [];
-  });
-}
-
-function parseStakeholder(record: UnknownRecord): DossierStakeholder | null {
-  const { email, name, role } = record;
-  return typeof email === "string" && typeof name === "string" && typeof role === "string"
-    ? { email, name, role }
-    : null;
-}
-
-function parseRisk(record: UnknownRecord): DossierRisk | null {
-  const { detail, label, severity } = record;
-  if (typeof detail !== "string" || typeof label !== "string") return null;
-  return { detail, label, severity: severity === "high" ? "high" : "medium" };
-}
-
-function parseTimelineEvent(record: UnknownRecord): DossierTimelineEvent | null {
-  const { date, detail, title } = record;
-  return typeof date === "string" && typeof detail === "string" && typeof title === "string"
-    ? { date, detail, title }
-    : null;
-}
-
-export function parseDossierRecord(value: unknown): CustomerDossier {
-  const source = asRecord(value);
-  if (!source) return DEFAULT_DOSSIER;
-
-  const seatsLimit = readNumber(source, "seatsLimit", DEFAULT_DOSSIER.seatsLimit, 1);
-  const seatsUsed = Math.min(
-    readNumber(source, "seatsUsed", DEFAULT_DOSSIER.seatsUsed),
-    seatsLimit,
-  );
-
-  return {
-    company: readText(source, "company", DEFAULT_DOSSIER.company),
-    domain: readText(source, "domain", DEFAULT_DOSSIER.domain),
-    health: readEnum(source.health, ["healthy", "risk", "watch"], DEFAULT_DOSSIER.health),
-    mrr: readNumber(source, "mrr", DEFAULT_DOSSIER.mrr),
-    notes: readText(source, "notes", DEFAULT_DOSSIER.notes),
-    organizationId: readText(source, "organizationId", DEFAULT_DOSSIER.organizationId),
-    owner: readText(source, "owner", DEFAULT_DOSSIER.owner),
-    plan: readEnum(source.plan, ["Enterprise", "Scale", "Starter"], DEFAULT_DOSSIER.plan),
-    renewalDate: readText(source, "renewalDate", DEFAULT_DOSSIER.renewalDate),
-    risks: readList(source.risks, DEFAULT_DOSSIER.risks, parseRisk),
-    seatsLimit,
-    seatsUsed,
-    stakeholders: readList(source.stakeholders, DEFAULT_DOSSIER.stakeholders, parseStakeholder),
-    timeline: readList(source.timeline, DEFAULT_DOSSIER.timeline, parseTimelineEvent),
-  };
 }

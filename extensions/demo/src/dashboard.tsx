@@ -1,300 +1,271 @@
+/*
+THESIS: Northstar Pulse is a project instrument panel, not a stack of dashboard cards.
+OWN-WORLD: Host-native paper, graphite rules, tabular figures, and semantic signal color.
+STORY: Confirm status, scan the four measures, trace the week, then inspect remaining work.
+FIRST VIEWPORT: Status header, continuous KPI register, dominant line chart, compact work register.
+FORM: Pulse Register; assigned surface structure; seed 8d1308b2.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+*/
 import {
-  PLUGIN_PROJECT_ROOT_ID,
-  type PluginResourceActions,
-  type PluginWorkspaceNavigation,
-  useCurrentProject,
-  useProjectResourceActions,
-  useProjectResourcesMap,
-  useWorkspaceAccess,
-  useWorkspaceNavigation,
+  ViewReady,
+  type ResourceStorageHandle,
+  type ResourceViewProps,
+  useKeyValue,
 } from "@lunarisapp/plugin-sdk";
-import { File02Icon, HugeiconsIcon, PlusSignIcon } from "@lunarisapp/ui/icons";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  AccountActionPopover,
-  ConfirmationDialog,
-  type OpenAccountMenu,
-  type PendingConfirmation,
-} from "./account-actions";
-import { AccountLedger } from "./account-ledger";
-import {
-  type AccountAction,
-  type AccountFilters,
-  applyAccountAction,
-  CONTENT_TYPE_ID,
-  type CustomerAccount,
-  createOperationEntry,
-  filterCustomers,
-  findDossierResource,
-  INITIAL_CUSTOMERS,
-  INITIAL_OPERATIONS,
-  type OperationEntry,
-  type SortField,
-  type SortState,
-  sortCustomers,
-} from "./domain";
-import { OperationsLog } from "./operations-log";
+import { useId } from "react";
+import { PULSE_STORAGE_KEY, pulseSnapshotSchema, type PulseSnapshot, type PulseStatus } from "./domain";
 
-const MENU_MARGIN = 8;
-const MENU_WIDTH = 218;
+const statusLabels: Record<PulseStatus, string> = {
+  "at-risk": "At risk",
+  "off-track": "Off track",
+  "on-track": "On track",
+};
 
-interface DossierResourceTarget {
-  name: string;
-  resourceId: string;
-  schemaVersion: number;
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+
+const timestampFormatter = new Intl.DateTimeFormat("en", {
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  month: "short",
+  timeZone: "UTC",
+  year: "numeric",
+});
+
+function formatDate(value: string) {
+  return dateFormatter.format(new Date(`${value}T00:00:00.000Z`));
 }
 
-export function openDossierResource(
-  navigation: Pick<PluginWorkspaceNavigation, "openResource">,
-  resource: DossierResourceTarget,
-) {
-  navigation.openResource({
-    resourceId: resource.resourceId,
-    resourceTypeId: CONTENT_TYPE_ID,
-    schemaVersion: resource.schemaVersion,
-    title: resource.name,
-  });
-}
-
-export function createDossierResource(
-  actions: Pick<PluginResourceActions, "createResource">,
-) {
-  return actions.createResource({
-    name: "Alder & Finch Labs — Customer dossier",
-    parentId: PLUGIN_PROJECT_ROOT_ID,
-    resourceTypeId: CONTENT_TYPE_ID,
-  });
-}
-
-function getMenuPosition(customer: CustomerAccount, trigger: HTMLButtonElement) {
-  const anchor = trigger.getBoundingClientRect();
-  const menuHeight = customer.status === "trial" ? 176 : 140;
-  const left = Math.max(
-    MENU_MARGIN,
-    Math.min(anchor.right - MENU_WIDTH, window.innerWidth - MENU_WIDTH - MENU_MARGIN),
+function StateIcon({ kind }: { kind: "error" | "loading" }) {
+  if (kind === "loading") return <span aria-hidden="true" className="pulse-loader" />;
+  return (
+    <svg aria-hidden="true" className="pulse-state-icon" viewBox="0 0 24 24">
+      <path d="M12 8v5m0 3.5v.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+    </svg>
   );
-  const top =
-    anchor.bottom + menuHeight + MENU_MARGIN > window.innerHeight
-      ? Math.max(MENU_MARGIN, anchor.top - menuHeight - 6)
-      : anchor.bottom + 6;
-  return { left, top };
 }
 
-function getDossierActionState({
-  canWrite,
-  exists,
-  isCreating,
-  projectId,
+function PulseState({
+  description,
+  loading = false,
+  reportReady,
+  title,
 }: {
-  canWrite: boolean;
-  exists: boolean;
-  isCreating: boolean;
-  projectId?: string | null;
+  description: string;
+  loading?: boolean;
+  reportReady?: () => void;
+  title: string;
 }) {
-  if (exists) return { disabled: false, hint: "", label: "Open sample dossier" };
-  if (!projectId) {
-    return {
-      disabled: true,
-      hint: "Open a project to create the sample dossier.",
-      label: "Create sample dossier",
-    };
-  }
-  if (!canWrite) {
-    return {
-      disabled: true,
-      hint: "Content write access is required to create the sample dossier.",
-      label: "Create sample dossier",
-    };
-  }
-  if (isCreating) {
-    return {
-      disabled: true,
-      hint: "Creating the persistent sample in this project.",
-      label: "Creating dossier…",
-    };
-  }
-  return { disabled: false, hint: "", label: "Create sample dossier" };
+  const content = (
+    <section aria-busy={loading || undefined} className="pulse-state" role={loading ? "status" : "alert"}>
+      <StateIcon kind={loading ? "loading" : "error"} />
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </section>
+  );
+  return loading ? content : <ViewReady reportReady={reportReady}>{content}</ViewReady>;
 }
 
-export function AdminDashboard() {
-  const [customers, setCustomers] = useState(() => INITIAL_CUSTOMERS.map((customer) => ({ ...customer })));
-  const [filters, setFilters] = useState<AccountFilters>({ health: "all", search: "", status: "all" });
-  const [sort, setSort] = useState<SortState>({ direction: "asc", field: "account" });
-  const [operations, setOperations] = useState(INITIAL_OPERATIONS);
-  const [pending, setPending] = useState<PendingConfirmation | null>(null);
-  const [openMenu, setOpenMenu] = useState<OpenAccountMenu | null>(null);
-  const [notice, setNotice] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const { projectId } = useCurrentProject();
-  const projectResources = useProjectResourcesMap();
-  const resourceActions = useProjectResourceActions();
-  const navigation = useWorkspaceNavigation();
-  const access = useWorkspaceAccess();
-  const existingDossier = findDossierResource(projectResources);
-
-  const visibleCustomers = useMemo(
-    () => sortCustomers(filterCustomers(customers, filters), sort),
-    [customers, filters, sort],
+function ActivityChart({ snapshot }: { snapshot: PulseSnapshot }) {
+  const chartId = useId();
+  const titleId = `${chartId}-title`;
+  const descriptionId = `${chartId}-description`;
+  const width = 720;
+  const height = 236;
+  const plot = { bottom: 190, left: 42, right: 694, top: 22 };
+  const maximum = Math.max(...snapshot.trend.map((point) => point.completedTasks), 1);
+  const xStep = (plot.right - plot.left) / (snapshot.trend.length - 1);
+  const y = (value: number) => plot.bottom - (value / maximum) * (plot.bottom - plot.top);
+  const points = snapshot.trend.map((point, index) => ({
+    ...point,
+    x: plot.left + index * xStep,
+    y: y(point.completedTasks),
+  }));
+  const path = points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`).join(" ");
+  const summary = points.map((point) => `${formatDate(point.date)}: ${point.completedTasks}`).join(", ");
+  const peak = points.reduce((highest, point) =>
+    point.completedTasks > highest.completedTasks ? point : highest,
   );
-
-  useEffect(() => {
-    if (!notice) return;
-    const timeout = window.setTimeout(() => setNotice(""), 4200);
-    return () => window.clearTimeout(timeout);
-  }, [notice]);
-
-  const addOperation = (message: string, tone: OperationEntry["tone"] = "neutral") => {
-    setOperations((current) => [createOperationEntry(message, tone), ...current]);
-  };
-
-  const handleSort = (field: SortField) => {
-    setSort((current) => ({
-      direction: current.field === field && current.direction === "asc" ? "desc" : "asc",
-      field,
-    }));
-  };
-
-  const handleAccountAction = (customer: CustomerAccount, action: AccountAction) => {
-    if (action === "extend-trial") {
-      setCustomers((current) => applyAccountAction(current, customer.id, action));
-      addOperation(`Trial extended by 7 days for ${customer.name}`, "positive");
-      setNotice(`Trial extended for ${customer.name}.`);
-      return;
-    }
-    setPending({ action, customer });
-  };
-
-  const handleOpenMenu = (customer: CustomerAccount, trigger: HTMLButtonElement) => {
-    setOpenMenu({ customer, trigger, ...getMenuPosition(customer, trigger) });
-  };
-
-  const closeAccountMenu = useCallback(() => {
-    if (openMenu?.trigger.isConnected) openMenu.trigger.focus();
-    setOpenMenu(null);
-  }, [openMenu]);
-
-  const confirmAction = () => {
-    if (!pending) return;
-    const { action, customer } = pending;
-    if (action === "reset-2fa") {
-      addOperation(`Member 2FA reset simulated for ${customer.name}`, "warning");
-      setNotice(`2FA reset simulated for ${customer.name}.`);
-    } else {
-      const reactivating = customer.status === "suspended";
-      setCustomers((current) => applyAccountAction(current, customer.id, action));
-      addOperation(
-        `Workspace ${reactivating ? "reactivated" : "suspended"} for ${customer.name}`,
-        reactivating ? "positive" : "danger",
-      );
-      setNotice(`${customer.name} was ${reactivating ? "reactivated" : "suspended"}.`);
-    }
-    setPending(null);
-  };
-
-  const handleCopy = async (customer: CustomerAccount) => {
-    try {
-      await navigator.clipboard.writeText(customer.id);
-      setNotice(`${customer.id} copied to the clipboard.`);
-      addOperation(`Organization ID copied for ${customer.name}`);
-    } catch {
-      setNotice(`Clipboard access is unavailable. Organization ID: ${customer.id}`);
-      addOperation(`Clipboard access unavailable for ${customer.name}`, "warning");
-    }
-  };
-
-  const handleDossier = async () => {
-    if (existingDossier) {
-      openDossierResource(navigation, {
-        name: existingDossier.name ?? "Customer dossier",
-        resourceId: existingDossier.resourceId,
-        schemaVersion: existingDossier.schemaVersion,
-      });
-      return;
-    }
-    if (!projectId || !access.canWriteContent) return;
-
-    setIsCreating(true);
-    try {
-      const created = await createDossierResource(resourceActions);
-      if (!created) throw new Error("The host did not create the dossier.");
-      addOperation("Sample dossier created for Alder & Finch Labs", "positive");
-      setNotice("Sample customer dossier created.");
-      openDossierResource(navigation, { ...created, schemaVersion: 1 });
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Unknown host error";
-      setNotice(`Could not create the dossier. ${reason}`);
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const dossierAction = getDossierActionState({
-    canWrite: access.canWriteContent,
-    exists: Boolean(existingDossier),
-    isCreating,
-    projectId,
-  });
 
   return (
-    <main className="demo-shell" data-design-seed="cb5fe784">
-      <header className="demo-header">
+    <figure className="pulse-chart">
+      <figcaption>
         <div>
-          <h1>Customer accounts</h1>
-          <p>Synthetic data · Admin actions reset when this view closes.</p>
+          <h2>Task completions</h2>
+          <p>Daily output during this seven-day snapshot</p>
         </div>
-        <div className="dossier-action">
-          <button
-            aria-describedby={dossierAction.hint ? "dossier-action-hint" : undefined}
-            className="primary-button"
-            disabled={dossierAction.disabled}
-            type="button"
-            onClick={handleDossier}
-          >
-            <HugeiconsIcon
-              aria-hidden="true"
-              icon={existingDossier ? File02Icon : PlusSignIcon}
-              size={17}
-              strokeWidth={2}
-            />
-            {dossierAction.label}
-          </button>
-          {dossierAction.hint ? (
-            <p id="dossier-action-hint" role="status">{dossierAction.hint}</p>
-          ) : null}
+        <div className="pulse-chart-readout">
+          <strong>{snapshot.metrics.completedTasks}<span> completed</span></strong>
+          <span>Weekly high · {peak.completedTasks} on {formatDate(peak.date)}</span>
+        </div>
+      </figcaption>
+      <div className="pulse-chart-scroll">
+        <svg aria-labelledby={`${titleId} ${descriptionId}`} role="img" viewBox={`0 0 ${width} ${height}`}>
+          <title id={titleId}>Completed tasks over seven days</title>
+          <desc id={descriptionId}>{summary}</desc>
+          {[0, 0.33, 0.66, 1].map((ratio) => {
+            const gridY = plot.bottom - ratio * (plot.bottom - plot.top);
+            return <line className="pulse-chart-grid" key={ratio} x1={plot.left} x2={plot.right} y1={gridY} y2={gridY} />;
+          })}
+          <path className="pulse-chart-line" d={path} />
+          {points.map((point) => (
+            <g key={point.date}>
+              {point.date === peak.date ? (
+                <circle className="pulse-chart-peak" cx={point.x} cy={point.y} r="9" />
+              ) : null}
+              <circle className="pulse-chart-point" cx={point.x} cy={point.y} r="4" />
+              <text className="pulse-chart-value" textAnchor="middle" x={point.x} y={Math.max(14, point.y - 11)}>{point.completedTasks}</text>
+              <text className="pulse-chart-label" textAnchor="middle" x={point.x} y="220">{formatDate(point.date)}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </figure>
+  );
+}
+
+function pulseNote(snapshot: PulseSnapshot) {
+  const blockers = snapshot.metrics.openBlockers;
+  if (snapshot.status === "off-track") {
+    return `${blockers} blockers are holding the week back`;
+  }
+  if (snapshot.status === "at-risk") {
+    return blockers >= 3
+      ? `${blockers} blockers need a closer look`
+      : `${snapshot.metrics.completionPercent}% complete, with momentum still building`;
+  }
+  return blockers === 0
+    ? `Clear runway across ${Object.values(snapshot.work).reduce((sum, value) => sum + value, 0)} tracked tasks`
+    : `${snapshot.metrics.completedTasks} tasks moved with ${blockers} blocker${blockers === 1 ? "" : "s"} open`;
+}
+
+const workLabels: Record<keyof PulseSnapshot["work"], string> = {
+  blocked: "Blocked",
+  completed: "Completed",
+  inProgress: "In progress",
+  notStarted: "Not started",
+};
+
+function WorkBreakdown({ work }: { work: PulseSnapshot["work"] }) {
+  const headingId = useId();
+  const entries = (Object.entries(work) as Array<[keyof typeof work, number]>).sort(
+    ([left], [right]) => ["completed", "inProgress", "notStarted", "blocked"].indexOf(left)
+      - ["completed", "inProgress", "notStarted", "blocked"].indexOf(right),
+  );
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
+
+  return (
+    <section aria-labelledby={headingId} className="pulse-work">
+      <header>
+        <div>
+          <h2 id={headingId}>Work breakdown</h2>
+          <p>{total} tracked tasks</p>
+        </div>
+      </header>
+      <div className="pulse-work-stack" aria-hidden="true">
+        {entries.map(([key, value]) => (
+          <span className={`pulse-work-segment ${key}`} key={key} style={{ width: `${(value / total) * 100}%` }} />
+        ))}
+      </div>
+      <dl className="pulse-work-list">
+        {entries.map(([key, value]) => (
+          <div key={key}>
+            <dt><span aria-hidden="true" className={`pulse-work-dot ${key}`} />{workLabels[key]}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+export function PulseDashboard({ snapshot }: { snapshot: PulseSnapshot }) {
+  const metrics = [
+    ["Overall progress", `${snapshot.metrics.completionPercent}%`],
+    ["Completed tasks", snapshot.metrics.completedTasks.toLocaleString("en")],
+    ["Active contributors", snapshot.metrics.activeContributors.toLocaleString("en")],
+    ["Open blockers", snapshot.metrics.openBlockers.toLocaleString("en")],
+  ];
+
+  return (
+    <article className="pulse-root" data-design-seed="8d1308b2">
+      <header className="pulse-header">
+        <div>
+          <h1>Northstar Pulse</h1>
+          <p>
+            {formatDate(snapshot.reportingPeriod.start)}–{formatDate(snapshot.reportingPeriod.end)}
+            <span aria-hidden="true"> · </span>
+            <span>Generated sample</span>
+          </p>
+        </div>
+        <div className="pulse-header-meta">
+          <span className={`pulse-status ${snapshot.status}`}>
+            <span aria-hidden="true" />
+            {statusLabels[snapshot.status]}
+          </span>
+          <span className="pulse-status-note">{pulseNote(snapshot)}</span>
+          <time dateTime={snapshot.generatedAt}>Generated {timestampFormatter.format(new Date(snapshot.generatedAt))} UTC</time>
         </div>
       </header>
 
-      <AccountLedger
-        activity={<OperationsLog entries={operations} />}
-        customers={customers}
-        filters={filters}
-        onCloseMenu={closeAccountMenu}
-        onFilterChange={(changes) => setFilters((current) => ({ ...current, ...changes }))}
-        onOpenMenu={handleOpenMenu}
-        onSort={handleSort}
-        openMenuCustomerId={openMenu?.customer.id}
-        sort={sort}
-        visibleCustomers={visibleCustomers}
-      />
+      <dl aria-label="Project pulse metrics" className="pulse-metrics">
+        {metrics.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
 
-      {openMenu ? (
-        <AccountActionPopover
-          menu={openMenu}
-          onAction={handleAccountAction}
-          onClose={closeAccountMenu}
-          onCopy={handleCopy}
-        />
-      ) : null}
-
-      <ConfirmationDialog
-        onCancel={() => setPending(null)}
-        onConfirm={confirmAction}
-        pending={pending}
-      />
-
-      <div className={`demo-notice ${notice ? "visible" : ""}`} role="status" aria-live="polite">
-        {notice}
+      <div className="pulse-body">
+        <ActivityChart snapshot={snapshot} />
+        <WorkBreakdown work={snapshot.work} />
       </div>
-    </main>
+    </article>
   );
+}
+
+export function PulseViewContent({
+  isLoading,
+  reportReady,
+  value,
+}: {
+  isLoading: boolean;
+  reportReady?: () => void;
+  value: unknown;
+}) {
+  if (isLoading) {
+    return <PulseState description="Reading the stored project snapshot…" loading title="Loading Northstar Pulse" />;
+  }
+  if (value === null || value === undefined) {
+    return <PulseState description="Create a new Northstar Pulse resource to generate another sample." reportReady={reportReady} title="Pulse data is missing" />;
+  }
+  const parsed = pulseSnapshotSchema.safeParse(value);
+  if (!parsed.success) {
+    return <PulseState description="This resource does not contain a valid Northstar Pulse snapshot." reportReady={reportReady} title="Pulse data is invalid" />;
+  }
+  return <ViewReady reportReady={reportReady}><PulseDashboard snapshot={parsed.data} /></ViewReady>;
+}
+
+function PulseKeyValueView({
+  reportReady,
+  storage,
+}: {
+  reportReady?: () => void;
+  storage: ResourceStorageHandle;
+}) {
+  const snapshot = useKeyValue<unknown>(storage, PULSE_STORAGE_KEY);
+  return <PulseViewContent isLoading={snapshot.isLoading} reportReady={reportReady} value={snapshot.value} />;
+}
+
+export function NorthstarPulseRenderer({ reportReady, storage }: ResourceViewProps) {
+  const pulse = storage.pulse;
+  if (pulse?.kind !== "key-value") {
+    return <PulseState description="This resource is missing its key-value pulse storage." reportReady={reportReady} title="Pulse storage is unavailable" />;
+  }
+  return <PulseKeyValueView reportReady={reportReady} storage={pulse} />;
 }
