@@ -1,17 +1,15 @@
-# Demo
+# Northstar Pulse (Demo)
 
-Curated reference extension that presents a synthetic SaaS customer-operations
-console. It contributes:
+A compact reference extension for Lunaris resource types. Creating a **Northstar
+Pulse** resource generates a fictional seven-day project snapshot, stores it once
+in host-managed key-value storage, and opens it in a read-only dashboard view.
 
-- a primary view with derived metrics, customer filtering and sorting, local
-  admin-action simulations, and an operations log;
-- a user-creatable Customer dossier resource type with Yjs-backed sample data,
-  a default resource view, and structured compilation for host export.
+The example focuses on the complete resource lifecycle without external services:
 
-Every company, domain, person, metric, and event is fictional. Simulated account
-actions reset when the view remounts and never make network requests. Only
-creating, opening, and persisting the sample dossier uses Lunaris host
-capabilities.
+- user-creatable resource type with schema-validated key-value storage;
+- random data generated once during resource initialization;
+- a compatible default view with loading and invalid-data states;
+- a responsive, accessible SVG trend chart and semantic project metrics.
 
 ```sh
 bun install
@@ -20,9 +18,5 @@ bun run typecheck
 bun run build
 ```
 
-External extensions run in opaque-origin sandboxed iframes and reach Lunaris only
-through validated SDK capabilities. This extension reads the active project
-resource map to open the first dossier and requests content-write access only
-when it must create one. Additional dossiers remain available through generic
-resource creation. It does not read unrelated document content, use
-credentials, or perform host-proxied networking.
+All displayed values are synthetic. The extension requests read access only for
+its stored snapshot, makes no network requests, and provides no editing path.

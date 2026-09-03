@@ -1,81 +1,149 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-13T00:00:00.000Z",
-  "title": "Design System: Demo",
+  "generatedAt": "2026-09-03T00:00:00.000Z",
+  "title": "Design System: Northstar Pulse",
   "extensions": {
     "colorMeta": {
-      "host-background": { "role": "neutral", "displayName": "Host Canvas", "canonical": "var(--background, #f6f7f9)", "tonalRamp": ["#151923", "#303642", "#59616f", "#858c98", "#b3b8c1", "#d8dbe1", "#eef0f3", "#f6f7f9"] },
-      "host-surface": { "role": "neutral", "displayName": "Ledger Paper", "canonical": "var(--card, #ffffff)", "tonalRamp": ["#171a20", "#353941", "#5c616a", "#888d95", "#b9bdc3", "#dde0e4", "#f2f3f5", "#ffffff"] },
-      "cobalt": { "role": "primary", "displayName": "Operator Cobalt", "canonical": "#0b63e5", "tonalRamp": ["#071a36", "#082c61", "#09418f", "#0a55bd", "#2b75e9", "#70a3f0", "#b4cef7", "#edf4ff"] },
-      "healthy": { "role": "semantic", "displayName": "Healthy Green", "canonical": "#087b49", "tonalRamp": ["#08281c", "#08452c", "#08623b", "#087b49", "#3a996c", "#78b99a", "#b7dac8", "#edf8f2"] },
-      "watch": { "role": "semantic", "displayName": "Watch Amber", "canonical": "#9b5c00", "tonalRamp": ["#2d1c05", "#4c2d03", "#704200", "#9b5c00", "#bd7e27", "#d7a666", "#ecd2a8", "#fbf3e4"] },
-      "risk": { "role": "semantic", "displayName": "Risk Red", "canonical": "#bc2435", "tonalRamp": ["#380c13", "#5c111d", "#8d1929", "#bc2435", "#d75665", "#e58f99", "#f1c4c9", "#fcedef"] }
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Host Canvas",
+        "canonical": "var(--background, #ffffff)",
+        "tonalRamp": ["#1c1c1b", "#383836", "#575754", "#7d7c78", "#aaa9a5", "#d2d1cd", "#ecebe8", "#ffffff"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Report Ink",
+        "canonical": "var(--foreground, #1c1917)",
+        "tonalRamp": ["#1c1917", "#37332f", "#57514b", "#7d756d", "#a49d96", "#ccc7c2", "#e7e3df", "#f8f6f4"]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Quiet Copy",
+        "canonical": "var(--muted-foreground, #6b6762)",
+        "tonalRamp": ["#211f1d", "#3b3834", "#56524d", "#6b6762", "#928d87", "#b9b4ae", "#dcd8d4", "#f5f2ef"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Muted Surface",
+        "canonical": "var(--muted, #f5f4f2)",
+        "tonalRamp": ["#201f1d", "#3d3b38", "#5d5a56", "#85817b", "#ada9a3", "#d0ccc7", "#e8e5e1", "#f5f4f2"]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline Rule",
+        "canonical": "var(--border, #dedbd7)",
+        "tonalRamp": ["#252321", "#413e3a", "#625e59", "#88837d", "#ada8a2", "#ccc8c3", "#dedbd7", "#f5f3f1"]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Host Graphite",
+        "canonical": "var(--primary, #292524)",
+        "tonalRamp": ["#292524", "#423d3a", "#625b57", "#867d78", "#aaa39e", "#cec9c5", "#e8e4e1", "#faf8f6"]
+      },
+      "healthy": {
+        "role": "semantic",
+        "displayName": "Healthy Green",
+        "canonical": "color-mix(in srgb, #079455 72%, var(--foreground, #1c1917))",
+        "tonalRamp": ["#09291c", "#08442b", "#08613a", "#087d48", "#3c9c6d", "#7abb9b", "#b9dcc9", "#edf8f2"]
+      },
+      "watch": {
+        "role": "semantic",
+        "displayName": "Watch Amber",
+        "canonical": "color-mix(in srgb, #b86400 78%, var(--foreground, #1c1917))",
+        "tonalRamp": ["#2d1c08", "#4b2d05", "#704102", "#965700", "#b97929", "#d5a369", "#ead0aa", "#faf3e5"]
+      },
+      "risk": {
+        "role": "semantic",
+        "displayName": "Risk Red",
+        "canonical": "color-mix(in srgb, #d92d20 76%, var(--foreground, #1c1917))",
+        "tonalRamp": ["#380f0d", "#5c1713", "#8c201a", "#b62a21", "#d6564d", "#e68f88", "#f2c4c0", "#fceeed"]
+      }
     },
     "typographyMeta": {
-      "title": { "displayName": "Operator Title", "purpose": "View and dossier titles." },
-      "body": { "displayName": "Workhorse Body", "purpose": "Controls, rows, and explanatory copy." },
-      "label": { "displayName": "Ledger Label", "purpose": "Table headers, metrics, and statuses." }
+      "title": { "displayName": "Report Title", "purpose": "Names the Northstar Pulse report once." },
+      "body": { "displayName": "Reporting Body", "purpose": "Periods, descriptions, and recovery guidance." },
+      "heading": { "displayName": "Section Heading", "purpose": "Names the activity and work regions." },
+      "label": { "displayName": "Status Label", "purpose": "Explicit compact project-state text." },
+      "micro": { "displayName": "Data Annotation", "purpose": "Timestamps, metric labels, chart values, and dates." },
+      "state-title": { "displayName": "Terminal Title", "purpose": "Loading and error-state headings." },
+      "metric": { "displayName": "Headline Metric", "purpose": "Large tabular project measures." }
     },
-    "shadows": [
-      { "name": "temporary-surface", "value": "0 16px 38px -18px color-mix(in srgb, var(--demo-ink) 55%, transparent)", "purpose": "Action popovers only." },
-      { "name": "protected-focus", "value": "0 30px 80px -34px rgba(13, 18, 30, 0.62)", "purpose": "Confirmation dialogs only." }
-    ],
+    "shadows": [],
     "motion": [
-      { "name": "state-ease", "value": "160ms ease-out", "purpose": "Hover, notice, and focus-state transitions." }
+      { "name": "loading-spin", "value": "700ms linear infinite", "purpose": "Loading ring only; disabled when reduced motion is requested." }
     ],
     "breakpoints": [
-      { "name": "rail-stack", "value": "1120px" },
-      { "name": "compact", "value": "820px" },
-      { "name": "narrow", "value": "560px" }
+      { "name": "stack", "value": "720px" },
+      { "name": "narrow", "value": "430px" }
     ]
   },
   "components": [
     {
-      "name": "Primary Button",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "The single high-priority operator action.",
-      "html": "<button class=\"ds-primary\">Create sample dossier</button>",
-      "css": ".ds-primary{min-height:38px;padding:8px 13px;border:1px solid transparent;border-radius:9px;background:#0b63e5;color:#fff;font:650 .8rem ui-sans-serif,sans-serif}.ds-primary:hover{background:#0757ca}.ds-primary:focus-visible{outline:2px solid #0b63e5;outline-offset:2px}"
-    },
-    {
-      "name": "Search Field",
-      "kind": "input",
-      "refersTo": "input",
-      "description": "Compact ledger search control.",
-      "html": "<input class=\"ds-search\" placeholder=\"Search name, domain, or ID\">",
-      "css": ".ds-search{height:38px;width:280px;padding:0 11px;border:1px solid #d7dce4;border-radius:9px;background:#fff;color:#151923;font:.8rem ui-sans-serif,sans-serif}.ds-search:focus-visible{outline:2px solid #0b63e5;outline-offset:2px}"
-    },
-    {
-      "name": "Health Mark",
+      "name": "Status Mark",
       "kind": "chip",
-      "description": "State is communicated by a small dot and text, not a decorative fill.",
-      "html": "<span class=\"ds-health\"><i></i>At risk</span>",
-      "css": ".ds-health{display:inline-flex;align-items:center;gap:6px;color:#bc2435;font:640 .66rem ui-sans-serif,sans-serif}.ds-health i{width:7px;height:7px;border-radius:50%;background:currentColor}"
+      "refersTo": "status-at-risk",
+      "description": "An outlined dot-and-text mark that communicates project state without color alone.",
+      "html": "<span class=\"ds-status ds-status-at-risk\"><span aria-hidden=\"true\"></span>At risk</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:7px;min-height:27px;padding:4px 9px;border:1px solid currentColor;border-radius:999px;font:650 .75rem/1 ui-sans-serif,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-status>span{width:6px;height:6px;border-radius:50%;background:currentColor}.ds-status-at-risk{color:color-mix(in srgb,#b86400 78%,var(--foreground,#1c1917))}"
     },
     {
-      "name": "Account Row",
+      "name": "Metric Register",
       "kind": "custom",
-      "description": "The defining dense ledger unit.",
-      "html": "<div class=\"ds-row\"><b>AF</b><span><strong>Alder &amp; Finch Labs</strong><small>alder-finch.example.test</small></span><em>$24,500 / mo</em></div>",
-      "css": ".ds-row{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #dfe3e9;color:#151923;font:.74rem ui-sans-serif,sans-serif}.ds-row>b{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#eaf2ff;color:#0751bd}.ds-row span{display:flex;flex-direction:column;gap:4px}.ds-row small{color:#5c6472}.ds-row em{font-style:normal;font-variant-numeric:tabular-nums}"
+      "description": "A continuous four-cell definition list for headline project measures.",
+      "html": "<dl class=\"ds-metrics\"><div><dt>Overall progress</dt><dd>68%</dd></div><div><dt>Completed tasks</dt><dd>34</dd></div><div><dt>Active contributors</dt><dd>8</dd></div><div><dt>Open blockers</dt><dd>2</dd></div></dl>",
+      "css": ".ds-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;border-block:1px solid var(--border,#dedbd7);color:var(--foreground,#1c1917);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-metrics>div{min-width:0;padding:20px 18px}.ds-metrics>div+div{border-left:1px solid var(--border,#dedbd7)}.ds-metrics dt{overflow:hidden;color:var(--muted-foreground,#6b6762);font-size:.7rem;font-weight:620;line-height:1.3;text-overflow:ellipsis;white-space:nowrap}.ds-metrics dd{margin:8px 0 0;font-size:2rem;font-weight:670;font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1}"
     },
     {
-      "name": "Synthetic Badge",
-      "kind": "chip",
-      "description": "A persistent truth label for fixture content.",
-      "html": "<span class=\"ds-synthetic\">Synthetic demo data</span>",
-      "css": ".ds-synthetic{display:inline-flex;align-items:center;min-height:26px;padding:3px 9px;border:1px solid #82adea;border-radius:999px;background:#edf4ff;color:#0751bd;font:650 .72rem ui-sans-serif,sans-serif}"
+      "name": "Seven-Day Activity Chart",
+      "kind": "custom",
+      "description": "The dominant accessible visualization, with a semantic summary and every daily value shown.",
+      "html": "<figure class=\"ds-chart\"><figcaption><span><strong>Task completions</strong><small>Daily output during this seven-day snapshot</small></span><b>34</b></figcaption><svg role=\"img\" aria-labelledby=\"ds-chart-title ds-chart-desc\" viewBox=\"0 0 420 150\"><title id=\"ds-chart-title\">Completed tasks over seven days</title><desc id=\"ds-chart-desc\">27 Aug: 2, 28 Aug: 5, 29 Aug: 3, 30 Aug: 6, 31 Aug: 4, 1 Sep: 7, 2 Sep: 7</desc><path class=\"ds-chart-grid\" d=\"M24 25H400M24 60H400M24 95H400M24 130H400\"/><path class=\"ds-chart-line\" d=\"M24 96L87 60L149 82L212 48L275 72L337 25L400 25\"/><g class=\"ds-chart-points\"><circle cx=\"24\" cy=\"96\" r=\"4\"/><circle cx=\"87\" cy=\"60\" r=\"4\"/><circle cx=\"149\" cy=\"82\" r=\"4\"/><circle cx=\"212\" cy=\"48\" r=\"4\"/><circle cx=\"275\" cy=\"72\" r=\"4\"/><circle cx=\"337\" cy=\"25\" r=\"4\"/><circle cx=\"400\" cy=\"25\" r=\"4\"/></g></svg></figure>",
+      "css": ".ds-chart{margin:0;padding:24px 0 16px;color:var(--foreground,#1c1917);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-chart figcaption{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.ds-chart figcaption span{display:flex;flex-direction:column;gap:7px}.ds-chart figcaption strong{font-size:.875rem;font-weight:680}.ds-chart figcaption small{color:var(--muted-foreground,#6b6762);font-size:.78rem}.ds-chart figcaption b{font-size:1.35rem;font-variant-numeric:tabular-nums}.ds-chart svg{display:block;width:100%;height:auto;margin-top:15px}.ds-chart-grid{fill:none;stroke:var(--border,#dedbd7);stroke-width:1;vector-effect:non-scaling-stroke}.ds-chart-line{fill:none;stroke:var(--primary,#292524);stroke-linecap:round;stroke-linejoin:round;stroke-width:2.5;vector-effect:non-scaling-stroke}.ds-chart-points circle{fill:var(--background,#fff);stroke:var(--primary,#292524);stroke-width:2;vector-effect:non-scaling-stroke}"
+    },
+    {
+      "name": "Work Register",
+      "kind": "custom",
+      "description": "A proportional strip and ruled rows summarize the adjacent task breakdown.",
+      "html": "<section class=\"ds-work\"><header><strong>Work breakdown</strong><small>50 tracked tasks</small></header><div class=\"ds-work-strip\" aria-hidden=\"true\"><i class=\"ds-work-complete\"></i><i class=\"ds-work-active\"></i><i class=\"ds-work-unstarted\"></i><i class=\"ds-work-blocked\"></i></div><dl><div><dt><i class=\"ds-work-dot ds-work-complete\"></i>Completed</dt><dd>34</dd></div><div><dt><i class=\"ds-work-dot ds-work-active\"></i>In progress</dt><dd>8</dd></div><div><dt><i class=\"ds-work-dot ds-work-unstarted\"></i>Not started</dt><dd>6</dd></div><div><dt><i class=\"ds-work-dot ds-work-blocked\"></i>Blocked</dt><dd>2</dd></div></dl></section>",
+      "css": ".ds-work{color:var(--foreground,#1c1917);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-work header{display:flex;flex-direction:column;gap:7px}.ds-work header strong{font-size:.875rem;font-weight:680}.ds-work header small{color:var(--muted-foreground,#6b6762);font-size:.78rem}.ds-work-strip{display:flex;height:9px;margin:28px 0 20px;overflow:hidden;border-radius:999px;background:var(--muted,#f5f4f2)}.ds-work-strip i:nth-child(1){width:68%}.ds-work-strip i:nth-child(2){width:16%}.ds-work-strip i:nth-child(3){width:12%}.ds-work-strip i:nth-child(4){width:4%}.ds-work dl{margin:0}.ds-work dl>div{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 0;border-top:1px solid var(--border,#dedbd7)}.ds-work dt{display:flex;align-items:center;gap:9px;color:var(--muted-foreground,#6b6762);font-size:.76rem}.ds-work dd{margin:0;font-size:.875rem;font-weight:680;font-variant-numeric:tabular-nums}.ds-work-dot{width:7px;height:7px;border-radius:2px}.ds-work-complete{background:var(--primary,#292524)}.ds-work-active{background:color-mix(in srgb,var(--primary,#292524) 56%,var(--background,#fff))}.ds-work-unstarted{background:color-mix(in srgb,var(--muted-foreground,#6b6762) 46%,var(--background,#fff))}.ds-work-blocked{background:color-mix(in srgb,#d92d20 76%,var(--foreground,#1c1917))}"
+    },
+    {
+      "name": "Terminal State",
+      "kind": "custom",
+      "description": "A centered, concise loading or error state with accessible status semantics.",
+      "html": "<section class=\"ds-state\" role=\"status\" aria-busy=\"true\"><span class=\"ds-loader\" aria-hidden=\"true\"></span><strong>Loading Northstar Pulse</strong><p>Reading the stored project snapshot…</p></section>",
+      "css": ".ds-state{display:grid;place-content:center;justify-items:center;padding:48px 24px;color:var(--foreground,#1c1917);text-align:center;font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}.ds-state strong{margin-top:16px;font-size:1.05rem;font-weight:680;line-height:1.3}.ds-state p{max-width:44ch;margin:7px 0 0;color:var(--muted-foreground,#6b6762);font-size:.78rem;line-height:1.45}.ds-loader{width:24px;height:24px;border:2px solid var(--border,#dedbd7);border-top-color:var(--primary,#292524);border-radius:50%;animation:ds-spin 700ms linear infinite}@keyframes ds-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.ds-loader{animation:none}}"
     }
   ],
   "narrative": {
-    "northStar": "The Account Ledger",
-    "overview": "Demo behaves like a live operating record: compact, ruled, and exact. The customer table is the visual anchor; metrics, filters, and activity exist to make that ledger faster to interpret rather than to compete with it.",
-    "keyCharacteristics": ["Continuous ruled surfaces", "Graphite hierarchy with cobalt focus", "Compact tabular data", "Explicit synthetic-data language"],
-    "rules": [
-      { "name": "The Signal Color Rule", "body": "Cobalt means interaction. Green, amber, and red mean state.", "section": "colors" }
+    "northStar": "The Pulse Register",
+    "overview": "Northstar Pulse is a host-native project instrument: compact, calm, and exact. It reads as one continuous ruled report rather than a collection of interchangeable dashboard cards. The Pulse Register structure, identified by seed 8d1308b2, establishes a deliberate scan path from status to four headline measures, across a dominant seven-day activity line, and into the adjacent work breakdown.\n\nThe system inherits the Lunaris theme and lets typography, tabular figures, and hairline rules carry the hierarchy. Synthetic-data language remains visible, status never relies on color alone, and the narrow layout preserves the same reading order by stacking instead of simplifying away information.",
+    "keyCharacteristics": [
+      "Continuous ruled report with no floating cards",
+      "Dominant accessible seven-day line chart",
+      "Compact tabular measures and adjacent work breakdown",
+      "Restrained semantic status color",
+      "Host-native theming with a narrow responsive stack"
     ],
-    "dos": ["Do inherit host theme variables and provide explicit fallbacks.", "Do keep synthetic-data and session-local behavior plainly labeled.", "Do use semantic tables, controls, progress, dialogs, and live regions."],
-    "donts": ["Don't replace the ledger with equal-sized KPI cards or bento panels.", "Don't add gradients, glass, decorative charts, or image-native filler.", "Don't use status colors for generic emphasis or imply simulated data is live."]
+    "rules": [
+      { "name": "The Signal Color Rule", "body": "Green, amber, and red communicate project state only; they never provide generic emphasis or decoration.", "section": "colors" },
+      { "name": "The Host Theme Rule", "body": "Canvas, ink, muted copy, rules, surfaces, and primary marks inherit Lunaris variables with explicit fallbacks.", "section": "colors" },
+      { "name": "The Tabular Scan Rule", "body": "Timestamps, metric values, chart annotations, and work counts use tabular numerals so columns remain visually stable.", "section": "typography" },
+      { "name": "The Flat Register Rule", "body": "Keep every region on one host canvas; use rules and spacing for structure, never elevation effects.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the complete pulse visible in one ordinary desktop viewport.",
+      "Do preserve the status → metrics → seven-day activity → work-breakdown reading order at every width.",
+      "Do pair every semantic color with explicit status or category text.",
+      "Do keep “Generated sample” and the reporting period visible in the header.",
+      "Do preserve accessible SVG naming, visible point values, reduced-motion behavior, and theme-aware contrast."
+    ],
+    "donts": [
+      "Don't add editing controls, filters, tabs, settings, or navigation to this read-only report.",
+      "Don't replace the continuous register with equal-sized cards or bento panels.",
+      "Don't add gradients, glass, shadows, illustrations, or decorative chart effects.",
+      "Don't use green, amber, or red for generic emphasis.",
+      "Don't remove data or labels from the narrow layout; stack or scroll the existing report instead."
+    ]
   }
 }

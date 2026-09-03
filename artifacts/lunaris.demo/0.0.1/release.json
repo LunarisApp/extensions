@@ -10,21 +10,20 @@
     "api": "^0.9.0",
     "conflicts": {},
     "dependencies": {},
-    "description": "A synthetic SaaS operations console demonstrating Lunaris views and resource types.",
+    "description": "A generated project pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
     "developer": "Lunaris",
     "id": "lunaris.demo",
     "keywords": [
       "demo",
-      "SaaS",
-      "operations",
-      "customers",
-      "dashboard"
+      "dashboard",
+      "analytics",
+      "metrics",
+      "project"
     ],
-    "name": "Demo",
+    "name": "Northstar Pulse (Demo)",
     "optionalDependencies": {},
     "permissions": [
-      "content.read",
-      "content.write"
+      "content.read"
     ],
     "version": "0.0.1",
     "website": "https://lunaris.app"
@@ -35,16 +34,16 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 447599,
+    "bytes": 416148,
     "resource": "text/javascript",
-    "sha256": "ea6db7982a835e8260679a425e7ae5a361f5db532f81bc0435c4c2f69771be27",
+    "sha256": "0c032f03b24f9ffcb16b537ea8ec72f5e2619362746665667236494057e955f0",
     "url": "./main.js"
   },
   "status": "active",
   "style": {
-    "bytes": 19292,
+    "bytes": 6283,
     "resource": "text/css",
-    "sha256": "ccaa7b7e4a41f0e3384cc9543c28f95120332f8fc47a627d73cdd07af8691413",
+    "sha256": "1b10d2d5ccc83af7bf6f54c31045b47c4b45b2dfe6a93d24601398d8324c68c4",
     "url": "./styles.css"
   }
 }
