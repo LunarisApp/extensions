@@ -18,5 +18,6 @@ bun run typecheck
 bun run build
 ```
 
-All displayed values are synthetic. The extension requests read access only for
-its stored snapshot, makes no network requests, and provides no editing path.
+All displayed values are synthetic. The extension requests content read access
+to display its stored snapshot and content write access to initialize it. It
+makes no network requests and provides no editing path after creation.

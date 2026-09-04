@@ -41,7 +41,7 @@ describe("Northstar Pulse activation", () => {
     expect(extension.manifest.id).toBe("lunaris.demo");
     expect(extension.manifest.name).toBe("Northstar Pulse (Demo)");
     expect(extension.manifest.version).toBe("0.0.1");
-    expect(extension.manifest.permissions).toEqual(["content.read"]);
+    expect(extension.manifest.permissions).toEqual(["content.read", "content.write"]);
   });
 
   test("initializes and resolves a schema-valid key-value snapshot", async () => {

@@ -23,7 +23,8 @@
     "name": "Northstar Pulse (Demo)",
     "optionalDependencies": {},
     "permissions": [
-      "content.read"
+      "content.read",
+      "content.write"
     ],
     "version": "0.0.1",
     "website": "https://lunaris.app"
@@ -34,9 +35,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 418691,
+    "bytes": 418707,
     "resource": "text/javascript",
-    "sha256": "d34d65709fe24a67b5235950a210c9434717490528524c8c888f10654c622cec",
+    "sha256": "81ccf8f4ea8f6f9e75599ba4946dbd0d7a9a9d5679c59d22fd2b1fbe610d7ed3",
     "url": "./main.js"
   },
   "status": "active",
