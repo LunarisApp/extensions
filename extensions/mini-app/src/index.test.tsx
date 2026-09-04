@@ -42,7 +42,7 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 	definePlugin: (input: unknown) => input,
 	useFileStorage: () => ({ download: downloadMock, upload: uploadMock }),
 	useLocale: () => ({ locale }),
-	useProjectResourceName: (resourceId: string) => {
+	useWorkspaceResourceName: (resourceId: string) => {
 		observedResourceId = resourceId;
 		return "Budget";
 	},
@@ -50,7 +50,7 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 		observedStorage = storage;
 		return storedFileState;
 	},
-	useWorkspaceAccess: () => ({ canWriteContent }),
+	useOrganizationAccess: () => ({ canWriteContent }),
 }));
 
 vi.mock("@lunarisapp/ui/icons", () => ({

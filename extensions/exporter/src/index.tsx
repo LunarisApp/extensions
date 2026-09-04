@@ -5,15 +5,15 @@ import {
   type PluginResourceReadContext,
   type ResourceStorageHandle,
   type ResourceViewProps,
-  useCurrentProject,
+  useCurrentWorkspace,
   useDownloads,
   useKeyValue,
   usePluginResourceReadContext,
   usePluginServiceSlot,
-  useProjectChildrenMap,
-  useProjectResourcesMap,
-  useWorkspaceAccess,
-  useWorkspaceNavigation,
+  useOrganizationAccess,
+  useOrganizationNavigation,
+  useWorkspaceChildrenMap,
+  useWorkspaceResourcesMap,
 } from "@lunarisapp/plugin-sdk";
 import { Pdf02Icon } from "@lunarisapp/ui/icons";
 import {
@@ -58,7 +58,7 @@ async function snapshotResource(
 ): Promise<ExportResourceSnapshot> {
   const resolution = await context.resolveResource(resourceId);
   if (resolution.status !== "ready") throw new Error(resolution.diagnostic);
-  const resource = await context.getProjectResource(resourceId);
+  const resource = await context.getWorkspaceResource(resourceId);
   if (!resource) throw new Error("Resource is unavailable");
   const yjsUpdates = Object.fromEntries(
     await Promise.all(
@@ -70,7 +70,7 @@ async function snapshotResource(
         ] as const),
     ),
   );
-  const children = await context.getProjectResourceChildren(resourceId);
+  const children = await context.getWorkspaceResourceChildren(resourceId);
   return {
     children: await Promise.all(children.map((child) => snapshotResource(context, child.resourceId))),
     resource,
@@ -151,14 +151,14 @@ function PreviewDocumentIcon() {
 }
 
 function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
-  const { project } = useCurrentProject();
-  const resources = useProjectResourcesMap();
-  const children = useProjectChildrenMap();
+  const { workspace } = useCurrentWorkspace();
+  const resources = useWorkspaceResourcesMap();
+  const children = useWorkspaceChildrenMap();
   const representations = usePluginServiceSlot(exporterRepresentations);
   const resourceContext = usePluginResourceReadContext();
   const downloads = useDownloads();
-  const { canWriteContent } = useWorkspaceAccess();
-  const { openResource } = useWorkspaceNavigation();
+  const { canWriteContent } = useOrganizationAccess();
+  const { openResource } = useOrganizationNavigation();
   const selectedStorage = useKeyValue<string[]>(storage, "selected-resource-ids");
   const themeStorage = useKeyValue<PdfTheme>(storage, "pdf-theme");
   const [working, setWorking] = useState(false);
@@ -304,7 +304,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
       await downloads.save({
         data,
         mimeType: "application/pdf",
-        suggestedName: `${safeFilename(project?.name ?? "export")}.pdf`,
+        suggestedName: `${safeFilename(workspace?.name ?? "export")}.pdf`,
       });
       setNotice(failedCount > 0
         ? `PDF saved. ${failedCount} ${failedCount === 1 ? "document was" : "documents were"} replaced with an error notice.`
@@ -381,7 +381,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
       <header className="exporter-header">
         <div>
           <h1>Export PDF</h1>
-          <p className="exporter-muted">Build one PDF from project documents.</p>
+          <p className="exporter-muted">Build one PDF from workspace documents.</p>
         </div>
         {!canWriteContent ? <span className="exporter-badge">Read only</span> : null}
       </header>
@@ -446,7 +446,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
           <div className="exporter-panel-intro">
             <div>
               <h2>Choose documents</h2>
-              <p className="exporter-muted">Select the project content to include in the PDF.</p>
+              <p className="exporter-muted">Select the workspace content to include in the PDF.</p>
             </div>
             <div className="exporter-inline-actions">
               <button className="exporter-text-button" disabled={!canEditSettings || allSelected} onClick={() => void saveSelection(defaultOrder)} type="button">Select all</button>

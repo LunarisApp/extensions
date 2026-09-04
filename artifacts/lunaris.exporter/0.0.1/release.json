@@ -10,7 +10,7 @@
     "api": "^0.9.0",
     "conflicts": {},
     "dependencies": {},
-    "description": "Choose, order, and style project content for PDF",
+    "description": "Choose, order, and style workspace content for PDF",
     "developer": "Lunaris",
     "id": "lunaris.exporter",
     "keywords": [
@@ -35,9 +35,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 7613787,
+    "bytes": 7613920,
     "resource": "text/javascript",
-    "sha256": "b4c03c27c30ad7a469e89658699ad057b26930d8dcb7021331479008257733d0",
+    "sha256": "ef4af55f33e3999d8cab92647a3b526de6f100085ca1e111183f0ebc5a27b058",
     "url": "./main.js"
   },
   "status": "active",

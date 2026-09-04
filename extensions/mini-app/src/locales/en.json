@@ -4,7 +4,7 @@
 			"lunaris": {
 				"mini-app": {
 					"name": "Mini Apps",
-					"description": "Run interactive, self-contained HTML apps in your project"
+					"description": "Run interactive, self-contained HTML apps in your workspace"
 				}
 			}
 		}

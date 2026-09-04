@@ -1,5 +1,5 @@
 /*
-THESIS: Northstar Pulse is a project instrument panel, not a stack of dashboard cards.
+THESIS: Northstar Pulse is a workspace instrument panel, not a stack of dashboard cards.
 OWN-WORLD: Host-native paper, graphite rules, tabular figures, and semantic signal color.
 STORY: Confirm status, scan the four measures, trace the week, then inspect remaining work.
 FIRST VIEWPORT: Status header, continuous KPI register, dominant line chart, compact work register.
@@ -212,7 +212,7 @@ export function PulseDashboard({ snapshot }: { snapshot: PulseSnapshot }) {
         </div>
       </header>
 
-      <dl aria-label="Project pulse metrics" className="pulse-metrics">
+      <dl aria-label="Workspace pulse metrics" className="pulse-metrics">
         {metrics.map(([label, value]) => (
           <div key={label}>
             <dt>{label}</dt>
@@ -239,7 +239,7 @@ export function PulseViewContent({
   value: unknown;
 }) {
   if (isLoading) {
-    return <PulseState description="Reading the stored project snapshot…" loading title="Loading Northstar Pulse" />;
+    return <PulseState description="Reading the stored workspace snapshot…" loading title="Loading Northstar Pulse" />;
   }
   if (value === null || value === undefined) {
     return <PulseState description="Create a new Northstar Pulse resource to generate another sample." reportReady={reportReady} title="Pulse data is missing" />;

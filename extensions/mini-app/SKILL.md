@@ -132,7 +132,7 @@ domain conventions take priority.
 ## Delivery
 
 Provide exactly one upload-ready HTML file unless the user requests alternatives.
-Tell the user to install Mini Apps from Workspace Settings, enable it for the
-project, create a Mini App item, open it, choose **Choose app**, and select the
+Tell the user to install Mini Apps from Organization Settings, enable it for the
+workspace, create a Mini App item, open it, choose **Choose app**, and select the
 file. Mention important assumptions and any capability intentionally omitted
 because of the sandbox.

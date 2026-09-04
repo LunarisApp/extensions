@@ -2,9 +2,9 @@ import {
 	type ResourceStorageHandle,
 	ViewReady,
 	useFileStorage,
-	useProjectResourceName,
+	useOrganizationAccess,
 	useStoredFile,
-	useWorkspaceAccess,
+	useWorkspaceResourceName,
 } from "@lunarisapp/plugin-sdk";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMiniAppTranslation } from "./locale";
@@ -123,10 +123,10 @@ export function MiniAppViewer({
 	storage: FileStorageHandle;
 }) {
 	const t = useMiniAppTranslation();
-	const { canWriteContent } = useWorkspaceAccess();
+	const { canWriteContent } = useOrganizationAccess();
 	const fileStorage = useFileStorage();
 	const { file, metadata, objectUrl } = useStoredFile(storage);
-	const resourceName = useProjectResourceName(resourceId);
+	const resourceName = useWorkspaceResourceName(resourceId);
 	const source = useMiniAppSource(file?.id ?? null, objectUrl);
 	const sandboxDocument = useMemo(
 		() =>

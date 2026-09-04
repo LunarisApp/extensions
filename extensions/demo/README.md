@@ -1,7 +1,7 @@
 # Northstar Pulse (Demo)
 
 A compact reference extension for Lunaris resource types. Creating a **Northstar
-Pulse** resource generates a fictional seven-day project snapshot, stores it once
+Pulse** resource generates a fictional seven-day workspace snapshot, stores it once
 in host-managed key-value storage, and opens it in a read-only dashboard view.
 
 The example focuses on the complete resource lifecycle without external services:
@@ -9,7 +9,7 @@ The example focuses on the complete resource lifecycle without external services
 - user-creatable resource type with schema-validated key-value storage;
 - random data generated once during resource initialization;
 - a compatible default view with loading and invalid-data states;
-- a responsive, accessible SVG trend chart and semantic project metrics.
+- a responsive, accessible SVG trend chart and semantic workspace metrics.
 
 ```sh
 bun install

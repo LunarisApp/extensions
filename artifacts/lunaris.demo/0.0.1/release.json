@@ -10,7 +10,7 @@
     "api": "^0.9.0",
     "conflicts": {},
     "dependencies": {},
-    "description": "A generated project pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
+    "description": "A generated workspace pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
     "developer": "Lunaris",
     "id": "lunaris.demo",
     "keywords": [
@@ -18,7 +18,7 @@
       "dashboard",
       "analytics",
       "metrics",
-      "project"
+      "workspace"
     ],
     "name": "Northstar Pulse (Demo)",
     "optionalDependencies": {},
@@ -35,9 +35,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 420171,
+    "bytes": 420288,
     "resource": "text/javascript",
-    "sha256": "4cd8159bcf1916f13dce52499f851b936ac775a1f0406fe93715e2ebd5db14bf",
+    "sha256": "4dfd64936eedd5920ce70fefb8bdfbb15f915cfde9f75132b38928e082bd360c",
     "url": "./main.js"
   },
   "status": "active",

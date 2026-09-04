@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lunarisapp/plugin-sdk": "^0.9.4",
+    "@lunarisapp/plugin-sdk": "^0.10.0",
     "@lunarisapp/ui": "^0.0.1",
     "pdfjs-dist": "6.3.289"
   },

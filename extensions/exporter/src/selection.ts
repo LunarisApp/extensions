@@ -1,6 +1,6 @@
 import {
   isPluginResourceFolder,
-  PLUGIN_PROJECT_ROOT_ID,
+  PLUGIN_WORKSPACE_ROOT_ID,
   type PluginResource,
   type PluginResourceChildrenMap,
   type PluginResourcesMap,
@@ -72,7 +72,7 @@ export function buildExportableItems(
   };
 
   const roots = [
-    ...(children.get(PLUGIN_PROJECT_ROOT_ID) ?? []),
+    ...(children.get(PLUGIN_WORKSPACE_ROOT_ID) ?? []),
     ...(children.get(null) ?? []),
   ];
   for (const root of roots) items.push(...visit(root, 0).items);

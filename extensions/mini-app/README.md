@@ -3,7 +3,7 @@
 Mini Apps adds a file-backed resource type and sandboxed view for running
 interactive, self-contained HTML files inside Lunaris.
 
-Install it from Workspace Settings, enable it for a project, create a Mini App,
+Install it from Organization Settings, enable it for a workspace, create a Mini App,
 then choose one `.html` or `.htm` file up to 5 MiB. The original source remains
 downloadable and the resource name is never changed by upload.
 

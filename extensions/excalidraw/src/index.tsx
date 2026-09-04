@@ -6,7 +6,7 @@ import {
 	ViewReady,
 	definePlugin,
 	useLocale,
-	useWorkspaceAccess,
+	useOrganizationAccess,
 } from "@lunarisapp/plugin-sdk";
 import {
 	useYjsStorage,
@@ -95,7 +95,7 @@ export function ExcalidrawView({
 	storage: YjsStorageHandle;
 }) {
 	const { error, isLoading, yDoc } = useYjsStorage(storage);
-	const { canWriteContent } = useWorkspaceAccess();
+	const { canWriteContent } = useOrganizationAccess();
 	const { locale } = useLocale();
 	const theme = useColorScheme();
 

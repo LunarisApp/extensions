@@ -10,7 +10,7 @@
     "api": "^0.9.0",
     "conflicts": {},
     "dependencies": {},
-    "description": "Run interactive, self-contained HTML apps in your project",
+    "description": "Run interactive, self-contained HTML apps in your workspace",
     "developer": "Lunaris",
     "id": "lunaris.mini-app",
     "keywords": [
@@ -35,9 +35,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 398697,
+    "bytes": 398855,
     "resource": "text/javascript",
-    "sha256": "dbd145699b02608a69fecaa447deb96da4ad2a8cfa2e6ea4382f82da181e883d",
+    "sha256": "a367c0cbabb477a05c97ef8871abd29f77c8c3fbabde383c3e85540d14fac40d",
     "url": "./main.js"
   },
   "status": "active",
