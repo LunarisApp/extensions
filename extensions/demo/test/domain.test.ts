@@ -7,7 +7,7 @@ function sequence(values: number[]) {
 }
 
 describe("Northstar Pulse generation", () => {
-  test("creates a coherent seven-day project snapshot", () => {
+  test("creates a coherent seven-day workspace snapshot", () => {
     const pulse = generatePulseSnapshot(
       "2026-09-03T09:30:00.000Z",
       sequence([0, 0.1, 0.25, 0.4, 0.55, 0.7, 0.9, 0.2, 0.4, 0.6, 0.8]),
@@ -37,7 +37,7 @@ describe("Northstar Pulse generation", () => {
     }
   });
 
-  test("derives each project status from progress and blockers", () => {
+  test("derives each workspace status from progress and blockers", () => {
     expect(generatePulseSnapshot("2026-09-03T00:00:00.000Z", () => 0).status).toBe("on-track");
     expect(generatePulseSnapshot("2026-09-03T00:00:00.000Z", () => 0.5).status).toBe("at-risk");
     expect(generatePulseSnapshot("2026-09-03T00:00:00.000Z", () => 0.999999).status).toBe("off-track");

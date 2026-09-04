@@ -1,6 +1,6 @@
 ---
 name: Northstar Pulse
-description: A compact, host-native project pulse rendered as a continuous ruled report.
+description: A compact, host-native workspace pulse rendered as a continuous ruled report.
 colors:
   canvas: "var(--background, #ffffff)"
   ink: "var(--foreground, #1c1917)"
@@ -88,7 +88,7 @@ components:
 
 **Creative North Star: "The Pulse Register"**
 
-Northstar Pulse is a host-native project instrument: compact, calm, and exact. It reads as one continuous ruled report rather than a collection of interchangeable dashboard cards. The Pulse Register structure, identified by seed `8d1308b2`, establishes a deliberate scan path from status to four headline measures, across a dominant seven-day activity line, and into the adjacent work breakdown.
+Northstar Pulse is a host-native workspace instrument: compact, calm, and exact. It reads as one continuous ruled report rather than a collection of interchangeable dashboard cards. The Pulse Register structure, identified by seed `8d1308b2`, establishes a deliberate scan path from status to four headline measures, across a dominant seven-day activity line, and into the adjacent work breakdown.
 
 The system inherits the Lunaris theme and lets typography, tabular figures, and hairline rules carry the hierarchy. Synthetic-data language remains visible, status never relies on color alone, and the narrow layout preserves the same reading order by stacking instead of simplifying away information. Delight comes from useful annotation: a status-specific pulse note and a double-ring weekly high make the frozen sample feel thoughtfully interpreted rather than merely plotted.
 
@@ -103,7 +103,7 @@ The system inherits the Lunaris theme and lets typography, tabular figures, and 
 
 ## Colors
 
-The palette is inherited graphite and paper, with green, amber, and red reserved for explicit project state.
+The palette is inherited graphite and paper, with green, amber, and red reserved for explicit workspace state.
 
 ### Primary
 
@@ -125,7 +125,7 @@ The palette is inherited graphite and paper, with green, amber, and red reserved
 
 ### Named Rules
 
-**The Signal Color Rule.** Green, amber, and red communicate project state only; they never provide generic emphasis or decoration.
+**The Signal Color Rule.** Green, amber, and red communicate workspace state only; they never provide generic emphasis or decoration.
 
 **The Host Theme Rule.** Canvas, ink, muted copy, rules, surfaces, and primary marks inherit Lunaris variables with explicit fallbacks.
 

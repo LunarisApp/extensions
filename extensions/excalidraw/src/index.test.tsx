@@ -52,7 +52,7 @@ vi.mock("@lunarisapp/plugin-sdk", () => ({
 		slot: (id: string) => ({ id, serviceId: input.id, serviceVersion: input.version }),
 	}),
 	useLocale: () => ({ locale: state.locale }),
-	useWorkspaceAccess: () => ({ canWriteContent: state.canWriteContent }),
+	useOrganizationAccess: () => ({ canWriteContent: state.canWriteContent }),
 }));
 vi.mock("@lunarisapp/plugin-sdk/data", () => ({
 	useYjsStorage: () => ({

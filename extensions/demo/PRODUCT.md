@@ -13,14 +13,14 @@ key-value storage, schema validation, and a resource-targeted view work together
 
 ## Product Purpose
 
-Northstar Pulse is a fictional project-health snapshot. Each resource generates
+Northstar Pulse is a fictional workspace-health snapshot. Each resource generates
 one coherent seven-day dataset when it is created, persists that dataset unchanged,
 and presents it as a compact read-only dashboard when opened.
 
 ## Operating Context
 
-The resource opens inside a Lunaris project panel. A reader should understand the
-project status, headline measures, weekly activity, and remaining work in one scan,
+The resource opens inside a Lunaris workspace panel. A reader should understand the
+workspace status, headline measures, weekly activity, and remaining work in one scan,
 including in a narrow secondary panel.
 
 ## Capabilities and Constraints
@@ -35,7 +35,7 @@ including in a narrow secondary panel.
 ## Brand Commitments
 
 The marketplace name is **Northstar Pulse (Demo)**. The view uses a direct, calm
-project-reporting voice and makes its generated nature visible.
+workspace-reporting voice and makes its generated nature visible.
 
 ## Product Principles
 

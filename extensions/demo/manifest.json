@@ -5,8 +5,8 @@
   "version": "0.0.1",
   "api": "^0.9.0",
   "optionalDependencies": {},
-  "description": "A generated project pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
-  "keywords": ["demo", "dashboard", "analytics", "metrics", "project"],
+  "description": "A generated workspace pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
+  "keywords": ["demo", "dashboard", "analytics", "metrics", "workspace"],
   "website": "https://lunaris.app",
   "permissions": ["content.read", "content.write"]
 }
