@@ -8,5 +8,5 @@
   "description": "A generated project pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
   "keywords": ["demo", "dashboard", "analytics", "metrics", "project"],
   "website": "https://lunaris.app",
-  "permissions": ["content.read"]
+  "permissions": ["content.read", "content.write"]
 }
