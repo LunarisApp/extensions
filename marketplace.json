@@ -3,7 +3,7 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-09-03T08:38:09.747Z",
+  "generatedAt": "2026-09-04T06:23:19.381Z",
   "extensions": [
     {
       "description": "A generated project pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
@@ -95,8 +95,8 @@
           "api": "^0.9.0",
           "descriptor": {
             "bytes": 1212,
-            "sha256": "534704607ab6399855caf41d5a287ec7e18d4129aca00e20f9f76b96844a0daa",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/52c0389ac022e8193ebcb7950b0ace817f6c7451/artifacts/lunaris.exporter/0.0.1/release.json"
+            "sha256": "5033fbfd04a1f69435cba99fe71cb5895b80cf603fa66b06076bbcd988946836",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/136ef82a2548e6c0dc17c97667667c105cec5fc2/artifacts/lunaris.exporter/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
@@ -106,7 +106,7 @@
           "version": "0.0.1"
         }
       ],
-      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/52c0389ac022e8193ebcb7950b0ace817f6c7451/artifacts/lunaris.exporter/0.0.1/icon.webp"
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/136ef82a2548e6c0dc17c97667667c105cec5fc2/artifacts/lunaris.exporter/0.0.1/icon.webp"
     },
     {
       "description": "Run interactive, self-contained HTML apps in your project",
