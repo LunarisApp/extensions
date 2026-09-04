@@ -38,8 +38,8 @@ import {
   type ExportResourceSnapshot,
 } from "./contract";
 import { exporterIcon } from "./icon";
-import { renderPdf } from "./pdf";
 import { PdfPreview } from "./pdf-preview";
+import { renderPdfInWorker } from "./pdf-worker-client";
 import {
   buildExportableItems,
   moveSelectedId,
@@ -228,7 +228,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
     }
   };
 
-  const buildPdf = useCallback(async () => {
+  const buildPdf = useCallback(async (signal?: AbortSignal) => {
     let failedCount = 0;
     const documents: ExportDocumentV1[] = [];
     for (const resourceId of selectedIds) {
@@ -250,7 +250,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
         });
       }
     }
-    return { data: await renderPdf(documents, theme), failedCount };
+    return { data: await renderPdfInWorker(documents, theme, signal), failedCount };
   }, [byType, resourceContext, resources, selectedIds, theme]);
 
   useEffect(() => {
@@ -269,19 +269,23 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
 
     setPreviewStatus(previewData ? "refreshing" : "loading");
     setPreviewError(undefined);
+    const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      void buildPdf().then(({ data, failedCount }) => {
+      void buildPdf(controller.signal).then(({ data, failedCount }) => {
         if (request !== previewRequestRef.current) return;
         setPreviewData(data);
         setPreviewFailedCount(failedCount);
       }).catch((reason) => {
-        if (request !== previewRequestRef.current) return;
+        if (request !== previewRequestRef.current || controller.signal.aborted) return;
         setPreviewError(reason instanceof Error ? reason.message : "The PDF preview could not be rendered.");
         setPreviewStatus("error");
       });
     }, 320);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [buildPdf, loading, previewRetry, selectedIds.length]);
 
   const previewReady = useCallback(() => setPreviewStatus("ready"), []);
