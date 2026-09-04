@@ -35,9 +35,9 @@
     "protocol": 6
   },
   "script": {
-    "bytes": 418707,
+    "bytes": 420171,
     "resource": "text/javascript",
-    "sha256": "81ccf8f4ea8f6f9e75599ba4946dbd0d7a9a9d5679c59d22fd2b1fbe610d7ed3",
+    "sha256": "4cd8159bcf1916f13dce52499f851b936ac775a1f0406fe93715e2ebd5db14bf",
     "url": "./main.js"
   },
   "status": "active",

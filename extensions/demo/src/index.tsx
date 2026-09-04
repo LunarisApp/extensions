@@ -5,6 +5,7 @@ import {
   type ResourcePayloadContext,
   definePlugin,
 } from "@lunarisapp/plugin-sdk";
+import { TestTube01Icon } from "@lunarisapp/ui/icons";
 import manifest from "../manifest.json";
 import { NorthstarPulseRenderer } from "./dashboard";
 import { PULSE_STORAGE_KEY, generatePulseSnapshot, pulseSnapshotSchema } from "./domain";
@@ -22,7 +23,7 @@ export const pulseIcon: IconSvgObject = [
 export const northstarPulseResourceType = {
   defaultViewId: NORTHSTAR_PULSE_VIEW_ID,
   hierarchy: { userCreatable: true, visible: true },
-  icon: pulseIcon,
+  icon: TestTube01Icon,
   name: "Northstar Pulse",
   resourceTypeId: NORTHSTAR_PULSE_ID,
   schema: {
