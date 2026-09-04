@@ -3,7 +3,7 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-09-04T06:23:19.381Z",
+  "generatedAt": "2026-09-04T06:32:53.063Z",
   "extensions": [
     {
       "description": "A generated project pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
@@ -25,8 +25,8 @@
           "api": "^0.9.0",
           "descriptor": {
             "bytes": 1274,
-            "sha256": "b02ba587e5cce31c23487787d6c273ce9622c1fe0165ca64ddae6bd5aa4f5c7f",
-            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/6f2dea9ec306fa4a4a50d2d64c73619f39b723de/artifacts/lunaris.demo/0.0.1/release.json"
+            "sha256": "4abf2ac103be0b9b8ec2f78788008da6e57e05bc379512b3eda3e38db19fa447",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/7baf38367a50e20d39c222ee96e796b8a106385b/artifacts/lunaris.demo/0.0.1/release.json"
           },
           "runtime": {
             "kind": "iframe",
@@ -36,7 +36,7 @@
           "version": "0.0.1"
         }
       ],
-      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/6f2dea9ec306fa4a4a50d2d64c73619f39b723de/artifacts/lunaris.demo/0.0.1/icon.webp"
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/7baf38367a50e20d39c222ee96e796b8a106385b/artifacts/lunaris.demo/0.0.1/icon.webp"
     },
     {
       "description": "Collaborative drawing with Excalidraw",
