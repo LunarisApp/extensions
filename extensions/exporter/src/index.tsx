@@ -2,7 +2,6 @@ import {
   ViewReady,
   definePlugin,
   type JsonValue,
-  type PluginResourceReadContext,
   type ResourceStorageHandle,
   type ResourceViewProps,
   useCurrentWorkspace,
@@ -30,16 +29,23 @@ import * as z from "zod";
 import manifest from "../manifest.json";
 import {
   EXPORTER_EXTENSION_ID,
-  assertExportDocumentV1,
   exporterRepresentations,
   exporterService,
   isExporterRepresentationMetadata,
-  type ExportDocumentV1,
-  type ExportResourceSnapshot,
 } from "./contract";
+import { DocumentPreview } from "./document-preview";
 import { exporterIcon } from "./icon";
-import { PdfPreview } from "./pdf-preview";
 import { renderPdfInWorker } from "./pdf-worker-client";
+import {
+  LatestRequestGate,
+  loadPreparedDocuments,
+  preparedRequestKey,
+  resourceFingerprint,
+  resourceSelectionFingerprint,
+  type PreparedDocument,
+  type PreparedDocumentCache,
+  type PreparedDocumentRequest,
+} from "./prepared-documents";
 import {
   buildExportableItems,
   moveSelectedId,
@@ -52,30 +58,10 @@ import { StyleSettings } from "./style-settings";
 import { mergePdfTheme, type PdfTheme } from "./theme";
 import "./styles.css";
 
-async function snapshotResource(
-  context: PluginResourceReadContext,
-  resourceId: string,
-): Promise<ExportResourceSnapshot> {
-  const resolution = await context.resolveResource(resourceId);
-  if (resolution.status !== "ready") throw new Error(resolution.diagnostic);
-  const resource = await context.getWorkspaceResource(resourceId);
-  if (!resource) throw new Error("Resource is unavailable");
-  const yjsUpdates = Object.fromEntries(
-    await Promise.all(
-      Object.entries(resource.storage)
-        .filter(([, storage]) => storage.kind === "yjs")
-        .map(async ([name, storage]) => [
-          name,
-          (await context.getYjsStorageUpdates(storage)).map(({ updateBase64 }) => updateBase64),
-        ] as const),
-    ),
-  );
-  const children = await context.getWorkspaceResourceChildren(resourceId);
-  return {
-    children: await Promise.all(children.map((child) => snapshotResource(context, child.resourceId))),
-    resource,
-    yjsUpdates,
-  };
+function devMeasure(name: string, start: number) {
+  if (import.meta.env.DEV && typeof performance !== "undefined") {
+    performance.measure(name, { end: performance.now(), start });
+  }
 }
 
 function safeFilename(value: string): string {
@@ -151,7 +137,7 @@ function PreviewDocumentIcon() {
 }
 
 function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
-  const { workspace } = useCurrentWorkspace();
+  const { workspace, workspaceId } = useCurrentWorkspace();
   const resources = useWorkspaceResourcesMap();
   const children = useWorkspaceChildrenMap();
   const representations = usePluginServiceSlot(exporterRepresentations);
@@ -161,6 +147,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   const { openResource } = useOrganizationNavigation();
   const selectedStorage = useKeyValue<string[]>(storage, "selected-resource-ids");
   const themeStorage = useKeyValue<PdfTheme>(storage, "pdf-theme");
+  const storedTheme = useMemo(() => mergePdfTheme(themeStorage.value), [themeStorage.value]);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
@@ -172,8 +159,13 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
   const [previewFailedCount, setPreviewFailedCount] = useState(0);
   const [previewRetry, setPreviewRetry] = useState(0);
   const [previewStatus, setPreviewStatus] = useState<PreviewStatus>("loading");
-  const [previewData, setPreviewData] = useState<ArrayBuffer>();
-  const previewRequestRef = useRef(0);
+  const [preparing, setPreparing] = useState(true);
+  const [prepared, setPrepared] = useState<{ documents: PreparedDocument[]; key: string }>();
+  const preparedCacheRef = useRef<PreparedDocumentCache>(new Map());
+  const previewRequestsRef = useRef(new LatestRequestGate());
+  const themeWriteRef = useRef(0);
+  const themeWriteChainRef = useRef<Promise<void>>(Promise.resolve());
+  const storedThemeRef = useRef(storedTheme);
 
   const byType = useMemo(
     () => new Map(representations.flatMap((entry) =>
@@ -202,9 +194,16 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
     const resource = resources.get(id);
     return resource ? [resource] : [];
   });
-  const theme = useMemo(() => mergePdfTheme(themeStorage.value), [themeStorage.value]);
+  storedThemeRef.current = storedTheme;
+  const [theme, setTheme] = useState<PdfTheme>(() => storedTheme);
+  const [themeSaving, setThemeSaving] = useState(false);
   const loading = selectedStorage.isLoading || themeStorage.isLoading;
   const canEditSettings = canWriteContent && !loading && !working;
+
+  useEffect(() => {
+    if (themeSaving || themeStorage.isLoading) return;
+    setTheme(storedTheme);
+  }, [storedTheme, themeSaving, themeStorage.isLoading]);
 
   const saveSelection = async (next: string[]) => {
     if (!canEditSettings) return;
@@ -217,90 +216,112 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
     }
   };
 
-  const saveTheme = async (next: PdfTheme) => {
+  const saveTheme = (next: PdfTheme) => {
     if (!canEditSettings) return;
+    const request = ++themeWriteRef.current;
+    setTheme(next);
+    setThemeSaving(true);
     setError(undefined);
     setNotice(undefined);
-    try {
-      await themeStorage.set(next);
-    } catch (reason) {
+    const write = themeWriteChainRef.current.then(() => themeStorage.set(next));
+    themeWriteChainRef.current = write.catch(() => {});
+    void write.then(() => {
+      if (request === themeWriteRef.current) setThemeSaving(false);
+    }).catch((reason) => {
+      if (request !== themeWriteRef.current) return;
+      setTheme(storedThemeRef.current);
+      setThemeSaving(false);
       setError(reason instanceof Error ? reason.message : "Could not save appearance settings. Try again.");
-    }
+    });
   };
 
-  const buildPdf = useCallback(async (signal?: AbortSignal) => {
-    let failedCount = 0;
-    const documents: ExportDocumentV1[] = [];
-    for (const resourceId of selectedIds) {
-      const resource = resources.get(resourceId);
-      const representation = resource ? byType.get(resource.resourceTypeId) : undefined;
-      if (!resource || !representation) continue;
-      try {
-        const document = await representation.invoke(
-          await snapshotResource(resourceContext, resourceId),
-        );
-        assertExportDocumentV1(document);
-        documents.push(document);
-      } catch {
-        failedCount += 1;
-        documents.push({
-          blocks: [{ children: [{ text: "This source could not be read." }], type: "paragraph" }],
-          title: resource.name || "Untitled",
-          version: 1,
-        });
-      }
-    }
-    return { data: await renderPdfInWorker(documents, theme, signal), failedCount };
-  }, [byType, resourceContext, resources, selectedIds, theme]);
+  const preparedRequests = useMemo(() => selectedIds.flatMap((resourceId): PreparedDocumentRequest[] => {
+    const resource = resources.get(resourceId);
+    const representation = resource ? byType.get(resource.resourceTypeId) : undefined;
+    if (!resource || !representation) return [];
+    return [{
+      fingerprint: resourceFingerprint(resourceId, resources, children, representation.id),
+      representation,
+      resourceId,
+      resourceName: resource.name || "Untitled",
+      selectionFingerprint: resourceSelectionFingerprint(resourceId, resources, children, representation.id),
+    }];
+  }), [byType, children, resources, selectedIds]);
+  const currentPreparedKey = useMemo(
+    () => preparedRequestKey(preparedRequests),
+    [preparedRequests],
+  );
+  const preparedIsCurrent = prepared?.key === currentPreparedKey;
+  const previewDocuments = useMemo(
+    () => prepared?.documents.map(({ document }) => document),
+    [prepared],
+  );
 
+  // SDK map/context objects may be recreated on any render; the semantic key is
+  // the authoritative dependency so appearance-only changes never call providers.
   useEffect(() => {
-    const request = ++previewRequestRef.current;
+    const request = previewRequestsRef.current.begin();
     if (loading) {
-      setPreviewStatus(previewData ? "refreshing" : "loading");
+      setPreparing(true);
+      setPreviewStatus(prepared ? "refreshing" : "loading");
       return;
     }
     if (selectedIds.length === 0) {
-      setPreviewData(undefined);
+      preparedCacheRef.current.clear();
+      setPreparing(false);
+      setPrepared(undefined);
       setPreviewError(undefined);
       setPreviewFailedCount(0);
       setPreviewStatus("empty");
       return;
     }
 
-    setPreviewStatus(previewData ? "refreshing" : "loading");
+    setPreparing(true);
+    setPreviewStatus(prepared ? "refreshing" : "loading");
     setPreviewError(undefined);
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      void buildPdf(controller.signal).then(({ data, failedCount }) => {
-        if (request !== previewRequestRef.current) return;
-        setPreviewData(data);
-        setPreviewFailedCount(failedCount);
+    const start = performance.now();
+    void loadPreparedDocuments(
+      preparedRequests,
+      resourceContext,
+      preparedCacheRef.current,
+      4,
+      () => previewRequestsRef.current.isCurrent(request),
+    )
+      .then((documents) => {
+        if (!previewRequestsRef.current.isCurrent(request)) return;
+        devMeasure("exporter:representation-loading", start);
+        setPrepared({ documents, key: currentPreparedKey });
+        setPreviewFailedCount(documents.filter(({ failed }) => failed).length);
+        setPreparing(false);
+        setPreviewStatus("ready");
       }).catch((reason) => {
-        if (request !== previewRequestRef.current || controller.signal.aborted) return;
-        setPreviewError(reason instanceof Error ? reason.message : "The PDF preview could not be rendered.");
+        if (!previewRequestsRef.current.isCurrent(request)) return;
+        setPreparing(false);
+        setPreviewError(reason instanceof Error ? reason.message : "The document preview could not be prepared.");
         setPreviewStatus("error");
       });
-    }, 320);
 
     return () => {
-      window.clearTimeout(timer);
-      controller.abort();
+      previewRequestsRef.current.invalidate();
     };
-  }, [buildPdf, loading, previewRetry, selectedIds.length]);
+  }, [currentPreparedKey, loading, previewRetry, selectedIds.length, workspaceId]);
 
-  const previewReady = useCallback(() => setPreviewStatus("ready"), []);
+  const previewReady = useCallback(() => {
+    if (!preparing) setPreviewStatus("ready");
+  }, [preparing]);
   const previewRenderFailed = useCallback((reason: unknown) => {
-    setPreviewError(reason instanceof Error ? reason.message : "The PDF preview could not be rendered.");
+    setPreviewError(reason instanceof Error ? reason.message : "The document preview could not be rendered.");
     setPreviewStatus("error");
   }, []);
 
   const exportPdf = async () => {
-    if (loading || working || selectedIds.length === 0) return;
+    if (loading || working || preparing || selectedIds.length === 0 || !preparedIsCurrent || !prepared) return;
     setWorking(true);
     setError(undefined);
     setNotice(undefined);
     try {
-      const { data, failedCount } = await buildPdf();
+      const data = await renderPdfInWorker(prepared.documents.map(({ document }) => document), theme);
+      const failedCount = prepared.documents.filter(({ failed }) => failed).length;
       await downloads.save({
         data,
         mimeType: "application/pdf",
@@ -388,8 +409,8 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
       <div className="exporter-layout">
         <section aria-label="PDF preview" className="exporter-preview-pane">
           <div aria-busy={previewStatus === "loading" || previewStatus === "refreshing"} className="exporter-preview-stage">
-            {previewData ? (
-              <PdfPreview data={previewData} onError={previewRenderFailed} onReady={previewReady} />
+            {previewDocuments ? (
+              <DocumentPreview documents={previewDocuments} onError={previewRenderFailed} onReady={previewReady} theme={theme} />
             ) : null}
             {previewStatus === "loading" ? (
               <div className="exporter-preview-state" role="status">
@@ -405,8 +426,14 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
                 <span>Choose one or more documents in the sidebar to begin.</span>
               </div>
             ) : null}
+            {previewStatus === "refreshing" ? (
+              <div className="exporter-preview-refreshing" role="status">
+                <span aria-hidden="true" className="exporter-spinner" />
+                <span>Updating preview…</span>
+              </div>
+            ) : null}
             {previewStatus === "error" ? (
-              <div className={previewData ? "exporter-preview-alert" : "exporter-preview-state"} role="alert">
+              <div className={previewDocuments ? "exporter-preview-alert" : "exporter-preview-state"} role="alert">
                 <strong>Preview unavailable</strong>
                 <span>{previewError}</span>
                 <button className="exporter-text-button" onClick={() => setPreviewRetry((value) => value + 1)} type="button">Try again</button>
@@ -418,6 +445,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
               {previewFailedCount} {previewFailedCount === 1 ? "document could" : "documents could"} not be read and {previewFailedCount === 1 ? "is" : "are"} shown as an error notice.
             </p>
           ) : null}
+          {previewDocuments ? <p className="exporter-preview-note">Preview pagination is approximate. The downloaded PDF is authoritative.</p> : null}
         </section>
 
         <aside aria-label="PDF settings" className="exporter-inspector">
@@ -570,7 +598,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
               <p className="exporter-muted">Set page, typography, spacing, and color options.</p>
             </div>
           </div>
-          <StyleSettings disabled={!canEditSettings} onChange={(next) => void saveTheme(next)} theme={theme} />
+          <StyleSettings disabled={!canEditSettings} onChange={saveTheme} theme={theme} />
             </section>
           </div>
 
@@ -578,7 +606,7 @@ function ExporterView({ storage }: { storage: ResourceStorageHandle }) {
           {notice ? <p className="exporter-message exporter-success" role="status">{notice}</p> : null}
           <div className="exporter-actions">
             <span className="exporter-muted">{selectedIds.length} {selectedIds.length === 1 ? "document" : "documents"}</span>
-            <button aria-busy={working} className="exporter-button" disabled={loading || working || selectedIds.length === 0} onClick={() => void exportPdf()} type="button">
+            <button aria-busy={working} className="exporter-button" disabled={loading || working || preparing || selectedIds.length === 0 || !preparedIsCurrent} onClick={() => void exportPdf()} type="button">
               {working ? "Exporting…" : "Export PDF"}
             </button>
           </div>

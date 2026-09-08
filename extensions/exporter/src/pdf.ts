@@ -9,23 +9,15 @@ import {
   type PDFPage,
 } from "pdf-lib";
 import type { ExportBlock, ExportDocumentV1, ExportText, ExportTextMark } from "./contract";
+import { readableTextColor } from "./text-color";
 import { DEFAULT_PDF_THEME, mergePdfTheme, type PdfTheme } from "./theme";
+
+export { readableTextColor } from "./text-color";
 
 const PAGE_SIZES: Record<"a4" | "letter", [number, number]> = {
   a4: [595.28, 841.89],
   letter: [612, 792],
 };
-
-const MAIN_THREAD_BUDGET_MS = 12;
-
-function mainThreadScheduler() {
-  let deadline = performance.now() + MAIN_THREAD_BUDGET_MS;
-  return async () => {
-    if (performance.now() < deadline) return;
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    deadline = performance.now() + MAIN_THREAD_BUDGET_MS;
-  };
-}
 
 interface TextRun {
   marks?: ExportTextMark;
@@ -58,24 +50,6 @@ function toColor(value: string, fallback: string): Color {
     Number.parseInt(normalized.slice(3, 5), 16) / 255,
     Number.parseInt(normalized.slice(5, 7), 16) / 255,
   );
-}
-
-function relativeLuminance(value: string): number | null {
-  if (!/^#[0-9a-f]{6}$/i.test(value)) return null;
-  const channels = [1, 3, 5].map((offset) => {
-    const channel = Number.parseInt(value.slice(offset, offset + 2), 16) / 255;
-    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * (channels[0] ?? 0) + 0.7152 * (channels[1] ?? 0) + 0.0722 * (channels[2] ?? 0);
-}
-
-export function readableTextColor(value: string | undefined, fallback: string): string {
-  for (const candidate of [value, fallback, DEFAULT_PDF_THEME.colors.text]) {
-    if (!candidate) continue;
-    const luminance = relativeLuminance(candidate);
-    if (luminance !== null && 1.05 / (luminance + 0.05) >= 4.5) return candidate;
-  }
-  return DEFAULT_PDF_THEME.colors.text;
 }
 
 function wrapRuns(values: ExportText[], font: PDFFont, size: number, maximumWidth: number): TextRun[][] {
@@ -129,7 +103,6 @@ export async function renderPdf(
   documents: ExportDocumentV1[],
   configuredTheme: PdfTheme = DEFAULT_PDF_THEME,
 ): Promise<ArrayBuffer> {
-  const yieldIfNeeded = mainThreadScheduler();
   const theme = mergePdfTheme(configuredTheme);
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
@@ -263,7 +236,7 @@ export async function renderPdf(
     y -= theme.spacing.paragraphGap;
   };
 
-  const drawTable = async (document: ExportDocumentV1, rows: Extract<ExportBlock, { type: "table" }>["rows"], indent: number) => {
+  const drawTable = (document: ExportDocumentV1, rows: Extract<ExportBlock, { type: "table" }>["rows"], indent: number) => {
     const columnCount = Math.max(1, ...rows.map((row) => row.length));
     const tableWidth = width - margins.marginLeft - margins.marginRight - indent;
     const columnWidth = tableWidth / columnCount;
@@ -272,7 +245,6 @@ export async function renderPdf(
     const lineHeight = size * theme.lineHeight.body;
     const borderColor = toColor(theme.colors.tableBorder, DEFAULT_PDF_THEME.colors.tableBorder);
     for (const row of rows) {
-      await yieldIfNeeded();
       const cells = Array.from({ length: columnCount }, (_, index) => blockText(row[index]?.blocks ?? []));
       const wrapped = cells.map((text) => wrapRuns([{ text }], regular, size, columnWidth - padding * 2));
       const rowHeight = Math.max(lineHeight + padding * 2, ...wrapped.map((lines) => lines.length * lineHeight + padding * 2));
@@ -297,7 +269,6 @@ export async function renderPdf(
 
   const drawBlocks = async (document: ExportDocumentV1, blocks: ExportBlock[], indent = 0): Promise<void> => {
     for (const block of blocks) {
-      await yieldIfNeeded();
       switch (block.type) {
         case "heading": {
           const size = block.level === 1
@@ -337,7 +308,6 @@ export async function renderPdf(
           break;
         case "list":
           for (const [index, item] of block.items.entries()) {
-            await yieldIfNeeded();
             const marker = item.checked === undefined
               ? block.ordered ? `${index + 1}.` : "•"
               : item.checked ? "☑" : "☐";
@@ -355,7 +325,7 @@ export async function renderPdf(
           }
           break;
         case "table":
-          await drawTable(document, block.rows, indent);
+          drawTable(document, block.rows, indent);
           break;
         case "image": {
           const data = dataUriBytes(block.source);
@@ -395,7 +365,6 @@ export async function renderPdf(
   };
 
   for (const document of documents) {
-    await yieldIfNeeded();
     newPage(document);
     drawPlainText(document, document.title || "Untitled", {
       color: theme.colors.heading,
@@ -411,7 +380,6 @@ export async function renderPdf(
   if (theme.pageNumbers) {
     const pages = pdf.getPages();
     for (const [index, numberedPage] of pages.entries()) {
-      await yieldIfNeeded();
       const { width: pageWidth } = numberedPage.getSize();
       const label = `${index + 1} / ${pages.length}`;
       const size = 9;
