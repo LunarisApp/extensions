@@ -1,0 +1,10 @@
+{
+	"id": "lunaris.spreadsheet",
+	"name": "Spreadsheet",
+	"description": "Offline collaborative spreadsheets with formulas and portable file formats",
+	"developer": "Lunaris",
+	"version": "0.0.1",
+	"api": "^0.10.0",
+	"keywords": ["spreadsheet", "table", "csv", "xlsx", "formulas"],
+	"permissions": ["content.read", "content.write", "downloads.write"]
+}

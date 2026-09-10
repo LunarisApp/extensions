@@ -3,7 +3,7 @@
   "name": "lunaris",
   "displayName": "Lunaris",
   "enabled": true,
-  "generatedAt": "2026-09-08T09:12:56.275Z",
+  "generatedAt": "2026-09-10T13:02:32.918Z",
   "extensions": [
     {
       "description": "A generated workspace pulse demonstrating a resource type, key-value storage, and a read-only dashboard view.",
@@ -134,6 +134,38 @@
           "runtime": {
             "kind": "iframe",
             "protocol": 6
+          },
+          "status": "active",
+          "version": "0.0.1"
+        }
+      ]
+    },
+    {
+      "description": "Offline collaborative spreadsheets with formulas and portable file formats",
+      "developer": "Lunaris",
+      "iconUrl": "https://raw.githubusercontent.com/LunarisApp/extensions/1817f0080987e19cc7657ccfa85148f489bcaed5/artifacts/lunaris.spreadsheet/0.0.1/icon.webp",
+      "id": "lunaris.spreadsheet",
+      "keywords": [
+        "spreadsheet",
+        "table",
+        "csv",
+        "xlsx",
+        "formulas"
+      ],
+      "latestVersion": "0.0.1",
+      "name": "Spreadsheet",
+      "repository": "https://github.com/LunarisApp/extensions/tree/main/extensions/spreadsheet",
+      "versions": [
+        {
+          "api": "^0.10.0",
+          "descriptor": {
+            "bytes": 1223,
+            "sha256": "608e999310621c6b430f273c7e705b302dc7b33096d7a30862620cc2fd2b7289",
+            "url": "https://raw.githubusercontent.com/LunarisApp/extensions/1817f0080987e19cc7657ccfa85148f489bcaed5/artifacts/lunaris.spreadsheet/0.0.1/release.json"
+          },
+          "runtime": {
+            "kind": "iframe",
+            "protocol": 7
           },
           "status": "active",
           "version": "0.0.1"

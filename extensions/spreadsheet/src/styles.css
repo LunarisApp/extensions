@@ -1,0 +1,169 @@
+html,
+body,
+#root {
+	height: 100%;
+	margin: 0;
+}
+* {
+	box-sizing: border-box;
+}
+body {
+	font-family: ui-sans-serif, system-ui, sans-serif;
+	color: var(--foreground, #18181b);
+	background: transparent;
+}
+.spreadsheet-shell {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: var(--background, #fff);
+	color: var(--foreground, #18181b);
+	font-size: 0.8125rem;
+}
+.spreadsheet-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	padding: 0.5rem 0.75rem;
+	border-bottom: 1px solid var(--border, #dedee3);
+	flex-wrap: wrap;
+}
+:is(.spreadsheet-toolbar, .spreadsheet-import, .spreadsheet-notice) button,
+:is(.spreadsheet-toolbar, .spreadsheet-import) select {
+	font: inherit;
+	color: inherit;
+	background: var(--background, #fff);
+	border: 1px solid var(--border, #d4d4d8);
+	border-radius: 0.375rem;
+	padding: 0.375rem 0.625rem;
+	min-height: 2rem;
+}
+:is(.spreadsheet-toolbar, .spreadsheet-import, .spreadsheet-notice) button {
+	cursor: pointer;
+}
+:is(.spreadsheet-toolbar, .spreadsheet-import, .spreadsheet-notice)
+	button:hover:not(:disabled) {
+	background: var(--muted, #f4f4f5);
+}
+:is(.spreadsheet-toolbar, .spreadsheet-import, .spreadsheet-notice)
+	button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.spreadsheet-shell :focus-visible {
+	outline: 2px solid var(--ring, #2563eb);
+	outline-offset: 2px;
+}
+.spreadsheet-export-label {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+.spreadsheet-toolbar-divider {
+	height: 1.25rem;
+	border-left: 1px solid var(--border, #dedee3);
+}
+.spreadsheet-save {
+	margin-left: auto;
+	color: var(--muted-foreground, #52525b);
+	font-size: 0.75rem;
+	white-space: nowrap;
+}
+.spreadsheet-editor {
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+.spreadsheet-notice {
+	padding: 0.625rem 0.875rem;
+	border-bottom: 1px solid var(--border, #dedee3);
+	background: var(--muted, #f4f4f5);
+}
+.spreadsheet-notice button {
+	margin-left: 1rem;
+}
+.spreadsheet-error {
+	color: var(--destructive, #b91c1c);
+}
+.spreadsheet-import {
+	padding: 1rem;
+	border-bottom: 1px solid var(--border, #dedee3);
+	max-height: 50%;
+	overflow: auto;
+}
+.spreadsheet-import-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+.spreadsheet-import h2 {
+	font-size: 1rem;
+	margin: 0 0 0.75rem;
+	overflow-wrap: anywhere;
+}
+.spreadsheet-import-options {
+	display: flex;
+	gap: 1rem;
+	align-items: center;
+	flex-wrap: wrap;
+	margin: 0.5rem 0 1rem;
+}
+.spreadsheet-import label {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+}
+.spreadsheet-preview {
+	overflow: auto;
+	margin: 0.75rem 0;
+}
+.spreadsheet-preview table {
+	border-collapse: collapse;
+	font-variant-numeric: tabular-nums;
+}
+.spreadsheet-preview td {
+	border: 1px solid var(--border, #dedee3);
+	padding: 0.375rem 0.625rem;
+	max-width: 18rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.spreadsheet-preview caption {
+	text-align: left;
+	color: var(--muted-foreground, #52525b);
+	margin-bottom: 0.5rem;
+}
+.spreadsheet-import p {
+	color: var(--muted-foreground, #52525b);
+	max-width: 65ch;
+	line-height: 1.5;
+}
+.spreadsheet-state {
+	padding: 2rem;
+	display: grid;
+	place-content: center;
+	height: 100%;
+	text-align: center;
+}
+.spreadsheet-state h2 {
+	font-size: 1rem;
+}
+@media (max-width: 600px) {
+	.spreadsheet-save {
+		width: 100%;
+		margin-left: 0;
+	}
+	.spreadsheet-export-label {
+		flex: 1;
+	}
+	.spreadsheet-export-label select {
+		min-width: 0;
+		width: 100%;
+	}
+	.spreadsheet-toolbar-divider {
+		display: none;
+	}
+}

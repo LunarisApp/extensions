@@ -1,0 +1,13 @@
+Lunaris Spreadsheet
+Copyright Lunaris contributors. Licensed under Apache-2.0 (see LICENSE).
+
+Uses Univer 0.25.1, copyright DreamNum contributors, Apache-2.0.
+https://github.com/dream-num/univer
+The build removes the renderer's unused word-processor hyphenation loader table.
+
+Uses SheetJS Community Edition 0.20.3, copyright SheetJS LLC, Apache-2.0.
+https://sheetjs.com/
+
+Uses React, copyright Meta Platforms, Inc. and affiliates, MIT.
+Uses Yjs, copyright Kevin Jahns, MIT.
+The build embeds dependency license texts in the executable and inline workers.

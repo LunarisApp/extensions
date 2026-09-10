@@ -8,7 +8,6 @@ import {
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
-import { PLUGIN_SANDBOX_PROTOCOL_VERSION } from "@lunarisapp/plugin-sdk";
 import { fileTypeFromBuffer } from "file-type";
 import {
   MAX_ICON_BYTES,
@@ -164,12 +163,28 @@ const script = await asset(
 if (!script) throw new Error("main.js is required");
 const style = await asset("styles.css", "text/css", MAX_STYLE_BYTES);
 const icon = await rasterIcon();
+// New SDK builds declare their wire protocol. Older immutable builds have no
+// runtime.json and retain protocol 6 even after the registry SDK is upgraded.
+let runtime = {
+  kind: "iframe",
+  protocol: 6,
+};
+try {
+  const value = JSON.parse(
+    await readFile(path.join(sourceDirectory, "runtime.json"), "utf8"),
+  );
+  if (value?.kind !== "iframe" || ![6, 7].includes(value.protocol))
+    throw new Error("Unsupported sandbox protocol");
+  runtime = { kind: "iframe", protocol: value.protocol };
+} catch (error) {
+  if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+}
 const descriptor = {
   api: manifest.api,
   ...(icon ? { icon: icon.descriptor } : {}),
   manifest,
   repository: `https://github.com/${repository}`,
-  runtime: { kind: "iframe", protocol: PLUGIN_SANDBOX_PROTOCOL_VERSION },
+  runtime,
   script: script.descriptor,
   status: "active",
   ...(style ? { style: style.descriptor } : {}),
