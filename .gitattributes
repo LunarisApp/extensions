@@ -1,0 +1,2 @@
+# Published artifacts must retain the exact bytes recorded in release checksums.
+artifacts/** -text

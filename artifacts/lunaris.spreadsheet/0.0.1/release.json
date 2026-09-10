@@ -1,0 +1,50 @@
+{
+  "api": "^0.10.0",
+  "icon": {
+    "bytes": 5068,
+    "resource": "image/webp",
+    "sha256": "3e4217157bc6f8e10a5539f34b9079ffb830ad9deb15a29c1cef91392ef3f990",
+    "url": "./icon.webp"
+  },
+  "manifest": {
+    "api": "^0.10.0",
+    "conflicts": {},
+    "dependencies": {},
+    "description": "Offline collaborative spreadsheets with formulas and portable file formats",
+    "developer": "Lunaris",
+    "id": "lunaris.spreadsheet",
+    "keywords": [
+      "spreadsheet",
+      "table",
+      "csv",
+      "xlsx",
+      "formulas"
+    ],
+    "name": "Spreadsheet",
+    "optionalDependencies": {},
+    "permissions": [
+      "content.read",
+      "content.write",
+      "downloads.write"
+    ],
+    "version": "0.0.1"
+  },
+  "repository": "https://github.com/LunarisApp/extensions",
+  "runtime": {
+    "kind": "iframe",
+    "protocol": 7
+  },
+  "script": {
+    "bytes": 9814417,
+    "resource": "text/javascript",
+    "sha256": "0d0a79d2786dff2cb3eb9463e31a0d6ab05bdb5cd04e353cf469902a84d95bfc",
+    "url": "./main.js"
+  },
+  "status": "active",
+  "style": {
+    "bytes": 88385,
+    "resource": "text/css",
+    "sha256": "93204776efbab33fbc9f0d18cfc9e5a83ae3b9fcba6dfe4e6695e64e59e91b3e",
+    "url": "./styles.css"
+  }
+}

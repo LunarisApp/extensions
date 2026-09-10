@@ -1,0 +1,36 @@
+{
+	"name": "lunaris-extension-spreadsheet",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "bunx --bun vite build",
+		"test": "bunx --bun vitest run",
+		"typecheck": "tsc --noEmit",
+		"benchmark": "bun src/benchmark.ts",
+		"test:browser": "bun tests/browser/run.ts",
+		"benchmark:browser": "bun tests/browser/run.ts --scale",
+		"install:local-sdk": "bun scripts/install-local-sdk.ts"
+	},
+	"dependencies": {
+		"@lunarisapp/plugin-sdk": "^0.11.0",
+		"@univerjs/presets": "0.25.1",
+		"@univerjs/preset-sheets-core": "0.25.1",
+		"@univerjs/preset-sheets-filter": "0.25.1",
+		"@univerjs/preset-sheets-sort": "0.25.1",
+		"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+		"react": "^19.2.8",
+		"yjs": "^13.6.32",
+		"zod": "^4.5.4"
+	},
+	"devDependencies": {
+		"@types/node": "^26.4.0",
+		"@types/react": "^19.2.18",
+		"@types/react-dom": "^19.2.5",
+		"happy-dom": "^20.12.0",
+		"typescript": "^7.0.2",
+		"vite": "^8.2.2",
+		"vitest": "^4.1.11",
+		"playwright": "1.58.2"
+	}
+}

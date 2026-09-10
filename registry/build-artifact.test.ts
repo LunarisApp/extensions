@@ -114,6 +114,29 @@ describe("build-artifact", () => {
     expect((await build(dist, artifacts, true)).exitCode).toBe(0);
   });
 
+  it("records protocol metadata emitted by a newer SDK", async () => {
+    const { artifacts, dist } = await fixture();
+    await writeFile(
+      path.join(dist, "runtime.json"),
+      JSON.stringify({ kind: "iframe", protocol: 7 }),
+    );
+    expect((await build(dist, artifacts)).exitCode).toBe(0);
+    const release = JSON.parse(
+      await readFile(
+        path.join(artifacts, "test.extension", "1.0.0", "release.json"),
+        "utf8",
+      ),
+    );
+    expect(release.runtime).toEqual({ kind: "iframe", protocol: 7 });
+    await writeFile(
+      path.join(dist, "runtime.json"),
+      JSON.stringify({ kind: "iframe", protocol: 8 }),
+    );
+    expect((await build(dist, artifacts)).stderr).toContain(
+      "Unsupported sandbox protocol",
+    );
+  });
+
   it("refuses to overwrite an existing version", async () => {
     const { artifacts, dist } = await fixture();
     expect((await build(dist, artifacts)).exitCode).toBe(0);

@@ -1,0 +1,12 @@
+{
+	"extensions": {
+		"catalog": {
+			"lunaris": {
+				"spreadsheet": {
+					"name": "Spreadsheet",
+					"description": "Collaborative spreadsheets and data tables"
+				}
+			}
+		}
+	}
+}
