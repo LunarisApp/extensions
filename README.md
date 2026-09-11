@@ -1,6 +1,23 @@
 # Lunaris extensions
 
-Official extension marketplace for [Lunaris](https://github.com/LunarisApp/lunaris).
+Add drawings, spreadsheets, interactive HTML tools, and PDF exports to your
+[Lunaris](https://github.com/LunarisApp/lunaris) workspace. This repository contains
+the official extension marketplace, extension source, and tools for building your own.
+
+## Explore the extensions
+
+| Extension | What you can do |
+| --- | --- |
+| [Excalidraw](extensions/excalidraw/README.md) | Sketch ideas, map workflows, and collaborate on diagrams. |
+| [Exporter](extensions/exporter/README.md) | Choose, order, and style workspace content for a PDF. |
+| [Mini Apps](extensions/mini-app/README.md) | Run a self-contained HTML tool inside your workspace. |
+| [Spreadsheet](extensions/spreadsheet/README.md) | Edit shared workbooks and exchange tabular data. **Integration candidate; not published.** |
+| [Northstar Pulse (Demo)](extensions/demo/README.md) | Learn the extension lifecycle through a dashboard with synthetic data. |
+
+Each extension README covers use cases, features, usage, and the technology behind it.
+
+## How the marketplace works
+
 Lunaris reads [`marketplace.json`](./marketplace.json) directly from this repository.
 There is no registry website or GitHub API dependency.
 
