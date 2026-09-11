@@ -405,16 +405,16 @@ export function SpreadsheetEditor({
 						data-calculating={calculating}
 						data-error={canWriteContent && persistence === "error"}
 					>
-						{!canWriteContent
-							? "Read-only"
-							: persistence === "persisting"
-								? "Saving locally…"
+						{[
+							!canWriteContent
+								? "Read-only"
 								: persistence === "error"
 									? "Could not save"
-									: ready
-										? "Saved locally"
-										: "Opening…"}
-						{ready && calculating ? " · Calculating…" : ""}
+									: "",
+							ready && calculating ? "Calculating…" : "",
+						]
+							.filter(Boolean)
+							.join(" · ")}
 					</span>
 				</div>
 				<div
