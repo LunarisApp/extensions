@@ -10,7 +10,8 @@ try {
 		timeout: 30000,
 	});
 	const frame = page.frames()[1];
-	await frame.locator("select").first().selectOption("csv");
+	await frame.getByRole("button", { name: "File", exact: true }).click();
+	await frame.getByLabel("Export as").selectOption("csv");
 	await frame.getByRole("button", { name: "Export", exact: true }).click();
 	await page.waitForFunction(() => window.downloads.length > 0, undefined, {
 		timeout: 30000,

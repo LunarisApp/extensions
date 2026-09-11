@@ -42,7 +42,8 @@ console.log(
 	})),
 	errors,
 );
-await frames[0].locator("select").first().selectOption("csv");
+await frames[0].getByRole("button", { name: "File", exact: true }).click();
+await frames[0].getByLabel("Export as").selectOption("csv");
 await frames[0].getByRole("button", { name: "Export", exact: true }).click();
 await page.waitForFunction(() => window.downloads.length > 0, undefined, {
 	timeout: 10000,
@@ -62,7 +63,8 @@ await page.keyboard.type("TRUE");
 await page.keyboard.press("Enter");
 await page.waitForFunction(() => window.getCell(0, 3) === true);
 await page.evaluate(() => (window.downloads.length = 0));
-await frames[1].locator("select").first().selectOption("csv");
+await frames[1].getByRole("button", { name: "File", exact: true }).click();
+await frames[1].getByLabel("Export as").selectOption("csv");
 await frames[1].getByRole("button", { name: "Export", exact: true }).click();
 await page.waitForFunction(() => window.downloads.length > 0);
 assert.equal(
