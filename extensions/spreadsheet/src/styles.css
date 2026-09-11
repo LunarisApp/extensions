@@ -1,26 +1,33 @@
 :root {
 	/* Matches Univer's h-10 ribbon at the host's text scale. */
 	--sheet-toolbar-height: 2.5rem;
+	--sheet-radius: var(--radius, 0.625rem);
+	--sheet-popover: var(--popover, #fff);
+	--sheet-popover-ink: var(--popover-foreground, var(--sheet-ink));
+	--sheet-input: var(--input, var(--sheet-line));
 	--sheet-paper: var(--background, #fff);
-	--sheet-ink: var(--foreground, #1c1917);
+	--sheet-ink: var(--foreground, #0c0a09);
 	--sheet-muted: var(--muted-foreground, #78716c);
 	--sheet-surface: var(--muted, #f5f5f4);
 	--sheet-line: var(--border, #e7e5e4);
-	--sheet-action: var(--primary, #292524);
+	--sheet-action: var(--primary, #1c1917);
 	--sheet-action-ink: var(--primary-foreground, #fafaf9);
 	--sheet-focus: var(--ring, #a8a29e);
-	--sheet-danger: var(--destructive, #b91c1c);
+	--sheet-danger: var(--destructive, oklch(0.577 0.245 27.325));
 }
 :root.dark,
 :root[style*="color-scheme: dark"] {
-	--sheet-paper: var(--background, #1c1917);
+	--sheet-paper: var(--background, #0c0a09);
+	--sheet-popover: var(--popover, #1c1917);
 	--sheet-ink: var(--foreground, #fafaf9);
 	--sheet-muted: var(--muted-foreground, #a8a29e);
 	--sheet-surface: var(--muted, #292524);
-	--sheet-line: var(--border, #44403c);
+	--sheet-line: var(--border, rgb(255 255 255 / 10%));
+	--sheet-input: var(--input, rgb(255 255 255 / 15%));
+	--sheet-focus: var(--ring, #78716c);
 	--sheet-action: var(--primary, #e7e5e4);
-	--sheet-action-ink: var(--primary-foreground, #292524);
-	--sheet-danger: var(--destructive, #f87171);
+	--sheet-action-ink: var(--primary-foreground, #1c1917);
+	--sheet-danger: var(--destructive, oklch(0.704 0.191 22.216));
 }
 html,
 body,
@@ -32,6 +39,8 @@ body,
 	box-sizing: border-box;
 }
 body {
+	font-size: 0.875rem;
+	line-height: 1.429;
 	font-family: var(
 		--font-sans,
 		"Nunito Sans Variable",
@@ -68,10 +77,11 @@ body {
 .spreadsheet-editor [data-u-comp="ribbon-header-menu"] {
 	background: var(--sheet-paper);
 }
-.spreadsheet-editor [data-u-comp="ribbon-toolbar"] {
-	font-family: inherit;
-}
-.spreadsheet-editor [data-u-comp="workbench-layout"] {
+/* Include native controls and portaled Univer menus without overriding cell fonts. */
+.univer-font-sans,
+.spreadsheet-editor [data-u-comp="workbench-layout"],
+.spreadsheet-editor :is(button, input, select),
+[data-u-comp="button"] {
 	font-family: inherit;
 }
 .spreadsheet-toolbar {
@@ -99,10 +109,11 @@ body {
 :is(.spreadsheet-file-menu, .spreadsheet-import) select {
 	font: inherit;
 	font-weight: 500;
+	line-height: 1.25;
 	color: var(--sheet-ink);
 	background: var(--sheet-paper);
 	border: 1px solid var(--sheet-line);
-	border-radius: 0.625rem;
+	border-radius: var(--sheet-radius);
 	padding: 0.25rem 0.625rem;
 	min-height: 2rem;
 	transition:
@@ -138,8 +149,16 @@ body {
 	cursor: default;
 }
 .spreadsheet-shell :focus-visible {
-	outline: 3px solid color-mix(in srgb, var(--sheet-focus) 65%, transparent);
+	outline: 3px solid color-mix(in srgb, var(--sheet-focus) 50%, transparent);
 	outline-offset: 2px;
+}
+:is(.spreadsheet-file-menu, .spreadsheet-import, .spreadsheet-notice)
+	button:active:not(:disabled) {
+	transform: translateY(1px);
+}
+.spreadsheet-workbench:has(.spreadsheet-file-menu:popover-open)
+	.spreadsheet-file-button {
+	background: var(--sheet-surface);
 }
 .spreadsheet-toolbar .spreadsheet-file-button {
 	display: flex;
@@ -177,11 +196,11 @@ body {
 	overscroll-behavior: contain;
 	margin: 0;
 	width: min(20rem, calc(100% - 1rem));
-	padding: 0.375rem;
-	color: var(--sheet-ink);
-	background: var(--sheet-paper);
+	padding: 0.25rem;
+	color: var(--sheet-popover-ink);
+	background: var(--sheet-popover);
 	border: 1px solid var(--sheet-line);
-	border-radius: 0.875rem;
+	border-radius: calc(var(--sheet-radius) + 0.25rem);
 	box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
 }
 .spreadsheet-file-menu .spreadsheet-import-button {
@@ -190,13 +209,15 @@ body {
 	gap: 0.5rem;
 	width: 100%;
 	border-color: transparent;
+	border-radius: calc(var(--sheet-radius) - 0.125rem);
+	background: transparent;
 	text-align: left;
 }
 .spreadsheet-export-options {
 	display: grid;
 	gap: 0.75rem;
 	margin-top: 0.375rem;
-	padding: 0.75rem 0.375rem 0.375rem;
+	padding: 0.75rem 0.5rem 0.5rem;
 	border-top: 1px solid var(--sheet-line);
 }
 .spreadsheet-export-label {
@@ -204,6 +225,20 @@ body {
 	gap: 0.5rem;
 	font-size: 0.75rem;
 	color: var(--sheet-muted);
+}
+.spreadsheet-export-label select,
+.spreadsheet-import select {
+	border-color: var(--sheet-input);
+	background: transparent;
+	font-weight: 400;
+}
+:is(.spreadsheet-file-menu, .spreadsheet-import) select:disabled {
+	opacity: 0.5;
+	background: var(--sheet-surface);
+}
+:is(.spreadsheet-file-menu, .spreadsheet-import) select:focus-visible {
+	border-color: var(--sheet-focus);
+	outline-offset: 0;
 }
 .spreadsheet-export-label select {
 	width: 100%;
@@ -247,9 +282,11 @@ body {
 	z-index: 13;
 	width: min(30rem, 100%);
 	padding: 1rem;
+	container-type: inline-size;
 	overflow: auto;
 	overscroll-behavior: contain;
-	background: var(--sheet-paper);
+	background: var(--sheet-popover);
+	color: var(--sheet-popover-ink);
 	border-left: 1px solid var(--sheet-line);
 	box-shadow: -8px 8px 24px rgb(0 0 0 / 8%);
 }
@@ -258,9 +295,18 @@ body {
 	align-items: start;
 	justify-content: space-between;
 	gap: 1rem;
-	margin-bottom: 1.5rem;
+	margin-bottom: 1rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--sheet-line);
+}
+.spreadsheet-import-heading > div {
+	min-width: 0;
+}
+.spreadsheet-import-heading > button {
+	flex-shrink: 0;
 }
 .spreadsheet-import h2 {
+	line-height: 1.556;
 	font-size: 1.125rem;
 	font-weight: 600;
 	margin: 0;
@@ -276,19 +322,24 @@ body {
 	margin: 1rem 0;
 }
 .spreadsheet-import label {
-	display: flex;
-	gap: 0.5rem;
+	display: grid;
+	grid-template-columns: 6rem minmax(0, 1fr);
+	gap: 0.75rem;
 	align-items: center;
-	justify-content: space-between;
 }
 .spreadsheet-import select {
 	min-width: 0;
-	max-width: 72%;
+	width: 100%;
 }
 .spreadsheet-import label:has(input) {
-	justify-content: start;
+	display: flex;
+	gap: 0.5rem;
 }
 .spreadsheet-import input {
+	width: 1rem;
+	height: 1rem;
+	margin: 0;
+	flex-shrink: 0;
 	accent-color: var(--sheet-action);
 }
 .spreadsheet-import-options > button {
@@ -312,7 +363,7 @@ body {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.spreadsheet-preview tr:first-child {
+.spreadsheet-preview[data-header="true"] tr:first-child {
 	background: var(--sheet-surface);
 }
 .spreadsheet-preview caption {
@@ -326,6 +377,21 @@ body {
 	max-width: 65ch;
 	line-height: 1.5;
 }
+.spreadsheet-import-footer {
+	margin: 1.5rem -1rem -1rem;
+	padding: 1rem;
+	border-top: 1px solid var(--sheet-line);
+	background: color-mix(in srgb, var(--sheet-surface) 50%, transparent);
+}
+.spreadsheet-import-footer p {
+	margin: 0 0 0.75rem;
+}
+@container (max-width: 24rem) {
+	.spreadsheet-import-options label:not(:has(input)) {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.5rem;
+	}
+}
 .spreadsheet-state {
 	padding: 2rem;
 	display: grid;
@@ -336,6 +402,14 @@ body {
 .spreadsheet-state h2 {
 	font-size: 1.125rem;
 	font-weight: 600;
+	line-height: 1.556;
+	margin: 0 0 0.5rem;
+}
+.spreadsheet-state p {
+	margin: 0;
+	max-width: 65ch;
+	color: var(--sheet-muted);
+	overflow-wrap: anywhere;
 }
 @media (max-width: 700px) {
 	.spreadsheet-editor [data-u-comp="headerbar"] {

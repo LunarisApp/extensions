@@ -145,7 +145,7 @@ export function assertWorkbook(
 					throw new Error("Invalid font style.");
 				if (
 					["color", "background"].includes(property) &&
-					(typeof v !== "string" || !/^#[0-9a-f]{3,8}$/iu.test(v))
+					(typeof v !== "string" || !/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/iu.test(v))
 				)
 					throw new Error("Invalid cell color.");
 				if (
