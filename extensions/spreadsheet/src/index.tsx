@@ -3,7 +3,7 @@ import de from "./locales/de.json";
 import es from "./locales/es.json";
 import fr from "./locales/fr.json";
 import ptBR from "./locales/pt-BR.json";
-import { definePlugin } from "@lunarisapp/plugin-sdk";
+import { definePlugin, type ResourceViewProps } from "@lunarisapp/plugin-sdk";
 
 import { z } from "zod";
 import manifest from "../manifest.json";
@@ -72,7 +72,9 @@ export default definePlugin({
 			name: manifest.name,
 			icon,
 			viewId: manifest.id,
-			renderer: SpreadsheetEditor,
+			renderer: (props: ResourceViewProps) => (
+				<SpreadsheetEditor key={props.resource.resourceId} {...props} />
+			),
 			target: { kind: "resource", resourceTypeIds: [manifest.id] },
 			storageRequirements: { content: "yjs" },
 		});
