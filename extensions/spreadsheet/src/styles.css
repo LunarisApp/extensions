@@ -1,3 +1,27 @@
+:root {
+	/* Matches Univer's h-10 ribbon at the host's text scale. */
+	--sheet-toolbar-height: 2.5rem;
+	--sheet-paper: var(--background, #fff);
+	--sheet-ink: var(--foreground, #1c1917);
+	--sheet-muted: var(--muted-foreground, #78716c);
+	--sheet-surface: var(--muted, #f5f5f4);
+	--sheet-line: var(--border, #e7e5e4);
+	--sheet-action: var(--primary, #292524);
+	--sheet-action-ink: var(--primary-foreground, #fafaf9);
+	--sheet-focus: var(--ring, #a8a29e);
+	--sheet-danger: var(--destructive, #b91c1c);
+}
+:root.dark,
+:root[style*="color-scheme: dark"] {
+	--sheet-paper: var(--background, #1c1917);
+	--sheet-ink: var(--foreground, #fafaf9);
+	--sheet-muted: var(--muted-foreground, #a8a29e);
+	--sheet-surface: var(--muted, #292524);
+	--sheet-line: var(--border, #44403c);
+	--sheet-action: var(--primary, #e7e5e4);
+	--sheet-action-ink: var(--primary-foreground, #292524);
+	--sheet-danger: var(--destructive, #f87171);
+}
 html,
 body,
 #root {
@@ -8,136 +32,297 @@ body,
 	box-sizing: border-box;
 }
 body {
-	font-family: ui-sans-serif, system-ui, sans-serif;
-	color: var(--foreground, #18181b);
-	background: transparent;
+	font-family: var(
+		--font-sans,
+		"Nunito Sans Variable",
+		ui-sans-serif,
+		system-ui,
+		sans-serif
+	);
+	color: var(--sheet-ink);
+	background: var(--sheet-paper);
 }
 .spreadsheet-shell {
 	height: 100%;
-	display: flex;
-	flex-direction: column;
 	min-width: 0;
-	background: var(--background, #fff);
-	color: var(--foreground, #18181b);
-	font-size: 0.8125rem;
+	font-size: 0.875rem;
+	line-height: 1.429;
+	background: var(--sheet-paper);
+	color: var(--sheet-ink);
+}
+.spreadsheet-workbench {
+	position: relative;
+	height: 100%;
+	min-width: 0;
+}
+.spreadsheet-editor {
+	height: 100%;
+	min-width: 0;
+	overflow: hidden;
+}
+/* Univer 0.25.1 exposes these part markers. Reserve space in the same row
+   so its own responsive overflow calculation includes our File and status controls. */
+.spreadsheet-editor [data-u-comp="headerbar"] {
+	padding-inline: 4.75rem 12rem;
+}
+.spreadsheet-editor [data-u-comp="ribbon-header-menu"] {
+	background: var(--sheet-paper);
+}
+.spreadsheet-editor [data-u-comp="ribbon-toolbar"] {
+	font-family: inherit;
+}
+.spreadsheet-editor [data-u-comp="workbench-layout"] {
+	font-family: inherit;
 }
 .spreadsheet-toolbar {
+	position: absolute;
+	inset: 0 0 auto;
+	height: var(--sheet-toolbar-height);
 	display: flex;
 	align-items: center;
-	gap: 0.625rem;
-	padding: 0.5rem 0.75rem;
-	border-bottom: 1px solid var(--border, #dedee3);
-	flex-wrap: wrap;
+	justify-content: space-between;
+	padding-inline: 0.5rem 0.75rem;
+	border-bottom: 1px solid var(--sheet-line);
+	pointer-events: none;
+	z-index: 11;
 }
-:is(.spreadsheet-toolbar, .spreadsheet-import, .spreadsheet-notice) button,
-:is(.spreadsheet-toolbar, .spreadsheet-import) select {
+.spreadsheet-toolbar > button {
+	pointer-events: auto;
+}
+:is(
+		.spreadsheet-toolbar,
+		.spreadsheet-file-menu,
+		.spreadsheet-import,
+		.spreadsheet-notice
+	)
+	button,
+:is(.spreadsheet-file-menu, .spreadsheet-import) select {
 	font: inherit;
-	color: inherit;
-	background: var(--background, #fff);
-	border: 1px solid var(--border, #d4d4d8);
-	border-radius: 0.375rem;
-	padding: 0.375rem 0.625rem;
+	font-weight: 500;
+	color: var(--sheet-ink);
+	background: var(--sheet-paper);
+	border: 1px solid var(--sheet-line);
+	border-radius: 0.625rem;
+	padding: 0.25rem 0.625rem;
 	min-height: 2rem;
+	transition:
+		background-color 120ms ease-out,
+		border-color 120ms ease-out;
 }
-:is(.spreadsheet-toolbar, .spreadsheet-import, .spreadsheet-notice) button {
+:is(
+		.spreadsheet-toolbar,
+		.spreadsheet-file-menu,
+		.spreadsheet-import,
+		.spreadsheet-notice
+	)
+	button {
 	cursor: pointer;
 }
-:is(.spreadsheet-toolbar, .spreadsheet-import, .spreadsheet-notice)
+:is(
+		.spreadsheet-toolbar,
+		.spreadsheet-file-menu,
+		.spreadsheet-import,
+		.spreadsheet-notice
+	)
 	button:hover:not(:disabled) {
-	background: var(--muted, #f4f4f5);
+	background: var(--sheet-surface);
 }
-:is(.spreadsheet-toolbar, .spreadsheet-import, .spreadsheet-notice)
+:is(
+		.spreadsheet-toolbar,
+		.spreadsheet-file-menu,
+		.spreadsheet-import,
+		.spreadsheet-notice
+	)
 	button:disabled {
 	opacity: 0.5;
 	cursor: default;
 }
 .spreadsheet-shell :focus-visible {
-	outline: 2px solid var(--ring, #2563eb);
+	outline: 3px solid color-mix(in srgb, var(--sheet-focus) 65%, transparent);
 	outline-offset: 2px;
 }
-.spreadsheet-export-label {
+.spreadsheet-toolbar .spreadsheet-file-button {
+	display: flex;
+	align-items: center;
+	gap: 0.375rem;
+	border-color: transparent;
+	background: transparent;
+}
+:is(.spreadsheet-toolbar, .spreadsheet-file-menu) svg {
+	width: 1rem;
+	height: 1rem;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.75;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	flex-shrink: 0;
+}
+.spreadsheet-save {
+	color: var(--sheet-muted);
+	font-size: 0.75rem;
+	max-width: 11rem;
+	text-align: right;
+	line-height: 1.25;
+}
+.spreadsheet-save[data-error="true"],
+.spreadsheet-error {
+	color: var(--sheet-danger);
+}
+.spreadsheet-file-menu {
+	position: absolute;
+	inset: calc(var(--sheet-toolbar-height) + 0.25rem) auto auto 0.5rem;
+	max-height: calc(100% - var(--sheet-toolbar-height) - 0.75rem);
+	overflow: auto;
+	overscroll-behavior: contain;
+	margin: 0;
+	width: min(20rem, calc(100% - 1rem));
+	padding: 0.375rem;
+	color: var(--sheet-ink);
+	background: var(--sheet-paper);
+	border: 1px solid var(--sheet-line);
+	border-radius: 0.875rem;
+	box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+.spreadsheet-file-menu .spreadsheet-import-button {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
+	width: 100%;
+	border-color: transparent;
+	text-align: left;
 }
-.spreadsheet-toolbar-divider {
-	height: 1.25rem;
-	border-left: 1px solid var(--border, #dedee3);
+.spreadsheet-export-options {
+	display: grid;
+	gap: 0.75rem;
+	margin-top: 0.375rem;
+	padding: 0.75rem 0.375rem 0.375rem;
+	border-top: 1px solid var(--sheet-line);
 }
-.spreadsheet-save {
-	margin-left: auto;
-	color: var(--muted-foreground, #52525b);
+.spreadsheet-export-label {
+	display: grid;
+	gap: 0.5rem;
 	font-size: 0.75rem;
-	white-space: nowrap;
+	color: var(--sheet-muted);
 }
-.spreadsheet-editor {
-	flex: 1;
-	min-height: 0;
-	overflow: hidden;
+.spreadsheet-export-label select {
+	width: 100%;
+	min-width: 0;
+	font-size: 0.875rem;
 }
-.spreadsheet-notice {
-	padding: 0.625rem 0.875rem;
-	border-bottom: 1px solid var(--border, #dedee3);
-	background: var(--muted, #f4f4f5);
+.spreadsheet-shell .spreadsheet-primary {
+	background: var(--sheet-action);
+	color: var(--sheet-action-ink);
+	border-color: transparent;
 }
-.spreadsheet-notice button {
-	margin-left: 1rem;
+.spreadsheet-shell .spreadsheet-primary:hover:not(:disabled) {
+	background: color-mix(in srgb, var(--sheet-action) 88%, var(--sheet-paper));
 }
-.spreadsheet-error {
-	color: var(--destructive, #b91c1c);
-}
-.spreadsheet-import {
-	padding: 1rem;
-	border-bottom: 1px solid var(--border, #dedee3);
+.spreadsheet-notices {
+	position: absolute;
+	inset: var(--sheet-toolbar-height) 0 auto;
 	max-height: 50%;
 	overflow: auto;
+	overscroll-behavior: contain;
+	z-index: 12;
+}
+.spreadsheet-notice {
+	padding: 0.5rem 0.75rem;
+	border-bottom: 1px solid var(--sheet-line);
+	background: var(--sheet-surface);
+	overflow-wrap: anywhere;
+}
+.spreadsheet-notice button {
+	margin-left: 0.75rem;
+}
+.spreadsheet-shell summary {
+	cursor: pointer;
+}
+.spreadsheet-shell li + li {
+	margin-top: 0.375rem;
+}
+.spreadsheet-import {
+	position: absolute;
+	inset: var(--sheet-toolbar-height) 0 0 auto;
+	z-index: 13;
+	width: min(30rem, 100%);
+	padding: 1rem;
+	overflow: auto;
+	overscroll-behavior: contain;
+	background: var(--sheet-paper);
+	border-left: 1px solid var(--sheet-line);
+	box-shadow: -8px 8px 24px rgb(0 0 0 / 8%);
 }
 .spreadsheet-import-heading {
 	display: flex;
-	align-items: center;
+	align-items: start;
 	justify-content: space-between;
 	gap: 1rem;
+	margin-bottom: 1.5rem;
 }
 .spreadsheet-import h2 {
-	font-size: 1rem;
-	margin: 0 0 0.75rem;
+	font-size: 1.125rem;
+	font-weight: 600;
+	margin: 0;
+}
+.spreadsheet-import-heading .spreadsheet-filename {
+	margin: 0.25rem 0 0;
 	overflow-wrap: anywhere;
+	font-size: 0.75rem;
 }
 .spreadsheet-import-options {
-	display: flex;
-	gap: 1rem;
-	align-items: center;
-	flex-wrap: wrap;
-	margin: 0.5rem 0 1rem;
+	display: grid;
+	gap: 0.75rem;
+	margin: 1rem 0;
 }
 .spreadsheet-import label {
 	display: flex;
 	gap: 0.5rem;
 	align-items: center;
+	justify-content: space-between;
+}
+.spreadsheet-import select {
+	min-width: 0;
+	max-width: 72%;
+}
+.spreadsheet-import label:has(input) {
+	justify-content: start;
+}
+.spreadsheet-import input {
+	accent-color: var(--sheet-action);
+}
+.spreadsheet-import-options > button {
+	justify-self: start;
 }
 .spreadsheet-preview {
 	overflow: auto;
-	margin: 0.75rem 0;
+	margin: 1.5rem 0 1rem;
 }
 .spreadsheet-preview table {
+	width: 100%;
 	border-collapse: collapse;
 	font-variant-numeric: tabular-nums;
+	font-size: 0.8125rem;
 }
 .spreadsheet-preview td {
-	border: 1px solid var(--border, #dedee3);
+	border: 1px solid var(--sheet-line);
 	padding: 0.375rem 0.625rem;
 	max-width: 18rem;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+.spreadsheet-preview tr:first-child {
+	background: var(--sheet-surface);
+}
 .spreadsheet-preview caption {
 	text-align: left;
-	color: var(--muted-foreground, #52525b);
+	color: var(--sheet-muted);
+	font-size: 0.75rem;
 	margin-bottom: 0.5rem;
 }
 .spreadsheet-import p {
-	color: var(--muted-foreground, #52525b);
+	color: var(--sheet-muted);
 	max-width: 65ch;
 	line-height: 1.5;
 }
@@ -149,21 +334,51 @@ body {
 	text-align: center;
 }
 .spreadsheet-state h2 {
-	font-size: 1rem;
+	font-size: 1.125rem;
+	font-weight: 600;
 }
-@media (max-width: 600px) {
+@media (max-width: 700px) {
+	.spreadsheet-editor [data-u-comp="headerbar"] {
+		padding-inline-end: 0;
+	}
+	/* On narrow panes, move status below the sheet tabs to leave tools accessible. */
+	.spreadsheet-workbench {
+		height: calc(100% - 1.75rem);
+	}
+	.spreadsheet-toolbar {
+		position: static;
+		height: 0;
+		border: 0;
+	}
+	.spreadsheet-toolbar > button {
+		position: absolute;
+		top: 0.25rem;
+		left: 0.5rem;
+		z-index: 11;
+	}
 	.spreadsheet-save {
-		width: 100%;
-		margin-left: 0;
+		position: absolute;
+		top: 100%;
+		right: 0.75rem;
+		height: 1.75rem;
+		display: flex;
+		align-items: center;
+		max-width: 100%;
 	}
-	.spreadsheet-export-label {
-		flex: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+	.spreadsheet-shell *,
+	.spreadsheet-shell *::before,
+	.spreadsheet-shell *::after {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
 	}
-	.spreadsheet-export-label select {
-		min-width: 0;
-		width: 100%;
-	}
-	.spreadsheet-toolbar-divider {
-		display: none;
-	}
+}
+
+/* Canvas colors are inverted by Univer; DOM selection labels need a light ink. */
+.spreadsheet-editor .univer-dark .univer-text-primary-600 {
+	color: var(--sheet-ink);
+}
+.spreadsheet-import:focus-visible {
+	outline-offset: -3px;
 }

@@ -38,6 +38,22 @@ Browser tests use port 4382 and write local evidence into the workspace's ignore
 bun src/benchmark.ts 100000 ../../.context/spreadsheet-qa/large.lunaris.json
 ```
 
+## Editor layout
+
+The editor uses Lunaris paper-and-ink neutrals and inherits the host's UI font.
+A single tool row combines File, Univer's ungrouped ribbon, and persistence status.
+File opens import and export options; import previews open in a side panel without
+moving the grid. Grid interaction pauses while the preview covers it, preventing
+keyboard focus from reaching hidden cells. On narrow panes, Univer moves tools into its overflow menu and
+persistence status moves below the sheet tabs. Escape dismisses the File popover
+or an idle import panel and returns focus to File.
+
+The engine theme covers canvas selection and application chrome; cell formatting
+and formula reference colors retain their meaning. Univer handles canvas color
+inversion in dark mode. The toolbar integration uses its pinned 0.25.1
+`headerbar` part marker to reserve space for File and status. The outer resource
+header and app navigation belong to the Lunaris host, outside this extension.
+
 ## Storage and editing
 
 One `content` Yjs slot is the working document. The host owns SQLite persistence,

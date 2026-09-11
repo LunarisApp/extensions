@@ -1,3 +1,4 @@
+import { workbookTheme } from "./theme";
 import { HIDDEN_COMMANDS } from "./commands";
 import { createUniver, LocaleType, mergeLocales } from "@univerjs/presets";
 import { UniverSheetsCorePreset } from "@univerjs/preset-sheets-core";
@@ -14,11 +15,13 @@ import "@univerjs/preset-sheets-sort/lib/index.css";
 export function createEngine(container: HTMLElement) {
 	const worker = new FormulaWorker();
 	const engine = createUniver({
+		theme: workbookTheme,
 		locale: LocaleType.EN_US,
 		locales: { [LocaleType.EN_US]: mergeLocales(en, filterEn, sortEn) },
 		presets: [
 			UniverSheetsCorePreset({
 				container,
+				ribbonType: "simple",
 				workerURL: worker,
 				menu: Object.fromEntries(
 					HIDDEN_COMMANDS.map((id) => [id, { hidden: true }]),

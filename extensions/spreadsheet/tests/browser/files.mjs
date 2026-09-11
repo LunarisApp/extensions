@@ -70,10 +70,22 @@ try {
 		timeout: 30000,
 	});
 	frame = page.frames()[1];
+	await frame.getByRole("button", { name: "File", exact: true }).click();
 	assert.equal(
 		await frame
 			.getByRole("button", { name: "Import file", exact: true })
 			.isDisabled(),
+		true,
+	);
+	await page.keyboard.press("Escape");
+	assert.equal(
+		await frame.locator(".spreadsheet-file-menu").isVisible(),
+		false,
+	);
+	assert.equal(
+		await frame
+			.getByRole("button", { name: "File", exact: true })
+			.evaluate((button) => button === document.activeElement),
 		true,
 	);
 	await frame.getByText("Read-only", { exact: true }).waitFor();
