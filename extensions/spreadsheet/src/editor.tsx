@@ -173,7 +173,7 @@ export function SpreadsheetEditor({
 		return yProvider.subscribePersistenceState(update);
 	}, [yProvider]);
 	async function task<T>(
-		input: ConversionTask,
+		input: ConversionTask | (() => Promise<ConversionTask>),
 		label: string,
 	): Promise<T | undefined> {
 		controller.current?.abort();
@@ -182,13 +182,18 @@ export function SpreadsheetEditor({
 		setBusy(label);
 		setMessage("");
 		try {
+			const prepared =
+				typeof input === "function"
+					? await abortable(input(), abort.signal)
+					: input;
+			abort.signal.throwIfAborted();
 			return await runPluginWorkerTask<ConversionTask, T>(
 				() => new ConversionWorker(),
-				input,
+				prepared,
 				{
 					signal: abort.signal,
 					timeoutMs: 120_000,
-					transfer: input.bytes ? [input.bytes] : [],
+					transfer: prepared.bytes ? [prepared.bytes] : [],
 				},
 			);
 		} catch (error) {
@@ -209,12 +214,12 @@ export function SpreadsheetEditor({
 			return;
 		}
 		const parsed = await task<ImportPreview>(
-			{
+			async () => ({
 				action: "import",
 				bytes: await selected.arrayBuffer(),
 				filename: selected.name,
 				options: { delimiter: separator, types, header },
-			},
+			}),
 			"Reading file…",
 		);
 		if (parsed) setPreview(parsed);

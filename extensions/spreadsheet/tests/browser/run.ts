@@ -18,7 +18,7 @@ try {
 	}
 	const files = process.argv.includes("--scale")
 		? ["scale.mjs", "import-scale.mjs"]
-		: ["smoke.mjs", "formulas.mjs", "structure.mjs", "files.mjs", "layout.mjs"];
+		: ["smoke.mjs", "formulas.mjs", "structure.mjs", "files.mjs", "import-read.mjs", "layout.mjs"];
 	for (const file of files) {
 		const test = Bun.spawn(["node", `tests/browser/${file}`], {
 			stdout: "inherit",

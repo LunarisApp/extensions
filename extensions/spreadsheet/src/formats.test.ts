@@ -177,3 +177,21 @@ it("exports JSON records; rejects duplicate headers and unsafe JSON integers", (
 		importFile(bytes('[{"id":9007199254740993}]'), "data.json"),
 	).toThrow("unsafe");
 });
+
+it("validates native color lengths before importing formatting", () => {
+	const source = importFile(bytes("Label\nValue"), "source.csv").workbook;
+	const sheet = source.sheets[0]!;
+	const key = cellKey(sheet.rows[0]!, sheet.columns[0]!);
+	for (const property of ["color", "background"] as const) {
+		for (const color of ["#12345", "#1234567"]) {
+			sheet.styles[key] = { [property]: color };
+			expect(() => importFile(bytes(JSON.stringify(source)), "test.lunaris.json"))
+				.toThrow("Invalid cell color");
+		}
+		for (const color of ["#abc", "#abcd", "#ABCDEF", "#ABCDEF80"]) {
+			sheet.styles[key] = { [property]: color };
+			expect(importFile(bytes(JSON.stringify(source)), "test.lunaris.json")
+				.workbook.sheets[0]!.styles[key]).toEqual({ [property]: color });
+		}
+	}
+});
