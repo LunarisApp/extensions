@@ -77,6 +77,11 @@ body {
 .spreadsheet-editor [data-u-comp="ribbon-header-menu"] {
 	background: var(--sheet-paper);
 }
+/* Univer's footer contains both sheet tabs and zoom controls. Override its
+   important dark background so the host's muted surface works in both themes. */
+.spreadsheet-editor [data-u-comp="workbench-layout"] > section > footer > section {
+	background: var(--sheet-surface) !important;
+}
 /* Include native controls and portaled Univer menus without overriding cell fonts. */
 .univer-font-sans,
 .spreadsheet-editor [data-u-comp="workbench-layout"],
