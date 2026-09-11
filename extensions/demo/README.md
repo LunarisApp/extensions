@@ -1,23 +1,50 @@
 # Northstar Pulse (Demo)
 
-A compact reference extension for Lunaris resource types. Creating a **Northstar
-Pulse** resource generates a fictional seven-day workspace snapshot, stores it once
-in host-managed key-value storage, and opens it in a read-only dashboard view.
+Explore a complete Lunaris extension through a small, read-only dashboard. Northstar
+Pulse creates a fictional seven-day workspace snapshot so you can see how a resource
+is created, stored, and displayed without connecting an external service.
 
-The example focuses on the complete resource lifecycle without external services:
+**All values are synthetic.** This is a developer example, not workspace analytics.
 
-- user-creatable resource type with schema-validated key-value storage;
-- random data generated once during resource initialization;
-- a compatible default view with loading and invalid-data states;
-- a responsive, accessible SVG trend chart and semantic workspace metrics.
+## Use cases
+
+- Learn how to connect a custom resource type to its default view.
+- Use a working dashboard as a starting point for your own extension.
+- Explore loading, invalid-data, and responsive chart states.
+
+## Features
+
+- A seven-day snapshot generated once when you create a resource.
+- Workspace metrics and an accessible SVG trend chart.
+- Stored data that stays the same when you reopen the dashboard.
+
+## Try it
+
+With the extension enabled in your workspace, create a **Northstar Pulse** resource.
+The dashboard opens with generated data. Create another resource for a new snapshot;
+existing snapshots cannot be edited through the view.
+
+## Technology
+
+Built with React and the Lunaris Plugin SDK. The resource initializer generates the
+snapshot, Zod validates its schema, and host-managed key-value storage retains it.
+A compatible default view reads the stored snapshot and handles loading and invalid data.
+
+See [resource registration](src/index.tsx), [snapshot generation and schema](src/domain.ts),
+and [dashboard rendering](src/dashboard.tsx).
+
+### Permissions and privacy
+
+Content read access displays the snapshot; content write access initializes it.
+The extension makes no network requests.
+
+## Development
+
+Run from `extensions/demo`:
 
 ```sh
 bun install
-bun test
+bun run test
 bun run typecheck
 bun run build
 ```
-
-All displayed values are synthetic. The extension requests content read access
-to display its stored snapshot and content write access to initialize it. It
-makes no network requests and provides no editing path after creation.
