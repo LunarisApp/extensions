@@ -560,7 +560,7 @@ export function SpreadsheetEditor({
 						)}
 						{preview && (
 							<>
-								<div className="spreadsheet-preview">
+								<div className="spreadsheet-preview" data-header={header}>
 									<table>
 										<caption>
 											First rows · {preview.sheetCount} sheet(s)
@@ -588,17 +588,19 @@ export function SpreadsheetEditor({
 										</ul>
 									</details>
 								)}
-								<p>
-									Creates a new workbook in this folder. The current workbook
-									stays open until import completes.
-								</p>
-								<button
-									className="spreadsheet-primary"
-									disabled={!!busy || !canWriteContent}
-									onClick={() => void importWorkbook()}
-								>
-									Create workbook
-								</button>
+								<div className="spreadsheet-import-footer">
+									<p>
+										Creates a new workbook in this folder. The current workbook
+										stays open until import completes.
+									</p>
+									<button
+										className="spreadsheet-primary"
+										disabled={!!busy || !canWriteContent}
+										onClick={() => void importWorkbook()}
+									>
+										Create workbook
+									</button>
+								</div>
 							</>
 						)}
 					</section>
