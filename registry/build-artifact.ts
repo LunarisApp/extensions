@@ -8,6 +8,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
+import { validateManifest } from "@lunarisapp/plugin-sdk";
 import { fileTypeFromBuffer } from "file-type";
 import {
   MAX_ICON_BYTES,
@@ -15,7 +16,6 @@ import {
   MAX_STYLE_BYTES,
   REPOSITORY_PATTERN,
 } from "./constants.ts";
-import { parseExtensionManifest } from "./manifest.ts";
 
 const sourceDirectory = path.resolve(process.env.EXTENSION_DIST ?? "dist");
 const artifactsRoot = path.resolve(
@@ -36,7 +36,7 @@ if (!REPOSITORY_PATTERN.test(repository)) {
   throw new Error("EXTENSION_REPOSITORY must be an owner/repository pair");
 }
 
-const manifest = parseExtensionManifest(
+const manifest = validateManifest(
   JSON.parse(
     await readFile(path.join(sourceDirectory, "manifest.json"), "utf8"),
   ),
@@ -210,14 +210,18 @@ if (checkOnly) {
     }
   }
   process.stdout.write(`${manifest.id}@${manifest.version} verified\n`);
-} else if (!overwrite) {
-  try {
-    await stat(destination);
-    throw new Error(
-      `${manifest.id}@${manifest.version} already exists; bump the version`,
-    );
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+} else {
+  if (overwrite) {
+    await rm(destination, { force: true, recursive: true });
+  } else {
+    try {
+      await stat(destination);
+      throw new Error(
+        `${manifest.id}@${manifest.version} already exists; bump the version`,
+      );
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
   }
   await mkdir(destination, { recursive: true });
   await Promise.all(
@@ -225,14 +229,7 @@ if (checkOnly) {
       writeFile(path.join(destination, filename), value),
     ),
   );
-  process.stdout.write(`${manifest.id}@${manifest.version} created\n`);
-} else {
-  await rm(destination, { force: true, recursive: true });
-  await mkdir(destination, { recursive: true });
-  await Promise.all(
-    [...files].map(([filename, value]) =>
-      writeFile(path.join(destination, filename), value),
-    ),
+  process.stdout.write(
+    `${manifest.id}@${manifest.version} ${overwrite ? "overwritten" : "created"}\n`,
   );
-  process.stdout.write(`${manifest.id}@${manifest.version} overwritten\n`);
 }

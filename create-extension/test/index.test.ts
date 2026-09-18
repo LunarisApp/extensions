@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import packageJson from "../package.json" with { type: "json" };
 import { parseArgs, resolveExtensionOptions, scaffoldExtension } from "../src/index.js";
 
 const temporaryDirectories: string[] = [];
@@ -18,6 +19,18 @@ afterEach(async () => {
       .splice(0)
       .map((directory) => rm(directory, { force: true, recursive: true }))
   );
+});
+
+test("CLI version matches the package version", async () => {
+  const result = Bun.spawn(
+    [process.execPath, join(import.meta.dir, "../src/index.ts"), "--version"],
+    {
+      stdout: "pipe",
+      stderr: "pipe",
+    }
+  );
+  expect(await new Response(result.stdout).text()).toBe(`${packageJson.version}\n`);
+  expect(await result.exited).toBe(0);
 });
 
 describe("parseArgs", () => {

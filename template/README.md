@@ -1,7 +1,16 @@
-# Example Lunaris extension marketplace
+# Example Lunaris extension
 
-Build the extension with `bun run typecheck && bun run build`. Publish `release.json`,
-`main.js`, optional `styles.css`, and optional `icon.<extension>` at immutable public HTTPS
+Edit `src/index.tsx` to implement your extension. Check and build it with:
+
+```sh
+bun install
+bun run typecheck
+bun run build
+```
+
+## Publish a marketplace
+
+Publish `release.json`, `main.js`, optional `styles.css`, and optional `icon.<extension>` at immutable public HTTPS
 URLs. Each asset in `release.json` needs URL, byte length, media type, and SHA-256.
 Asset URLs may be relative to the descriptor.
 
@@ -50,13 +59,14 @@ manifest.json
 
 ## Multiple extensions
 
-Keep one root `marketplace.json`; place each extension in `extensions/<name>/`. IDs and
-versions must be unique across the index. Store published builds under
+Keep one root `marketplace.json`; place each extension in `extensions/<name>/`.
+Each extension ID must be unique, and each version must be unique within its extension.
+Store published builds under
 `artifacts/<extension-id>/<version>/`.
 
 ## Resource views and status bars
 
-SDK 0.8 resource views declare the named storage slots they consume. Use
+Resource views declare the named storage slots they consume. Use
 `storageRequirements: {}` when a view needs no durable storage. Status content belongs
 to the resource view that owns it; standalone views cannot provide a `statusBar`.
 
@@ -106,3 +116,7 @@ An artifact descriptor can keep its asset URLs transport-neutral:
 Upload the same files to immutable or content-addressed paths on a static host. Serve
 JSON as `application/json`, scripts/styles with correct media types, and include
 `Access-Control-Allow-Origin: *` on the index, descriptors, icons, scripts, and styles.
+
+## License
+
+This starter includes the [Apache-2.0 license](./LICENSE) and Lunaris copyright notice.

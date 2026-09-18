@@ -29,16 +29,12 @@ There is no registry website or GitHub API dependency.
 
 ## Publishing official extensions
 
-Build and test an extension locally, then run `registry/build-artifact.ts`. Commit the
-new `artifacts/<extension-id>/<version>` directory before updating the marketplace.
-Run `bun registry/update-marketplace.ts` in a second commit so descriptor URLs contain
-the full artifact commit SHA.
+Build and test the extension, create an artifact with `registry/build-artifact.ts`,
+and commit it. Then run `bun registry/update-marketplace.ts` and commit the index
+separately so descriptor URLs contain the artifact commit's full SHA.
 
-Published artifact directories are immutable by default, so every normal build requires
-a new extension version. An explicitly authorized replacement release can be regenerated
-with `registry/build-artifact.ts --overwrite`; its marketplace descriptor pins must also
-be refreshed. Tags such as `<extension-id>@<version>` are optional and are not part of
-the client trust model.
+Published versions are immutable by default. See the [publishing guide](registry/README.md)
+for commands, verification, and the explicit replacement workflow.
 
 ## Create another marketplace
 
@@ -60,8 +56,12 @@ commit-pinned GitHub artifacts, and generic static hosting.
 
 ## Plugin SDK compatibility
 
-Curated extension sources and the starter target Plugin SDK 0.10 and iframe sandbox
-protocols 6 and 7. Protocol-7 builds require the updated host and use incremental Yjs synchronization. Published artifacts remain immutable unless an explicitly authorized
-replacement uses the registry overwrite workflow. Excalidraw also contributes a
-host-managed local search indexer for live canvas
-text and named frames. Index storage, lifecycle, ranking, and search UI remain host-owned.
+The extension sources and starter use Plugin SDK 0.10. The registry supports iframe
+sandbox protocols 6 and 7; protocol-7 builds require a compatible Lunaris host.
+The SDK emits runtime metadata during the build. Older builds without runtime metadata
+retain protocol 6.
+
+## License
+
+This repository is licensed under [Apache-2.0](LICENSE). The creator and starter include
+copies of the license so they remain available in published packages and generated projects.
