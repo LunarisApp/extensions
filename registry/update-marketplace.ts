@@ -1,13 +1,13 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import type { Dirent } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
+import { validateManifest } from "@lunarisapp/plugin-sdk";
 import { rcompare } from "semver";
 import { readRegistryPolicy } from "./config.ts";
 import { REPOSITORY_PATTERN } from "./constants.ts";
-import { parseExtensionManifest } from "./manifest.ts";
+import { readCuratedExtensions } from "./curated.ts";
 
 const root = process.cwd();
 const marketplacePath = path.join(root, "marketplace.json");
@@ -74,7 +74,7 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
         "utf8",
       );
       const descriptor = JSON.parse(descriptorText) as { manifest: unknown };
-      const manifest = parseExtensionManifest(descriptor.manifest);
+      const manifest = validateManifest(descriptor.manifest);
       if (
         manifest.id !== extensionEntry.name ||
         manifest.version !== versionEntry.name
@@ -116,34 +116,6 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
   return fragments;
 }
 
-async function readCuratedSourceRoots(): Promise<Map<string, string>> {
-  const sourceRoots = new Map<string, string>();
-  const extensionsDirectory = path.join(root, "extensions");
-  let entries: Dirent[];
-  try {
-    entries = await readdir(extensionsDirectory, {
-      withFileTypes: true,
-    });
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-    return sourceRoots;
-  }
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const sourceRoot = `extensions/${entry.name}`;
-    const manifest = parseExtensionManifest(
-      JSON.parse(
-        await readFile(path.join(root, sourceRoot, "manifest.json"), "utf8"),
-      ),
-    );
-    if (sourceRoots.has(manifest.id)) {
-      throw new Error(`Duplicate curated extension ID: ${manifest.id}`);
-    }
-    sourceRoots.set(manifest.id, sourceRoot);
-  }
-  return sourceRoots;
-}
-
 function sourceRepository(repository: string, sourceRoot?: string): string {
   if (!sourceRoot) return repository;
   const encodedRoot = sourceRoot.split("/").map(encodeURIComponent).join("/");
@@ -169,7 +141,12 @@ const marketplace = JSON.parse(await readFile(marketplacePath, "utf8")) as {
 };
 let changed = false;
 const policy = await readRegistryPolicy(root);
-const curatedSourceRoots = await readCuratedSourceRoots();
+const curatedSourceRoots = new Map(
+  (await readCuratedExtensions(root)).map((extension) => [
+    extension.id,
+    extension.root,
+  ]),
+);
 const blockedVersions = new Set(policy.blockedVersions);
 if (marketplace.enabled !== policy.enabled) {
   marketplace.enabled = policy.enabled;
@@ -185,10 +162,10 @@ for (const fragment of await readFragments()) {
     icon?: { url: string };
     manifest: unknown;
     repository: string;
-    runtime: { kind: "iframe"; protocol: 6 };
+    runtime: { kind: "iframe"; protocol: 6 | 7 };
     status: "active" | "blocked";
   };
-  const manifest = parseExtensionManifest(descriptor.manifest);
+  const manifest = validateManifest(descriptor.manifest);
   const repository = sourceRepository(
     descriptor.repository,
     curatedSourceRoots.get(manifest.id),
@@ -207,22 +184,25 @@ for (const fragment of await readFragments()) {
       : descriptor.status,
     version: manifest.version,
   };
+  const metadata = {
+    description: manifest.description,
+    developer: manifest.developer,
+    ...(manifest.website ? { homepageUrl: manifest.website } : {}),
+    ...(manifest.keywords ? { keywords: [...manifest.keywords] } : {}),
+    name: manifest.name,
+    repository,
+  };
   let entry = marketplace.extensions.find(
     (candidate) => candidate.id === manifest.id,
   );
   if (!entry) {
     entry = {
-      description: manifest.description,
-      developer: manifest.developer,
-      ...(manifest.website ? { homepageUrl: manifest.website } : {}),
+      ...metadata,
       ...(descriptor.icon
         ? { iconUrl: new URL(descriptor.icon.url, fragment.descriptorUrl).href }
         : {}),
       id: manifest.id,
-      ...(manifest.keywords ? { keywords: [...manifest.keywords] } : {}),
       latestVersion: manifest.version,
-      name: manifest.name,
-      repository,
       versions: [],
     };
     marketplace.extensions.push(entry);
@@ -249,14 +229,6 @@ for (const fragment of await readFragments()) {
   }
   entry.versions.sort((left, right) => rcompare(left.version, right.version));
   if (entry.versions[0]?.version === manifest.version) {
-    const metadata = {
-      description: manifest.description,
-      developer: manifest.developer,
-      ...(manifest.website ? { homepageUrl: manifest.website } : {}),
-      ...(manifest.keywords ? { keywords: [...manifest.keywords] } : {}),
-      name: manifest.name,
-      repository,
-    };
     for (const [key, value] of Object.entries(metadata)) {
       if (JSON.stringify(entry[key]) === JSON.stringify(value)) continue;
       entry[key] = value;

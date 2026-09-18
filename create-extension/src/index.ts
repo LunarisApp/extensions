@@ -4,9 +4,9 @@ import { realpathSync } from "node:fs";
 import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import packageJson from "../package.json" with { type: "json" };
 import { copyTemplateFiles } from "./template-files.js";
 
-const VERSION = "0.4.1";
 const EXTENSION_ID_PATTERN = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
 const MAX_EXTENSION_ID_LENGTH = 50;
 
@@ -135,7 +135,6 @@ export function resolveExtensionOptions(options: CliOptions): ExtensionOptions {
   const name = options.name?.trim() || titleCase(slug);
   const developer = options.developer?.trim() || "Your Name";
   const description = options.description?.trim() || `${name} extension for Lunaris`;
-  if (!name || !developer || !description) throw new Error("Extension metadata must not be empty");
   const website = options.website?.trim();
   if (website) {
     try {
@@ -242,15 +241,7 @@ export async function scaffoldExtension(
 
   const readmePath = join(options.directory, "README.md");
   const readme = await readFile(readmePath, "utf8");
-  await writeFile(
-    readmePath,
-    readme
-      .replace("# Example Lunaris extension", `# ${options.name}`)
-      .replace(
-        "1. Replace example metadata and implementation.",
-        `1. Edit \`src/index.tsx\` to implement ${options.name}.`
-      )
-  );
+  await writeFile(readmePath, readme.replace("# Example Lunaris extension", `# ${options.name}`));
 }
 
 export async function main(args = process.argv.slice(2)): Promise<void> {
@@ -260,7 +251,7 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
     return;
   }
   if (cliOptions.version) {
-    process.stdout.write(`${VERSION}\n`);
+    process.stdout.write(`${packageJson.version}\n`);
     return;
   }
 

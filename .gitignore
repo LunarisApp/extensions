@@ -1,6 +1,3 @@
 node_modules/
 dist/
-!create-extension/dist/
-create-extension/dist/*
-!create-extension/dist/index.js
 *.tgz

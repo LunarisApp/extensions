@@ -50,4 +50,5 @@ npm pack --dry-run
 ```
 
 The build copies the repository's root [`template`](../template) into `dist/template`,
-so the published executable remains self-contained.
+so the published package includes its starter files. Generated build output is ignored by
+Git; `npm pack` and `npm publish` rebuild it through `prepack`.
