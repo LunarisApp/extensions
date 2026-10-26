@@ -27,6 +27,11 @@ There is no registry website or GitHub API dependency.
 - [`create-extension`](./create-extension): extension initializer
 - [`template`](./template): extension starter and marketplace examples
 
+## Requests for extensions
+
+Looking for something to build? Browse [Requests for extensions](./requests) for
+open contribution briefs, or propose an idea using the reusable template.
+
 ## Publishing official extensions
 
 Build and test the extension, create an artifact with `registry/build-artifact.ts`,
