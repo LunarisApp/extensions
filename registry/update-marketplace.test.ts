@@ -103,6 +103,8 @@ async function git(root: string, ...args: string[]): Promise<string> {
     [
       "git",
       "-c",
+      "commit.gpgsign=false",
+      "-c",
       "user.name=Lunaris Tests",
       "-c",
       "user.email=tests@lunaris.app",
@@ -290,6 +292,30 @@ describe("update-marketplace", () => {
     );
     expect(marketplace.extensions[0].versions[0].descriptor.url).toContain(
       replacementRevision,
+    );
+    await git(root, "add", "marketplace.json");
+    await git(root, "commit", "-m", "pin replacement");
+    await update(root);
+    expect(await readFile(path.join(root, "marketplace.json"), "utf8")).toBe(
+      `${JSON.stringify(marketplace, null, 2)}\n`,
+    );
+  });
+
+  it("refuses to preserve a mutable URL even when descriptor bytes match", async () => {
+    const { root } = await fixture();
+    await git(root, "init");
+    await writeArtifact(root, "1.0.0");
+    await git(root, "add", ".");
+    await git(root, "commit", "-m", "publish 1.0.0");
+    const revision = await git(root, "rev-parse", "HEAD");
+    await update(root);
+    const filename = path.join(root, "marketplace.json");
+    const catalog = JSON.parse(await readFile(filename, "utf8"));
+    const pin = catalog.extensions[0].versions[0].descriptor;
+    pin.url = pin.url.replace(revision, "main");
+    await writeFile(filename, `${JSON.stringify(catalog, null, 2)}\n`);
+    await expect(update(root)).rejects.toThrow(
+      "Invalid commit-pinned descriptor URL",
     );
   });
 });

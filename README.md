@@ -34,12 +34,13 @@ open contribution briefs, or propose an idea using the reusable template.
 
 ## Publishing official extensions
 
-Build and test the extension, create an artifact with `registry/build-artifact.ts`,
-and commit it. Then run `bun registry/update-marketplace.ts` and commit the index
-separately so descriptor URLs contain the artifact commit's full SHA.
+Bump the extension version in both its manifest and package, then merge to `main`.
+CI tests and builds enabled extensions; automatic publication commits new immutable
+artifacts and updates the marketplace with commit-pinned URLs. Source-only changes
+without a version bump run checks but do not publish.
 
-Published versions are immutable by default. See the [publishing guide](registry/README.md)
-for commands, verification, and the explicit replacement workflow.
+See the [publishing guide](registry/README.md) for repository setup, paused
+candidates, manual retries, and rollback.
 
 ## Create another marketplace
 

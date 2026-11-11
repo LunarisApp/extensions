@@ -8,6 +8,7 @@ import { rcompare } from "semver";
 import { readRegistryPolicy } from "./config.ts";
 import { REPOSITORY_PATTERN } from "./constants.ts";
 import { readCuratedExtensions } from "./curated.ts";
+import { verifyDescriptorUrl } from "./verify-artifacts.ts";
 
 const root = process.cwd();
 const marketplacePath = path.join(root, "marketplace.json");
@@ -91,14 +92,7 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
       ].join("/");
       const revision =
         configuredRevision ??
-        (await git(
-          "log",
-          "-1",
-          ...(overwrite ? [] : ["--diff-filter=A"]),
-          "--format=%H",
-          "--",
-          artifactPath,
-        ));
+        (await git("log", "-1", "--format=%H", "--", artifactPath));
       if (!/^[a-f0-9]{40,64}$/.test(revision)) {
         throw new Error(`No committed artifact revision for ${artifactPath}`);
       }
@@ -106,10 +100,39 @@ async function readFragments(): Promise<MarketplaceFragment[]> {
         .split("/")
         .map(encodeURIComponent)
         .join("/");
+      // Existing pins can refer to a deliberate historical replacement or a
+      // pre-merge artifact commit. Preserve them when the bytes still match.
+      const published = marketplace.extensions
+        .find((entry) => entry.id === manifest.id)
+        ?.versions.find((entry) => entry.version === manifest.version)
+        ?.descriptor as
+        | { url: string; bytes: number; sha256: string }
+        | undefined;
+      const preservePin = published && !overwrite && !configuredRevision;
+      if (preservePin) {
+        verifyDescriptorUrl(
+          published.url,
+          manifest.id,
+          manifest.version,
+          repository,
+        );
+      }
+      if (
+        preservePin &&
+        (published.bytes !== Buffer.byteLength(descriptorText) ||
+          published.sha256 !==
+            createHash("sha256").update(descriptorText).digest("hex"))
+      ) {
+        throw new Error(
+          `Published descriptor changed: ${manifest.id}@${manifest.version}`,
+        );
+      }
       fragments.push({
         descriptor,
         descriptorBytes: Buffer.from(descriptorText),
-        descriptorUrl: `https://raw.githubusercontent.com/${repository}/${revision}/${encodedArtifactPath}`,
+        descriptorUrl: preservePin
+          ? published.url
+          : `https://raw.githubusercontent.com/${repository}/${revision}/${encodedArtifactPath}`,
       });
     }
   }
