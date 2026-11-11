@@ -1,0 +1,5 @@
+{
+  "paused": {
+    "lunaris.spreadsheet": "Integration candidate: publish SDK 0.11, commit a public-dependency bun.lock, and complete BENCHMARKS.md release gates before removing this pause."
+  }
+}
